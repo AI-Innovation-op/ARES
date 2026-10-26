@@ -14,9 +14,17 @@ import type {
   NumeroPose,
 } from '../types/ares.types.js';
 
+// Enlace táctico del backend: si estamos en Render u otro dominio público, apunta al backend en la nube
+const RENDER_BACKEND_URL = 'https://ares-backend-ozs5.onrender.com';
+export const API_BASE_ORIGIN =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && (window.location.hostname.includes('render.com') || window.location.hostname.includes('onrender.com'))
+    ? RENDER_BACKEND_URL
+    : '');
+
 const cliente = axios.create({
-  baseURL: '/api',
-  timeout: 60_000, // 60s para razonamiento profundo de Gemini
+  baseURL: `${API_BASE_ORIGIN}/api`,
+  timeout: 60_000, // 60s para razonamiento profundo de Gemini / DeepSeek
   headers: {
     'Content-Type': 'application/json',
   },
@@ -39,7 +47,7 @@ export const apiService = {
     onError?: (error: Error) => void;
   }): Promise<void> {
     try {
-      const response = await fetch('/api/chat/stream', {
+      const response = await fetch(`${API_BASE_ORIGIN}/api/chat/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -188,7 +196,7 @@ export const apiService = {
    */
   async verificarSalud(): Promise<boolean> {
     try {
-      const { data } = await axios.get('/health', { timeout: 3000 });
+      const { data } = await axios.get(`${API_BASE_ORIGIN}/health`, { timeout: 3000 });
       return data?.status === 'ONLINE';
     } catch {
       return false;
