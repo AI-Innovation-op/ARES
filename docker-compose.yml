@@ -23,6 +23,9 @@ services:
       - SQLITE_DB_PATH=/app/database/ares.db
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_TEXT_MODEL=${GEMINI_TEXT_MODEL:-gemini-3-flash-preview}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_DEFAULT_MODEL=${OPENROUTER_DEFAULT_MODEL:-deepseek/deepseek-chat}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openrouter}
       - CORS_ORIGIN=*
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - DATABASE_URL=${DATABASE_URL:-postgresql://ares_commander:ares_dev_2026@postgres:5432/ares_db}

@@ -1,0 +1,59 @@
+# ============================================================================
+# RENDER BLUEPRINT: A.R.E.S. Ecosystem Cloud Deployment
+# Documentación: https://render.com/docs/blueprint-spec
+# ============================================================================
+
+services:
+  # --------------------------------------------------------------------------
+  # 1. Backend Core API (Docker Node.js 24)
+  # --------------------------------------------------------------------------
+  - type: web
+    name: ares-backend
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: DB_DRIVER
+        value: sqlite
+      - key: SQLITE_DB_PATH
+        value: /app/database/ares.db
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_TEXT_MODEL
+        value: gemini-3-flash-preview
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_DEFAULT_MODEL
+        value: deepseek/deepseek-chat
+      - key: LLM_PROVIDER
+        value: openrouter
+      - key: CORS_ORIGIN
+        value: "*"
+    disk:
+      name: ares-db-storage
+      mountPath: /app/database
+      sizeGB: 1
+
+  # --------------------------------------------------------------------------
+  # 2. Frontend Tactical HUD (Docker Nginx + Three.js)
+  # --------------------------------------------------------------------------
+  - type: web
+    name: ares-frontend
+    runtime: docker
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
+    plan: free
+    region: oregon
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: ares-backend
+          property: host

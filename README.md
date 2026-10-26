@@ -155,6 +155,29 @@ docker compose up --build -d
 
 ---
 
+### Opción B.1: Despliegue en la Nube con 1 Clic (Render / Railway / VPS)
+
+#### 1. En Render.com (Gratuito con Blueprint)
+A.R.E.S. incluye soporte nativo para **Render Blueprints** mediante `render.yaml`:
+1. Haz un Fork o vincula tu repositorio `AI-Innovation-op/ARES` en [Render](https://dashboard.render.com/).
+2. Haz clic en **New +** ➔ **Blueprint**.
+3. Selecciona tu repositorio: Render detectará automáticamente `render.yaml` y aprovisionará el Backend (Node 24 + SQLite) y el Frontend (Nginx + Vue 3).
+4. Rellena tus variables de entorno secretas (`GEMINI_API_KEY`, `OPENROUTER_API_KEY`).
+5. ¡Listo! Tu asistente táctico estará disponible en una URL pública con HTTPS gratis (`https://ares-frontend.onrender.com`).
+
+#### 2. En Cualquier VPS Linux (DigitalOcean, Hetzner, AWS, Linode)
+Simplemente clona el repositorio en tu servidor y ejecuta el script automatizado:
+```bash
+git clone https://github.com/AI-Innovation-op/ARES.git
+cd ARES
+cp .env.example .env
+nano .env  # Agrega tu GEMINI_API_KEY y OPENROUTER_API_KEY
+chmod +x deploy.sh
+./deploy.sh
+```
+
+---
+
 ### Opción C: Uso desde la Terminal (A.R.E.S. CLI Táctico)
 
 Puedes interactuar con A.R.E.S. directamente desde cualquier terminal de Windows, Linux o Mac:
