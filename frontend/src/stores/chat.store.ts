@@ -38,6 +38,30 @@ export const useChatStore = defineStore('chat', () => {
   const cargandoHistorial = ref(false);
   const errorMensaje = ref<string | null>(null);
 
+  // Selector Multi-Modelo (Google Gemini + OpenRouter)
+  const modelosDisponibles = ref<any[]>([]);
+  const modeloSeleccionado = ref<string>(localStorage.getItem('ares.selected_model') || 'gemini-3-flash-preview');
+  const proveedorSeleccionado = ref<'gemini' | 'openrouter'>((localStorage.getItem('ares.selected_provider') as any) || 'gemini');
+
+  /**
+   * Carga el catálogo de modelos disponibles desde la API.
+   */
+  async function cargarModelos() {
+    try {
+      const modelos = await apiService.obtenerModelos();
+      modelosDisponibles.value = modelos;
+    } catch (err) {
+      console.warn('⚠️ [ChatStore] No se pudo cargar catálogo de modelos:', err);
+    }
+  }
+
+  function cambiarModelo(idModelo: string, proveedor: 'gemini' | 'openrouter') {
+    modeloSeleccionado.value = idModelo;
+    proveedorSeleccionado.value = proveedor;
+    localStorage.setItem('ares.selected_model', idModelo);
+    localStorage.setItem('ares.selected_provider', proveedor);
+  }
+
   /**
    * Carga la lista de sesiones de conversación previas desde SQLite.
    */
@@ -173,6 +197,8 @@ export const useChatStore = defineStore('chat', () => {
         message: texto,
         conversationId: conversacionIdActual.value,
         imageBase64: imagenBase64,
+        provider: proveedorSeleccionado.value,
+        model: modeloSeleccionado.value,
 
         onInit(data) {
           conversacionIdActual.value = data.conversationId;
@@ -247,5 +273,10 @@ export const useChatStore = defineStore('chat', () => {
     eliminarSesion,
     enviarMensaje,
     limpiarConsola,
+    modelosDisponibles,
+    modeloSeleccionado,
+    proveedorSeleccionado,
+    cargarModelos,
+    cambiarModelo,
   };
 });

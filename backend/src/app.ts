@@ -23,6 +23,7 @@ import {
   listarRepositoriosHandler,
   obtenerRepositorioActivoHandler,
 } from './controllers/repositories.controller.js';
+import { CATALOGO_MODELOS } from './services/llm.service.js';
 import { ejecutarHerramienta, DECLARACIONES_HERRAMIENTAS } from './services/tools.service.js';
 import { manejadorErrores } from './middleware/error.middleware.js';
 
@@ -61,6 +62,9 @@ app.get('/health', (_req, res) => {
 // 1. Chat Táctico Multimodal (Oráculo de Arquitectura + Grounding)
 app.post('/api/chat', chatHandler);
 app.post('/api/chat/stream', chatStreamHandler);
+app.get('/api/models', (_req, res) => {
+  res.status(200).json({ models: CATALOGO_MODELOS });
+});
 
 // 1.1 Persistencia y Sesiones de Chat (Memoria Total)
 app.get('/api/conversations', listarConversacionesHandler);

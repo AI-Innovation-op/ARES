@@ -31,6 +31,8 @@ export const apiService = {
     message: string;
     conversationId?: string;
     imageBase64?: string;
+    provider?: 'gemini' | 'openrouter';
+    model?: string;
     onInit?: (data: { stance: Postura; poseNumber: NumeroPose; conversationId: string }) => void;
     onChunk?: (chunk: string, poseDetected?: NumeroPose) => void;
     onDone?: (data: { reply: string; stance: Postura; poseNumber: NumeroPose; conversationId: string }) => void;
@@ -46,6 +48,8 @@ export const apiService = {
           message: params.message,
           conversationId: params.conversationId,
           imageBase64: params.imageBase64,
+          provider: params.provider,
+          model: params.model,
         }),
       });
 
@@ -252,5 +256,13 @@ export const apiService = {
   async obtenerUltimaTelemetria(commanderId: string = 'default'): Promise<any> {
     const { data } = await cliente.get<{ telemetria: any }>(`/bio/${commanderId}/latest`);
     return data.telemetria;
+  },
+
+  /**
+   * Obtiene el catálogo de modelos de IA disponibles (Gemini + OpenRouter).
+   */
+  async obtenerModelos(): Promise<any[]> {
+    const { data } = await cliente.get<{ models: any[] }>('/models');
+    return data.models;
   },
 };

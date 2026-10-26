@@ -20,6 +20,10 @@ export interface ChatRequest {
   imageBase64?: string;
   /** ID del comandante (en producción vendrá del JWT) */
   commanderId?: string;
+  /** Proveedor de IA preferido ('gemini' | 'openrouter') */
+  provider?: 'gemini' | 'openrouter';
+  /** Modelo específico a consultar (ej: deepseek/deepseek-chat) */
+  model?: string;
 }
 
 /** Respuesta del endpoint POST /api/chat */
@@ -34,6 +38,10 @@ export interface ChatResponse {
   conversationId: string;
   /** Fuentes de grounding (Google Search) */
   sources: Array<{ uri: string; title: string }>;
+  /** Proveedor usado para generar la respuesta */
+  provider?: string;
+  /** Modelo específico usado */
+  model?: string;
 }
 
 // ============================================================================

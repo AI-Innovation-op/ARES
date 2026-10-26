@@ -1,17 +1,42 @@
 <script setup lang="ts">
+import { onMounted, computed } from 'vue';
 import { useFsmStore } from '../../stores/fsm.store.js';
+import { useChatStore } from '../../stores/chat.store.js';
 import { useAudio } from '../../composables/useAudio.js';
 import { useTacticalVoice } from '../../composables/useTacticalVoice.js';
 
 const fsm = useFsmStore();
+const chatStore = useChatStore();
 const { audioSilenciado, toggleSilencio } = useAudio();
 const { vozHabilitada, toggleVoz } = useTacticalVoice();
+
+const modelosFallback = [
+  { id: 'gemini-3-flash-preview', nombre: 'Gemini 3 Flash', proveedor: 'gemini', icono: '🟣' },
+  { id: 'deepseek/deepseek-chat', nombre: 'DeepSeek V3', proveedor: 'openrouter', icono: '⚡' },
+  { id: 'deepseek/deepseek-r1-0528', nombre: 'DeepSeek R1', proveedor: 'openrouter', icono: '🧠' },
+  { id: 'openai/gpt-4o', nombre: 'GPT-4o', proveedor: 'openrouter', icono: '🟢' },
+  { id: 'anthropic/claude-3.5-sonnet', nombre: 'Claude 3.5', proveedor: 'openrouter', icono: '🟠' },
+];
+
+const listaModelos = computed(() => {
+  return chatStore.modelosDisponibles.length > 0 ? chatStore.modelosDisponibles : modelosFallback;
+});
+
+onMounted(() => {
+  chatStore.cargarModelos();
+});
+
+function onSelectModelo(id: string) {
+  const mod = listaModelos.value.find((m: any) => m.id === id);
+  const prov = mod?.proveedor || (id.startsWith('gemini') ? 'gemini' : 'openrouter');
+  chatStore.cambiarModelo(id, prov as any);
+}
 </script>
 
 <template>
-  <header class="h-14 border-b border-[#132a4a] bg-[#091326] px-4 flex items-center justify-between select-none">
+  <header class="h-14 border-b border-[#132a4a] bg-[#091326] px-4 flex items-center justify-between select-none gap-2">
     <!-- Identidad del Agente -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 shrink-0">
       <div class="w-8 h-8 rounded border border-[#00ffaa]/50 bg-[#040914] flex items-center justify-center text-lg shadow-sm">
         🛡️
       </div>
@@ -21,17 +46,37 @@ const { vozHabilitada, toggleVoz } = useTacticalVoice();
             A.R.E.S. <span class="text-[#00ffaa] text-xs font-normal">v2.6 CORE</span>
           </h1>
           <span class="px-1.5 py-0.2 rounded text-[10px] font-mono bg-cyan-950/60 border border-cyan-800 text-cyan-300">
-            J.A.R.V.I.S.
+            MULTI-MODEL
           </span>
         </div>
-        <p class="text-[10px] font-mono text-slate-400">
+        <p class="text-[10px] font-mono text-slate-400 hidden sm:block">
           Autonomous Resilient Engineering & Software-Doc God
         </p>
       </div>
     </div>
 
+    <!-- Selector Táctico de Modelo LLM (Gemini / OpenRouter) -->
+    <div class="flex items-center gap-1.5 bg-[#040914] px-2.5 py-1 rounded border border-cyan-500/40 text-xs font-mono shadow-[0_0_10px_rgba(0,229,255,0.1)]">
+      <span class="text-slate-400 text-[10px] hidden md:inline">NÚCLEO IA:</span>
+      <select
+        :value="chatStore.modeloSeleccionado"
+        @change="(e: any) => onSelectModelo(e.target.value)"
+        class="bg-transparent text-cyan-300 font-bold outline-none cursor-pointer text-xs"
+        title="Cambiar motor de Inteligencia Artificial"
+      >
+        <option
+          v-for="m in listaModelos"
+          :key="m.id"
+          :value="m.id"
+          class="bg-[#091326] text-slate-200"
+        >
+          {{ m.icono }} {{ m.nombre }}
+        </option>
+      </select>
+    </div>
+
     <!-- Indicador Táctico Central: Postura FSM -->
-    <div class="hidden md:flex items-center gap-2 bg-[#040914] px-3 py-1.5 rounded border border-[#132a4a]">
+    <div class="hidden lg:flex items-center gap-2 bg-[#040914] px-3 py-1.5 rounded border border-[#132a4a]">
       <span class="text-xs font-mono text-slate-400">POSTURA:</span>
       <span class="font-orbitron text-xs font-bold text-glow-neon text-[#00ffaa]">
         {{ fsm.etiquetaHUD }}
@@ -42,7 +87,7 @@ const { vozHabilitada, toggleVoz } = useTacticalVoice();
     </div>
 
     <!-- Controles Rápidos -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 shrink-0">
       <!-- Voz Táctica TTS Toggle -->
       <button
         @click="toggleVoz"
@@ -68,7 +113,7 @@ const { vozHabilitada, toggleVoz } = useTacticalVoice();
       <!-- Indicador de Enlace -->
       <div class="flex items-center gap-1.5 bg-[#040914] px-2.5 py-1.5 rounded border border-[#132a4a] text-xs font-mono text-emerald-400">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        <span>LINK ACTIVE</span>
+        <span class="hidden sm:inline">ONLINE</span>
       </div>
     </div>
   </header>

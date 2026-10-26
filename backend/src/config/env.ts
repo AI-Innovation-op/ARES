@@ -27,6 +27,14 @@ export interface ConfiguracionEntorno {
   CORS_ORIGIN: string;
   /** Indica si estamos en producción */
   NODE_ENV: string;
+  /** Clave de API de OpenRouter (opcional/multi-modelo) */
+  OPENROUTER_API_KEY: string;
+  /** Modelo por defecto de OpenRouter */
+  OPENROUTER_DEFAULT_MODEL: string;
+  /** Proveedor primario de LLM ('gemini' | 'openrouter') */
+  LLM_PROVIDER: string;
+  /** Modelo de texto de Google Gemini */
+  GEMINI_TEXT_MODEL: string;
 }
 
 /**
@@ -57,4 +65,8 @@ export const env: ConfiguracionEntorno = {
   PORT: parseInt(process.env['PORT'] ?? '3001', 10),
   CORS_ORIGIN: process.env['CORS_ORIGIN'] ?? 'http://localhost:5173',
   NODE_ENV: process.env['NODE_ENV'] ?? 'development',
+  OPENROUTER_API_KEY: process.env['OPENROUTER_API_KEY'] ?? '',
+  OPENROUTER_DEFAULT_MODEL: process.env['OPENROUTER_DEFAULT_MODEL'] ?? 'deepseek/deepseek-chat',
+  LLM_PROVIDER: process.env['LLM_PROVIDER'] ?? 'gemini',
+  GEMINI_TEXT_MODEL: process.env['GEMINI_TEXT_MODEL'] ?? 'gemini-3-flash-preview',
 };

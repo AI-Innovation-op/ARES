@@ -4,7 +4,7 @@
  * @module services/chat.service
  */
 
-import { invocarGemini, invocarGeminiStream } from './gemini.service.js';
+import { invocarLLM, invocarLLMStream } from './llm.service.js';
 import {
   crearConversacion,
   obtenerConversacionPorId,
@@ -98,7 +98,7 @@ export function derivarPosturaYPose(intencion: IntencionUsuario): {
  * Procesa un mensaje del comandante en el chat de A.R.E.S.
  */
 export async function procesarMensajeChat(request: ChatRequest): Promise<ChatResponse> {
-  const { message, conversationId, imageBase64, commanderId } = request;
+  const { message, conversationId, imageBase64, commanderId, provider, model } = request;
 
   let idConversacion = conversationId;
 
@@ -161,10 +161,12 @@ export async function procesarMensajeChat(request: ChatRequest): Promise<ChatRes
     parts: partesActuales,
   });
 
-  // Invocar a Gemini con grounding de búsqueda cuando no hay imagen
-  const respuesta = await invocarGemini({
+  // Invocar al motor Multi-Modelo (Gemini / OpenRouter con failover automático)
+  const respuesta = await invocarLLM({
     contents: historialTurnos,
     enableSearch: !imageBase64,
+    provider,
+    model,
   });
 
   // Guardar mensajes en la base de datos si está disponible
@@ -189,6 +191,8 @@ export async function procesarMensajeChat(request: ChatRequest): Promise<ChatRes
     poseNumber,
     conversationId: idConversacion,
     sources: respuesta.fuentes,
+    provider: respuesta.proveedorUsado,
+    model: respuesta.modeloUsado,
   };
 }
 
@@ -220,7 +224,7 @@ export type EventoStreamChat =
 export async function* procesarMensajeChatStream(
   request: ChatRequest
 ): AsyncGenerator<EventoStreamChat> {
-  const { message, conversationId, imageBase64, commanderId } = request;
+  const { message, conversationId, imageBase64, commanderId, provider, model } = request;
 
   let idConversacion = conversationId;
   let comandanteId = commanderId;
@@ -287,8 +291,11 @@ export async function* procesarMensajeChatStream(
     parts: partesActuales,
   });
 
-  const stream = invocarGeminiStream({
+  const stream = invocarLLMStream({
     contents: historialTurnos,
+    provider,
+    model,
+    enableSearch: !imageBase64,
   });
 
   let acumulado = '';
