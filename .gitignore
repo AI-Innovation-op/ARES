@@ -1,0 +1,56 @@
+# ============================================================================
+# ARCHIVO DE EXCLUSIÓN GIT: A.R.E.S. v2.6 Ecosystem
+# ============================================================================
+
+# --- Dependencias de Node.js ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Entornos y Credenciales Sensibles (CRÍTICO: No subir claves) ---
+.env
+.env.local
+.env.*.local
+*.env
+!*.env.example
+
+# --- Archivos de Base de Datos Locales y Temporales ---
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+database/*.db
+database/*.sqlite
+
+# --- Artefactos de Compilación y Distribución ---
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+tsconfig.node.tsbuildinfo
+
+# --- Registros y Logs del Sistema ---
+logs/
+*.log
+task-*.log
+
+# --- IDEs y Editores de Código ---
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# --- Directorios Temporales y Scratch ---
+tmp/
+temp/
+scratch/

@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ares-cyber-blue: #0284c7;
+  --color-ares-deep-blue: #1e3a8a;
+  --color-ares-emerald: #10b981;
+  --color-ares-neon-green: #00ffaa;
+  --color-ares-cyan: #00f2fe;
+  --color-ares-abyss: #040914;
+  --color-ares-panel: #091326;
+  --color-ares-border: #132a4a;
+
+  --font-orbitron: 'Orbitron', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Inter', sans-serif;
+}
+
+/* Scrollbar cyberpunk táctico */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #040914;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #132a4a;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00ffaa;
+}
+
+/* Efectos de brillo táctico */
+.glow-neon {
+  box-shadow: 0 0 15px rgba(0, 255, 170, 0.35);
+}
+
+.glow-blue {
+  box-shadow: 0 0 15px rgba(2, 132, 199, 0.35);
+}
+
+.text-glow-neon {
+  text-shadow: 0 0 8px rgba(0, 255, 170, 0.6);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 8px rgba(0, 242, 254, 0.6);
+}
+
+/* Cuadrícula táctica de fondo */
+.bg-grid-tactical {
+  background-image: 
+    linear-gradient(to right, rgba(19, 42, 74, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(19, 42, 74, 0.35) 1px, transparent 1px);
+  background-size: 32px 32px;
+}

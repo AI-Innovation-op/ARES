@@ -1,0 +1,98 @@
+# ============================================================================
+# DOCKER COMPOSE: A.R.E.S. v2.6 Ecosystem
+# Despliegue completo: Frontend (Nginx) + Backend (Node 24) + SQLite Persistente
+# Perfiles opcionales: PostgreSQL 16 (pgvector) y Redis 7
+# ============================================================================
+
+services:
+  # --------------------------------------------------------------------------
+  # 1. Backend Core API (Express 5 + Gemini SDK + node:sqlite)
+  # --------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ares-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - DB_DRIVER=${DB_DRIVER:-sqlite}
+      - SQLITE_DB_PATH=/app/database/ares.db
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_TEXT_MODEL=${GEMINI_TEXT_MODEL:-gemini-3-flash-preview}
+      - CORS_ORIGIN=*
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://ares_commander:ares_dev_2026@postgres:5432/ares_db}
+    volumes:
+      # Volumen para persistencia de la base de datos SQLite embebida
+      - ./database:/app/database
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # --------------------------------------------------------------------------
+  # 2. Frontend Tactical HUD (Vue 3 + Vite + Three.js + Nginx Alpine)
+  # --------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ares-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+      - "80:80"
+    depends_on:
+      - backend
+
+  # --------------------------------------------------------------------------
+  # 3. Base de Datos PostgreSQL 16 con pgvector (Opcional / Perfil: 'full')
+  # --------------------------------------------------------------------------
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ares-postgres
+    restart: unless-stopped
+    profiles: ["full", "postgres"]
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ares_db
+      POSTGRES_USER: ares_commander
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ares_dev_2026}
+    volumes:
+      - ares_pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ares_commander -d ares_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --------------------------------------------------------------------------
+  # 4. Caché Redis 7 (Opcional / Perfil: 'full')
+  # --------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: ares-redis
+    restart: unless-stopped
+    profiles: ["full", "redis"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - ares_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ares_pgdata:
+    driver: local
+  ares_redis:
+    driver: local
