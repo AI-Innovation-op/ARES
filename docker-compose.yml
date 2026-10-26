@@ -32,6 +32,10 @@ services:
     volumes:
       # Volumen para persistencia de la base de datos SQLite embebida
       - ./database:/app/database
+    networks:
+      default:
+        aliases:
+          - ares-backend
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1"]
       interval: 15s

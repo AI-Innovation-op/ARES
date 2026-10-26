@@ -36,10 +36,6 @@ services:
         value: openrouter
       - key: CORS_ORIGIN
         value: "*"
-    disk:
-      name: ares-db-storage
-      mountPath: /app/database
-      sizeGB: 1
 
   # --------------------------------------------------------------------------
   # 2. Frontend Tactical HUD (Docker Nginx + Three.js)
@@ -51,9 +47,3 @@ services:
     dockerfilePath: ./frontend/Dockerfile
     plan: free
     region: oregon
-    envVars:
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: ares-backend
-          property: host
