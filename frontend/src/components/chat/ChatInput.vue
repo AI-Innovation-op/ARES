@@ -80,6 +80,10 @@ function toggleDictado() {
     const transcripcion = event.results[0][0].transcript;
     texto.value = texto.value ? `${texto.value} ${transcripcion}` : transcripcion;
     escuchando.value = false;
+    // Auto-envío táctico al terminar el dictado para experiencia manos libres fluida
+    if (texto.value.trim()) {
+      enviar();
+    }
   };
 
   recognition.onerror = () => {

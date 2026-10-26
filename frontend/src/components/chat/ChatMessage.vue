@@ -126,6 +126,11 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
           <div v-if="seg.tipo === 'html'" v-html="seg.contenido"></div>
           <MermaidViewer v-else-if="seg.tipo === 'mermaid'" :code="seg.contenido" />
         </template>
+        <!-- Indicador de procesamiento mientras razona el modelo -->
+        <div v-if="!message.content" class="flex items-center gap-2 text-cyan-400 py-1 text-xs font-mono animate-pulse">
+          <span class="w-2 h-2 rounded-full bg-[#00ffaa] animate-ping"></span>
+          <span>A.R.E.S. procesando respuesta táctica...</span>
+        </div>
       </div>
 
       <!-- Fuentes de Grounding (Google Search) -->

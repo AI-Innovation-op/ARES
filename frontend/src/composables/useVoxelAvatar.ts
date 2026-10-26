@@ -23,8 +23,9 @@ export function crearAvatarVoxel(contenedor: HTMLElement): VoxelAvatarController
   const width = contenedor.clientWidth || 300;
   const height = contenedor.clientHeight || 400;
 
-  const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
-  camera.position.set(0, 1.2, 5.2);
+  const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
+  camera.position.set(0, 0.15, 5.2);
+  camera.lookAt(0, 0.15, 0);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(width, height);
@@ -89,6 +90,7 @@ export function crearAvatarVoxel(contenedor: HTMLElement): VoxelAvatarController
   // Grupo Raíz del Avatar
   // ==========================================================================
   const rootGroup = new THREE.Group();
+  rootGroup.position.y = 0.15;
   scene.add(rootGroup);
 
   // 1. Plataforma Hexagonal

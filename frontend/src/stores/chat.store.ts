@@ -233,13 +233,35 @@ export const useChatStore = defineStore('chat', () => {
           throw err;
         },
       });
-    } catch (err: any) {
-      console.error('💥 [ChatStore] Error en streaming de orden táctica:', err);
-      fsm.cambiarPostura('ERROR', 2);
-      errorMensaje.value = err.message || 'Falla de comunicación con el Núcleo Táctico de A.R.E.S.';
+    } catch (streamErr: any) {
+      console.warn('⚠️ [ChatStore] Error en streaming, activando respaldo HTTP directo:', streamErr);
 
-      mensajeModelo.content = `⚠️ **ALERTA DE EXCEPCIÓN:** ${errorMensaje.value}`;
-      mensajeModelo.poseNumber = 2;
+      // Si el streaming falla o se corta, fallback inmediato a petición normal para nunca dejar la burbuja vacía
+      try {
+        const data = await apiService.enviarMensajeChat({
+          message: texto,
+          conversationId: conversacionIdActual.value,
+          imageBase64: imagenBase64,
+          provider: proveedorSeleccionado.value,
+          model: modeloSeleccionado.value,
+        });
+
+        conversacionIdActual.value = data.conversationId;
+        localStorage.setItem('ares.active_conv', data.conversationId);
+        mensajeModelo.content = data.reply;
+        mensajeModelo.poseNumber = data.poseNumber || 1;
+        fsm.cambiarPostura(data.stance || 'IDLE', data.poseNumber || 1);
+
+        cargarConversaciones();
+        hablar(data.reply);
+      } catch (err: any) {
+        console.error('💥 [ChatStore] Fallo en envío de orden táctica:', err);
+        fsm.cambiarPostura('ERROR', 2);
+        errorMensaje.value = err.message || 'Falla de comunicación con el Núcleo Táctico de A.R.E.S.';
+
+        mensajeModelo.content = `⚠️ **ALERTA DE EXCEPCIÓN:** ${errorMensaje.value}`;
+        mensajeModelo.poseNumber = 2;
+      }
     } finally {
       cargando.value = false;
     }

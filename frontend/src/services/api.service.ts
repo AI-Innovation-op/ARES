@@ -115,6 +115,8 @@ export const apiService = {
     message: string;
     conversationId?: string;
     imageBase64?: string;
+    provider?: 'gemini' | 'openrouter';
+    model?: string;
   }): Promise<RespuestaChat> {
     const { data } = await cliente.post<RespuestaChat>('/chat', params);
     return data;
