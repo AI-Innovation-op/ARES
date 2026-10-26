@@ -59,14 +59,14 @@ function variableObligatoria(nombre: string): string {
  * Se evalúa una sola vez al importar el módulo.
  */
 export const env: ConfiguracionEntorno = {
-  DATABASE_URL: variableObligatoria('DATABASE_URL'),
+  DATABASE_URL: process.env['DATABASE_URL'] ?? '',
   GEMINI_API_KEY: variableObligatoria('GEMINI_API_KEY'),
   REDIS_URL: process.env['REDIS_URL'] ?? 'redis://localhost:6379',
-  PORT: parseInt(process.env['PORT'] ?? '3001', 10),
-  CORS_ORIGIN: process.env['CORS_ORIGIN'] ?? 'http://localhost:5173',
+  PORT: parseInt(process.env['PORT'] ?? '3000', 10),
+  CORS_ORIGIN: process.env['CORS_ORIGIN'] ?? '*',
   NODE_ENV: process.env['NODE_ENV'] ?? 'development',
   OPENROUTER_API_KEY: process.env['OPENROUTER_API_KEY'] ?? '',
   OPENROUTER_DEFAULT_MODEL: process.env['OPENROUTER_DEFAULT_MODEL'] ?? 'deepseek/deepseek-chat',
-  LLM_PROVIDER: process.env['LLM_PROVIDER'] ?? 'gemini',
+  LLM_PROVIDER: process.env['LLM_PROVIDER'] ?? 'openrouter',
   GEMINI_TEXT_MODEL: process.env['GEMINI_TEXT_MODEL'] ?? 'gemini-3-flash-preview',
 };

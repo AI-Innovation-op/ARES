@@ -141,8 +141,8 @@ async function iniciarServidor(): Promise<void> {
     console.warn('⚠️  [Aviso] Redis no está disponible. Modo en memoria activo.');
   }
 
-  app.listen(env.PORT, () => {
-    console.log(`🚀 [A.R.E.S.] Servidor API escuchando en el puerto ${env.PORT}`);
+  app.listen(env.PORT, '0.0.0.0', () => {
+    console.log(`🚀 [A.R.E.S.] Servidor API escuchando en el puerto ${env.PORT} (0.0.0.0)`);
     console.log(`📡 [Health] http://localhost:${env.PORT}/health`);
     console.log(`⚔️  [Consola] Listo para recibir órdenes tácticas del Comandante.`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
