@@ -13,6 +13,7 @@ import { chatHandler, chatStreamHandler } from './controllers/chat.controller.js
 import { generarDocumentoHandler, listarDocumentosHandler } from './controllers/documents.controller.js';
 import { auditarCodigoHandler, generarPruebasHandler, listarAuditoriasHandler } from './controllers/audit.controller.js';
 import { obtenerEstadoBioHandler, obtenerUltimaTelemetriaHandler } from './controllers/bio.controller.js';
+import { obtenerChangelogHandler, guardarChangelogHandler } from './controllers/changelog.controller.js';
 import {
   listarConversacionesHandler,
   obtenerMensajesConversacionHandler,
@@ -106,6 +107,10 @@ app.post('/api/tools/execute', async (req, res, next) => {
 // 4. Protocolo Bio-Armadura: Telemetría y Bienestar
 app.get('/api/bio/:commanderId', obtenerEstadoBioHandler);
 app.get('/api/bio/:commanderId/latest', obtenerUltimaTelemetriaHandler);
+
+// 5. Generador Automático de CHANGELOG y Cálculo SemVer
+app.get('/api/changelog', obtenerChangelogHandler);
+app.post('/api/changelog/generate', guardarChangelogHandler);
 
 // ============================================================================
 // Manejador Global de Errores

@@ -84,6 +84,11 @@ flowchart TB
 * **Bóveda Documental y Registro de Combate:** Consulta histórica de documentos técnicos forjados y auditorías previas.
 * **Restauración de Telemetría:** Conserva el tiempo de sesión y nivel de hidratación entre recargas.
 
+### 5. Ecosistema de Extensibilidad (MCP, SemVer y Hooks)
+* **Servidor MCP Nativo (`ares-mcp`):** Expone 7 herramientas tácticas bajo el Model Context Protocol para Claude Desktop, Cursor, Antigravity y VS Code.
+* **Generador de CHANGELOG Automático:** Parsing de Conventional Commits (`feat:`, `fix:`, `refactor:`, `BREAKING CHANGE:`) con cálculo dinámico de versiones SemVer (Major, Minor, Patch) y exportación Markdown.
+* **Pre-Push Hook Espartano ("No Deploy a las 3:00 AM"):** Guardián en Git que bloquea despliegues entre 1:00 AM y 5:00 AM si la estamina < 40%, protegiendo la estabilidad del software ante la fatiga cognitiva humana. Bypaseable con `$env:FORCE_DEPLOY=1` o `--no-verify`.
+
 ---
 
 ## 🚀 Puesta en Marcha Rápida
@@ -169,15 +174,50 @@ ares ask "Orden táctica"               # Consulta directa a la IA desde la term
 ares audit ./src/archivo.ts            # Audita SOLID, Big-O y OWASP con informe táctico
 ares doc adr "Decisión técnica"        # Forja un Architecture Decision Record
 ares test ./src/controlador.ts         # Genera suite de pruebas unitarias con Test Forge
+ares changelog --write                 # Analiza commits, calcula SemVer y actualiza CHANGELOG.md
+ares hook install                      # Instala el Hook Espartano pre-push (Bloqueo 3:00 AM)
+ares hook run                          # Ejecuta simulación táctica del pre-push hook
 ```
 
 ---
 
+### Opción D: Conexión como Servidor MCP Nativo (Claude Desktop / Cursor / Antigravity)
+
+A.R.E.S. incluye un servidor **Model Context Protocol (MCP)** listo para producción en `mcp/`:
+
+```powershell
+cd mcp
+npm install
+npm run build
+npm link
+```
+
+Configuración en Claude Desktop (`claude_desktop_config.json`) o Cursor:
+
+```json
+{
+  "mcpServers": {
+    "ares": {
+      "command": "node",
+      "args": ["D:/ares-ecosystem/mcp/dist/index.js"],
+      "env": {
+        "ARES_API_URL": "http://localhost:3000"
+      }
+    }
+  }
+}
+```
+
+---
+
+## 📡 Endpoints de la API Táctica
+
 | Método | Endpoint | Descripción |
 | :--- | :--- | :--- |
 | `GET` | `/health` | Estado del servidor y tiempo de actividad. |
-| `POST` | `/api/chat` | Chat táctico multimodal con Gemini. |
+| `POST` | `/api/chat` | Chat táctico multimodal con Gemini / OpenRouter. |
 | `POST` | `/api/chat/stream` | Streaming de chat token por token vía Server-Sent Events (SSE). |
+| `GET` | `/api/models` | Catálogo de modelos de IA soportados. |
 | `GET` | `/api/conversations` | Lista de misiones/sesiones guardadas en SQLite. |
 | `POST` | `/api/conversations` | Crea una nueva misión táctica. |
 | `GET` | `/api/conversations/:id/messages` | Historial de mensajes de una conversación. |
@@ -190,6 +230,8 @@ ares test ./src/controlador.ts         # Genera suite de pruebas unitarias con T
 | `POST` | `/api/tools/execute` | Ejecución programática de herramientas. |
 | `GET` | `/api/bio/:commanderId` | Evaluación y persistencia de telemetría biométrica. |
 | `GET` | `/api/bio/:commanderId/latest` | Último registro de telemetría del comandante. |
+| `GET` | `/api/changelog` | Genera análisis SemVer y notas de cambio desde Git. |
+| `POST` | `/api/changelog/generate` | Genera y opcionalmente escribe el CHANGELOG.md en disco. |
 
 ---
 

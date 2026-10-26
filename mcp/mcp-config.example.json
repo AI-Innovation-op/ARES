@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ares": {
+      "command": "node",
+      "args": ["D:/ares-ecosystem/mcp/dist/index.js"],
+      "env": {
+        "ARES_API_URL": "http://localhost:3000"
+      }
+    }
+  }
+}

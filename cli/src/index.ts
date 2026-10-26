@@ -11,6 +11,7 @@ import { Command } from 'commander';
 import pc from 'picocolors';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 import dotenv from 'dotenv';
 
 // Intentar cargar variables desde .env en el directorio actual o en backend
@@ -388,6 +389,233 @@ program
     } catch (err: any) {
       console.log(pc.red(`\n🔴 SERVIDOR NO RESPONDE en ${API_BASE} (${err.message})`));
       console.log(pc.cyan(`👉 Inicia el servidor con: cd D:\\ares-ecosystem\\backend && npm run dev\n`));
+    }
+  });
+
+// ============================================================================
+// 8. COMANDO: ares changelog
+// ============================================================================
+program
+  .command('changelog')
+  .description('📜 Genera o actualiza automáticamente el CHANGELOG.md según Conventional Commits y SemVer')
+  .option('-w, --write', 'Escribe o actualiza el archivo CHANGELOG.md en la raíz del proyecto')
+  .option('-v, --version <version>', 'Fuerza una versión SemVer específica (ej. 2.7.0, 3.0.0)')
+  .option('-o, --output <ruta>', 'Ruta personalizada para el archivo de salida (por defecto CHANGELOG.md)')
+  .action(async (opciones) => {
+    banner();
+    console.log(pc.cyan('📜 Analizando historial Git bajo el estándar Conventional Commits...\n'));
+
+    let resultado: any = null;
+    const online = await verificarServidor();
+
+    if (online) {
+      try {
+        const res = await fetch(`${API_BASE}/api/changelog/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            version: opciones.version,
+            write: Boolean(opciones.write),
+            path: opciones.output,
+          }),
+        });
+        if (res.ok) {
+          resultado = await res.json();
+        }
+      } catch {
+        // Continuar con fallback offline
+      }
+    }
+
+    if (!resultado) {
+      try {
+        const gitOutput = execSync('git log -n 50 --pretty=format:"%h|%s|%an|%ad" --date=short', {
+          encoding: 'utf-8',
+          cwd: process.cwd(),
+        });
+        const lineas = gitOutput.split('\n').filter(Boolean);
+        const commits: Array<{ hash: string; desc: string; author: string; type: string }> = [];
+
+        let tieneBreaking = false;
+        let tieneFeat = false;
+        let tieneFix = false;
+
+        for (const l of lineas) {
+          const partes = l.split('|');
+          if (partes.length < 4) continue;
+          const [hash, msg, author] = partes;
+          const esBreaking = /BREAKING\s+CHANGE/i.test(msg) || /^[a-z]+(\(.+?\))?!:/.test(msg);
+          if (esBreaking) tieneBreaking = true;
+
+          const match = msg.match(/^([a-z]+)(\(.+?\))?!?:\s*(.+)$/i);
+          const type = match ? match[1].toLowerCase() : 'other';
+          const desc = match ? match[3] : msg;
+
+          if (type === 'feat') tieneFeat = true;
+          if (type === 'fix') tieneFix = true;
+
+          commits.push({ hash, desc, author, type });
+        }
+
+        const fechaHoy = new Date().toISOString().split('T')[0];
+        const ver = opciones.version || (tieneBreaking ? '3.0.0' : tieneFeat ? '2.7.0' : tieneFix ? '2.6.1' : '2.6.0');
+
+        let md = `## [${ver}] - ${fechaHoy}\n\n`;
+        const feats = commits.filter((c) => c.type === 'feat');
+        const fixes = commits.filter((c) => c.type === 'fix');
+        const refactors = commits.filter((c) => c.type === 'refactor');
+        const others = commits.filter((c) => !['feat', 'fix', 'refactor'].includes(c.type));
+
+        if (feats.length > 0) {
+          md += '### 🚀 Nuevas Funcionalidades (Features)\n';
+          for (const c of feats) md += `- **${c.desc}** ([${c.hash}](https://github.com/AI-Innovation-op/ARES/commit/${c.hash})) - *${c.author}*\n`;
+          md += '\n';
+        }
+        if (fixes.length > 0) {
+          md += '### 🐛 Correcciones de Errores (Bug Fixes)\n';
+          for (const c of fixes) md += `- ${c.desc} ([${c.hash}](https://github.com/AI-Innovation-op/ARES/commit/${c.hash}))\n`;
+          md += '\n';
+        }
+        if (refactors.length > 0) {
+          md += '### ⚔️ Refactorización y Arquitectura\n';
+          for (const c of refactors) md += `- ${c.desc} ([${c.hash}](https://github.com/AI-Innovation-op/ARES/commit/${c.hash}))\n`;
+          md += '\n';
+        }
+        if (others.length > 0) {
+          md += '### 🔧 Mantenimiento e Infraestructura\n';
+          for (const c of others) md += `- ${c.desc} ([${c.hash}](https://github.com/AI-Innovation-op/ARES/commit/${c.hash}))\n`;
+          md += '\n';
+        }
+
+        let savedPath: string | null = null;
+        if (opciones.write) {
+          const ruta = opciones.output || path.resolve(process.cwd(), 'CHANGELOG.md');
+          const header = `# CHANGELOG: A.R.E.S. Ecosystem\n\nTodos los cambios notables en este proyecto se documentan en este archivo.\nFormato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [Semantic Versioning](https://semver.org/).\n\n---\n\n`;
+          let existing = '';
+          if (fs.existsSync(ruta)) {
+            existing = fs.readFileSync(ruta, 'utf-8').replace(header, '');
+          }
+          fs.writeFileSync(ruta, `${header}${md.trim()}\n\n${existing}`.trim() + '\n', 'utf-8');
+          savedPath = ruta;
+        }
+
+        resultado = {
+          versionCalculada: ver,
+          fecha: fechaHoy,
+          markdown: md.trim(),
+          saved: Boolean(opciones.write),
+          savedPath,
+        };
+      } catch (err: any) {
+        console.error(pc.red(`❌ Error al analizar el historial Git: ${err.message}`));
+        process.exit(1);
+      }
+    }
+
+    console.log(pc.green(pc.bold(`🏷️  Versión calculada: ${resultado.versionCalculada} (${resultado.fecha})`)));
+    console.log(pc.gray('----------------------------------------------------------------------'));
+    console.log(resultado.markdown);
+    console.log(pc.gray('----------------------------------------------------------------------'));
+
+    if (resultado.saved && resultado.savedPath) {
+      console.log(pc.green(`\n💾 CHANGELOG.md actualizado con éxito en: ${pc.bold(resultado.savedPath)}`));
+    } else {
+      console.log(pc.yellow('\n💡 Sugerencia: Usa "ares changelog --write" para guardar automáticamente los cambios en CHANGELOG.md'));
+    }
+  });
+
+// ============================================================================
+// 9. COMANDO: ares hook <install|run>
+// ============================================================================
+const hookCmd = program
+  .command('hook')
+  .description('🛡️ Gestión del Hook Pre-Push Espartano ("No Deploy a las 3:00 AM")');
+
+hookCmd
+  .command('install')
+  .description('Instala el hook pre-push espartano en el repositorio Git actual (.git/hooks/pre-push)')
+  .action(() => {
+    banner();
+    console.log(pc.cyan('🛡️  Instalando Hook Pre-Push Espartano (Protocolo Bio-Armadura)...'));
+
+    try {
+      let gitRoot = '';
+      try {
+        gitRoot = execSync('git rev-parse --show-toplevel', { encoding: 'utf-8' }).trim();
+      } catch {
+        gitRoot = process.cwd();
+      }
+
+      const hooksDir = path.join(gitRoot, '.git', 'hooks');
+      if (!fs.existsSync(hooksDir)) {
+        fs.mkdirSync(hooksDir, { recursive: true });
+      }
+
+      const hookFile = path.join(hooksDir, 'pre-push');
+      const hookContent = `#!/bin/sh
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# A.R.E.S. Spartan Pre-Push Guard — Bio-Armadura Protocol
+# "No Deploy a las 3:00 AM si la estamina es inferior al 40%"
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ROOT_DIR=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+HOOK_SCRIPT="$ROOT_DIR/hooks/pre-push.js"
+
+if [ -f "$HOOK_SCRIPT" ]; then
+  node "$HOOK_SCRIPT" "$@"
+  EXIT_CODE=$?
+  if [ $EXIT_CODE -ne 0 ]; then
+    exit $EXIT_CODE
+  fi
+fi
+
+exit 0
+`;
+
+      fs.writeFileSync(hookFile, hookContent, { mode: 0o755 });
+      console.log(pc.green(`\n✅ Hook Pre-Push Espartano instalado exitosamente en:`));
+      console.log(pc.bold(pc.white(`   ${hookFile}`)));
+      console.log(pc.cyan(`\n⚔️  Protección activa:`));
+      console.log(pc.gray(`   • Bloquea pushes entre 1:00 AM y 5:00 AM si la estamina < 40%.`));
+      console.log(pc.gray(`   • Verifica telemetría en tiempo real desde ares.db o API.`));
+      console.log(pc.gray(`   • Bypass táctico disponible con: $env:FORCE_DEPLOY=1; git push\n`));
+    } catch (err: any) {
+      console.error(pc.red(`❌ Error al instalar hook: ${err.message}`));
+      process.exit(1);
+    }
+  });
+
+hookCmd
+  .command('run')
+  .description('Ejecuta una prueba del hook pre-push para evaluar la telemetría actual')
+  .option('-h, --hour <hora>', 'Simular una hora específica (0-23) para pruebas tácticas')
+  .option('-s, --stamina <porcentaje>', 'Simular un nivel de estamina (0-100) para pruebas tácticas')
+  .action((opciones) => {
+    banner();
+    console.log(pc.cyan('🔍 Ejecutando verificación del Guardián Pre-Push...\n'));
+
+    try {
+      let gitRoot = '';
+      try {
+        gitRoot = execSync('git rev-parse --show-toplevel', { encoding: 'utf-8' }).trim();
+      } catch {
+        gitRoot = process.cwd();
+      }
+
+      const hookScript = path.join(gitRoot, 'hooks', 'pre-push.js');
+      if (!fs.existsSync(hookScript)) {
+        console.error(pc.red(`❌ No se encontró el script en: ${hookScript}`));
+        process.exit(1);
+      }
+
+      const envs = { ...process.env };
+      if (opciones.hour !== undefined) envs.ARES_TEST_HOUR = opciones.hour;
+      if (opciones.stamina !== undefined) envs.ARES_TEST_STAMINA = opciones.stamina;
+
+      execSync(`node "${hookScript}"`, { stdio: 'inherit', env: envs });
+    } catch {
+      // El script ya imprimió la alerta espartana y salió con código de error
+      process.exit(1);
     }
   });
 

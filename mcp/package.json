@@ -1,0 +1,28 @@
+{
+  "name": "@ares-ecosystem/mcp",
+  "version": "2.6.0",
+  "description": "Servidor MCP (Model Context Protocol) de A.R.E.S. para Cursor, Claude Desktop y Antigravity",
+  "type": "module",
+  "bin": {
+    "ares-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "keywords": ["ares", "mcp", "model-context-protocol", "ai", "claude", "cursor"],
+  "author": "AI Innovation / Kevin",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
