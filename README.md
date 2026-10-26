@@ -150,7 +150,28 @@ docker compose up --build -d
 
 ---
 
-## 📋 Catálogo de Rutas API
+### Opción C: Uso desde la Terminal (A.R.E.S. CLI Táctico)
+
+Puedes interactuar con A.R.E.S. directamente desde cualquier terminal de Windows, Linux o Mac:
+
+```powershell
+# 1. Instalar y enlazar el CLI localmente
+cd cli
+npm install
+npm run build
+npm link
+
+# 2. Comandos disponibles
+ares health                            # Verifica estado del backend y enlace activo
+ares bio                               # Telemetría en tiempo real: Estamina, hidratación y fatiga
+ares models                            # Lista modelos soportados (Gemini, DeepSeek, Claude, GPT-4o)
+ares ask "Orden táctica"               # Consulta directa a la IA desde la terminal
+ares audit ./src/archivo.ts            # Audita SOLID, Big-O y OWASP con informe táctico
+ares doc adr "Decisión técnica"        # Forja un Architecture Decision Record
+ares test ./src/controlador.ts         # Genera suite de pruebas unitarias con Test Forge
+```
+
+---
 
 | Método | Endpoint | Descripción |
 | :--- | :--- | :--- |

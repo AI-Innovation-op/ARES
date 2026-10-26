@@ -1,0 +1,27 @@
+{
+  "name": "@ares-ecosystem/cli",
+  "version": "2.6.0",
+  "description": "CLI Táctico para el ecosistema A.R.E.S. — Refactorización, Documentación y Bienestar desde la Terminal",
+  "type": "module",
+  "bin": {
+    "ares": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "keywords": ["ares", "cli", "ai", "terminal", "refactor", "documentation"],
+  "author": "AI Innovation / Kevin",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^13.1.0",
+    "dotenv": "^16.4.7",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
