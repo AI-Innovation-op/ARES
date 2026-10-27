@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { voiceService } from '../../services/voice.service.js';
 
 const emit = defineEmits<{
   (e: 'enviar', payload: { texto: string; imagenBase64?: string }): void;
@@ -12,6 +13,7 @@ defineProps<{
 const texto = ref('');
 const imagenBase64 = ref<string | undefined>(undefined);
 const fileInput = ref<HTMLInputElement | null>(null);
+const codeFileInput = ref<HTMLInputElement | null>(null);
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter' && !e.shiftKey) {
@@ -28,10 +30,17 @@ function enviar() {
   });
   texto.value = '';
   imagenBase64.value = undefined;
+  if (voiceService.estado.value === 'escuchando') {
+    voiceService.detenerEscucha();
+  }
 }
 
 function abrirSelectorImagen() {
   fileInput.value?.click();
+}
+
+function abrirSelectorCodigo() {
+  codeFileInput.value?.click();
 }
 
 function handleImagenSeleccionada(e: Event) {
@@ -42,15 +51,39 @@ function handleImagenSeleccionada(e: Event) {
   const reader = new FileReader();
   reader.onload = () => {
     const res = reader.result as string;
-    // Extraer solo la parte base64 sin el prefijo data:...;base64,
     const base64 = res.split(',')[1];
     imagenBase64.value = base64;
   };
   reader.readAsDataURL(file);
 }
 
+function handleCodigoSeleccionado(e: Event) {
+  const target = e.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const contenido = reader.result as string;
+    const ext = file.name.split('.').pop() || 'txt';
+    texto.value = `A.R.E.S., audita e inspecciona el archivo adjunto "${file.name}":\n\`\`\`${ext}\n${contenido.slice(0, 10000)}\n\`\`\``;
+  };
+  reader.readAsText(file);
+}
+
 function removerImagen() {
   imagenBase64.value = undefined;
+}
+
+function toggleMic() {
+  voiceService.toggleEscucha({
+    onTranscripcion: (transcrito) => {
+      texto.value = transcrito;
+    },
+    onComandoEnviar: () => {
+      enviar();
+    },
+  });
 }
 </script>
 
@@ -76,6 +109,14 @@ function removerImagen() {
       @change="handleImagenSeleccionada"
     />
 
+    <input
+      ref="codeFileInput"
+      type="file"
+      accept=".ts,.js,.vue,.py,.json,.sql,.md,.txt,.java,.go,.rs,.yml,.yaml,.html"
+      class="hidden"
+      @change="handleCodigoSeleccionado"
+    />
+
     <div class="flex items-end gap-2">
       <!-- Botón de Cámara / Captura -->
       <button
@@ -87,14 +128,37 @@ function removerImagen() {
         📷
       </button>
 
-      <!-- Botón de Micrófono / Dictado (Desactivado temporalmente para calibración v2.7) -->
+      <!-- Botón de Adjuntar Archivo de Código -->
       <button
         type="button"
-        disabled
-        class="p-2.5 rounded-lg border border-[#132a4a]/40 bg-[#040914] text-slate-600 cursor-not-allowed shrink-0 transition-opacity opacity-40"
-        title="Módulo de voz desactivado temporalmente para calibración táctica v2.7"
+        @click="abrirSelectorCodigo"
+        class="p-2.5 rounded-lg border border-[#132a4a] bg-[#040914] hover:border-cyan-400 text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer shrink-0"
+        title="Adjuntar archivo de código local para auditar (.ts, .py, .vue, .json, .sql, etc.)"
       >
-        🎤
+        📎
+      </button>
+
+      <!-- Botón de Micrófono Táctico v2.9 -->
+      <button
+        type="button"
+        @click="toggleMic"
+        class="p-2.5 rounded-lg border transition-all cursor-pointer shrink-0"
+        :class="[
+          voiceService.estado.value === 'escuchando'
+            ? 'bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse shadow-[0_0_12px_rgba(244,63,94,0.6)]'
+            : voiceService.estado.value === 'solicitando'
+            ? 'bg-amber-500/20 border-amber-500 text-amber-300 animate-spin'
+            : 'border-[#132a4a] bg-[#040914] hover:border-[#00ffaa] text-slate-300 hover:text-[#00ffaa]'
+        ]"
+        :title="
+          voiceService.estado.value === 'escuchando'
+            ? 'Detener escucha por voz'
+            : 'Activar dictado y órdenes por voz táctica (Web Speech API)'
+        "
+      >
+        <span v-if="voiceService.estado.value === 'escuchando'">🎙️</span>
+        <span v-else-if="voiceService.estado.value === 'solicitando'">⏳</span>
+        <span v-else>🎤</span>
       </button>
 
       <!-- Área de Entrada de Texto -->

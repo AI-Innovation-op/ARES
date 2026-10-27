@@ -1,4 +1,4 @@
-# 🛡️ A.R.E.S. Ecosystem (v2.8 J.A.R.V.I.S. Core // Live Sandbox & Shell)
+# 🛡️ A.R.E.S. Ecosystem (v2.9 J.A.R.V.I.S. Core // Tactical Senses & Repository Intelligence)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
@@ -115,6 +115,24 @@ Heredado de **Cori**, no permito que mi Comandante destruya su salud física o m
 ### 💻 Módulo G: Terminal Táctica Web Embebida (A.R.E.S. Shell CLI - v2.8)
 * **Interfaz de Línea de Comandos (CLI) en Navegador:** Accesible mediante el botón **`[>_ TERMINAL]`** o con el atajo global `Ctrl + \``.
 * **Control Integral del Sistema:** Permite cambiar la postura y pose 3D del avatar (`pose 11`), alternar modelos de IA (`model deepseek`), consultar telemetría biométrica (`bio`), hidratar al desarrollador (`hydrate`) y descargar proyectos empaquetados (`zip`) mediante comandos de texto en tiempo real con historial de comandos.
+
+### 🎙️ Módulo H: Oído Digital Táctico & Ondas Holográficas (Web Speech API - v2.9)
+* **Captura y Transcripción Vocal Continua:** Utiliza Web Speech API (`webkitSpeechRecognition`) con reconexión automática y retroalimentación reactiva inmediata en la caja de órdenes tácticas.
+* **Analizador Espectral de Ondas:** Conexión con `AudioContext` y `AnalyserNode` para capturar la energía vocal en 16 bandas de frecuencia holográficas en verde neón (#00ffaa) y cian (#0284c7) animadas en el HUD directamente debajo del avatar.
+* **Auto-Envío Verbal Táctico:** Detección de comandos de voz *"A.R.E.S., enviar"* o *"enviar orden"* para despachar el mensaje sin necesidad de tocar el teclado.
+
+### 🔍 Módulo I: Ingesta & Auditoría de Repositorios GitHub (v2.9)
+* **Inspección Profunda de Repositorios Públicos:** Pegando cualquier enlace `https://github.com/owner/repo` o usando el botón **`[🔍 GITHUB AUDIT]`**, el backend extrae el árbol completo de directorios y los manifiestos esenciales (`package.json`, `requirements.txt`, `go.mod`, `Cargo.toml`, `Dockerfile`, `README.md`).
+* **Matriz OWASP Top 10 y Deuda Big-O:** Evaluación de secretos expuestos, dependencias vulnerables, buenas prácticas y cálculo de complejidad algorítmica.
+* **Diagrama C4 Automático:** Generación de diagramas de arquitectura Mermaid de nivel de contenedor/sistema y un plan de acción de refactorización paso a paso.
+* **Subida Local:** Permite arrastrar archivos de código fuente locales (`.ts`, `.py`, `.vue`, `.json`, `.sql`, etc.) para auditoría instantánea mediante el botón `[📎]`.
+
+### ⚡ Módulo J: Modos Tácticos de Combate & Exportación de Misión (v2.9)
+* **Selector de Arquetipo de Combate:** Alterna la mentalidad de ingeniería de A.R.E.S. en un solo clic:
+  - **🛡️ Modo Centinela (Auditor):** Prioriza rigor formal, seguridad OWASP, DDD, tipado estricto y pruebas exhaustivas.
+  - **⚡ Modo Blitzkrieg (Prototipador):** Prioriza velocidad de entrega, UIs reactivas completas listas para Live Preview e interactividad visual inmediata.
+  - **🏛️ Modo Arquitecto (Estratega):** Prioriza RFCs detallados, diagramas C4 Mermaid, modelos de datos y decisiones arquitectónicas (ADRs).
+* **Exportación de Misión:** Botón **`[📥 Exportar Misión]`** para compilar la totalidad del historial de combate en un archivo Markdown (`Mision_ARES_<id>.md`) listo para presentar o archivar.
 
 ---
 

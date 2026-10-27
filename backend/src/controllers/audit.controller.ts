@@ -5,6 +5,7 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import { auditarYRefactorizarCodigo, generarSuitePruebas, type SolicitudTestForge } from '../services/codesword.service.js';
+import { githubAuditService } from '../services/github-audit.service.js';
 import { listarAuditoriasPorRepositorio } from '../repositories/audits.repo.js';
 import { obtenerOCrearRepositorioPorDefecto } from '../repositories/repositories.repo.js';
 import { obtenerOCrearComandantePorDefecto } from '../repositories/commanders.repo.js';
@@ -85,6 +86,27 @@ export async function listarAuditoriasHandler(
 
     const auditorias = await listarAuditoriasPorRepositorio(repositoryId);
     res.status(200).json({ repositoryId, auditorias });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Auditoría táctica industrial de repositorios públicos de GitHub (v2.9).
+ */
+export async function auditarRepositorioGitHubHandler(
+  req: Request<unknown, unknown, { url: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { url } = req.body;
+    if (!url || typeof url !== 'string' || !url.trim()) {
+      throw new ValidationError('El campo "url" es obligatorio (ej: https://github.com/owner/repo).');
+    }
+
+    const resultado = await githubAuditService.auditarRepositorio(url.trim());
+    res.status(200).json(resultado);
   } catch (error) {
     next(error);
   }

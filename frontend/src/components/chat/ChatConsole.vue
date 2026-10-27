@@ -1,12 +1,50 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, watch } from 'vue';
 import { useChatStore } from '../../stores/chat.store.js';
+import { useUiStore } from '../../stores/ui.store.js';
 import ChatMessage from './ChatMessage.vue';
 import ChatInput from './ChatInput.vue';
+import GithubAuditModal from '../audit/GithubAuditModal.vue';
 
 const chatStore = useChatStore();
+const uiStore = useUiStore();
 const scrollContainer = ref<HTMLDivElement | null>(null);
 const mostrarHistorial = ref(false);
+const exportado = ref(false);
+
+function handleInsertarEnChat(prompt: string) {
+  chatStore.enviarMensaje(prompt);
+}
+
+function exportarMisionActual() {
+  if (chatStore.mensajes.length === 0) return;
+  const fecha = new Date().toLocaleString();
+  let doc = `# 🛡️ INFORME DE MISIÓN TÁCTICA A.R.E.S. (v2.9 J.A.R.V.I.S. Core)\n\n`;
+  doc += `> **Fecha de Misión:** ${fecha}\n`;
+  doc += `> **ID de Conversación:** ${chatStore.conversacionIdActual || 'sesion-activa'}\n`;
+  doc += `> **Total de Intercambios:** ${chatStore.mensajes.length}\n`;
+  doc += `> **Modo Táctico Activo:** ${uiStore.modoTactico.toUpperCase()}\n\n`;
+  doc += `---\n\n`;
+
+  for (const msg of chatStore.mensajes) {
+    const rol = msg.role === 'user' ? '👤 COMANDANTE' : '🛡️ A.R.E.S. TACTICAL';
+    const hora = new Date(msg.timestamp).toLocaleTimeString();
+    doc += `### ${rol} [${hora}]\n\n${msg.content}\n\n---\n\n`;
+  }
+
+  const blob = new Blob([doc], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Mision_ARES_${Date.now()}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  exportado.value = true;
+  setTimeout(() => {
+    exportado.value = false;
+  }, 2500);
+}
 
 function scrollToBottom() {
   nextTick(() => {
@@ -38,10 +76,6 @@ watch(
 
 function handleEnviar(payload: { texto: string; imagenBase64?: string }) {
   chatStore.enviarMensaje(payload.texto, payload.imagenBase64);
-}
-
-function comandoRapido(texto: string) {
-  chatStore.enviarMensaje(texto);
 }
 
 function toggleHistorial() {
@@ -81,37 +115,68 @@ function seleccionarMision(id: string) {
           <span>➕</span>
           <span class="hidden sm:inline">Nueva Misión</span>
         </button>
-      </div>
 
-      <!-- Comandos Rápidos Tácticos -->
-      <div class="flex items-center gap-2 overflow-x-auto py-0.5">
+        <!-- Botón Ingesta y Auditoría de GitHub (v2.9) -->
         <button
-          @click="comandoRapido('Ares, reporte táctico del sistema')"
-          class="px-2 py-0.5 rounded bg-[#040914] border border-[#132a4a] hover:border-cyan-400 text-cyan-300 text-[11px] whitespace-nowrap cursor-pointer transition"
+          @click="uiStore.toggleModalGithubAudit"
+          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#0b1b36] border border-[#00ffaa]/60 hover:border-[#00ffaa] hover:bg-[#00ffaa]/15 text-[#00ffaa] text-[11px] font-bold cursor-pointer transition shadow-[0_0_8px_rgba(0,255,170,0.2)]"
+          title="Abrir analizador e ingesta táctica de repositorios GitHub"
         >
-          📊 Reporte
-        </button>
-        <button
-          @click="comandoRapido('Ares, despliega el escudo y audita la arquitectura')"
-          class="px-2 py-0.5 rounded bg-[#040914] border border-[#132a4a] hover:border-[#00ffaa] text-emerald-300 text-[11px] whitespace-nowrap cursor-pointer transition"
-        >
-          🛡️ Escudo
-        </button>
-        <button
-          @click="comandoRapido('Ares, consejo de salud y recarga de estamina')"
-          class="px-2 py-0.5 rounded bg-[#040914] border border-[#132a4a] hover:border-rose-400 text-rose-300 text-[11px] whitespace-nowrap cursor-pointer transition"
-        >
-          ❤️‍🩹 Bio
+          <span>🔍</span>
+          <span>GITHUB AUDIT</span>
         </button>
       </div>
 
-      <button
-        @click="chatStore.limpiarConsola"
-        class="text-slate-500 hover:text-slate-300 text-[11px] shrink-0 cursor-pointer transition ml-auto"
-        title="Limpiar vista de consola"
-      >
-        Limpiar
-      </button>
+      <!-- Selector de Modo Táctico (v2.9) -->
+      <div class="hidden md:flex items-center gap-1 bg-[#040914] p-0.5 rounded border border-[#132a4a] text-[11px]">
+        <button
+          type="button"
+          @click="uiStore.setModoTactico('centinela')"
+          class="px-2 py-0.5 rounded transition cursor-pointer"
+          :class="uiStore.modoTactico === 'centinela' ? 'bg-[#00ffaa]/20 border border-[#00ffaa]/50 text-[#00ffaa] font-bold' : 'text-slate-400 hover:text-slate-200'"
+          title="Modo Centinela: Auditoría, rigor formal, DDD y blindaje OWASP"
+        >
+          🛡️ Centinela
+        </button>
+        <button
+          type="button"
+          @click="uiStore.setModoTactico('blitzkrieg')"
+          class="px-2 py-0.5 rounded transition cursor-pointer"
+          :class="uiStore.modoTactico === 'blitzkrieg' ? 'bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 font-bold' : 'text-slate-400 hover:text-slate-200'"
+          title="Modo Blitzkrieg: Prototipado veloz, interfaces interactivas y Live Preview instantáneo"
+        >
+          ⚡ Blitzkrieg
+        </button>
+        <button
+          type="button"
+          @click="uiStore.setModoTactico('arquitecto')"
+          class="px-2 py-0.5 rounded transition cursor-pointer"
+          :class="uiStore.modoTactico === 'arquitecto' ? 'bg-purple-500/20 border border-purple-400/50 text-purple-300 font-bold' : 'text-slate-400 hover:text-slate-200'"
+          title="Modo Arquitecto: RFCs profundos, diagramas C4 y ADRs"
+        >
+          🏛️ Arquitecto
+        </button>
+      </div>
+
+      <!-- Acciones de Cabecera: Exportar Misión y Limpiar -->
+      <div class="flex items-center gap-2 shrink-0 ml-auto">
+        <button
+          @click="exportarMisionActual"
+          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#0b1b36] border border-cyan-500/40 hover:border-cyan-400 text-cyan-300 text-[11px] cursor-pointer transition shadow"
+          :title="exportado ? '¡Misión exportada con éxito!' : 'Exportar el historial completo de la misión en Markdown (.md)'"
+        >
+          <span>{{ exportado ? '✓' : '📥' }}</span>
+          <span class="hidden sm:inline">{{ exportado ? 'Exportado' : 'Exportar Misión' }}</span>
+        </button>
+
+        <button
+          @click="chatStore.limpiarConsola"
+          class="text-slate-500 hover:text-slate-300 text-[11px] cursor-pointer transition"
+          title="Limpiar vista de consola"
+        >
+          Limpiar
+        </button>
+      </div>
     </div>
 
     <!-- Menú Desplegable / Drawer de Historial de Misiones (SQLite) -->
@@ -194,5 +259,12 @@ function seleccionarMision(id: string) {
 
     <!-- Barra de Entrada -->
     <ChatInput :cargando="chatStore.cargando" @enviar="handleEnviar" />
+
+    <!-- Modal Táctico de Ingesta y Auditoría de GitHub (v2.9) -->
+    <GithubAuditModal
+      v-if="uiStore.modalGithubAuditAbierto"
+      @cerrar="uiStore.modalGithubAuditAbierto = false"
+      @insertarEnChat="handleInsertarEnChat"
+    />
   </div>
 </template>

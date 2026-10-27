@@ -11,7 +11,7 @@ import { verificarConexionDB } from './config/db.js';
 import { verificarConexionRedis } from './config/redis.js';
 import { chatHandler, chatStreamHandler } from './controllers/chat.controller.js';
 import { generarDocumentoHandler, listarDocumentosHandler } from './controllers/documents.controller.js';
-import { auditarCodigoHandler, generarPruebasHandler, listarAuditoriasHandler } from './controllers/audit.controller.js';
+import { auditarCodigoHandler, generarPruebasHandler, listarAuditoriasHandler, auditarRepositorioGitHubHandler } from './controllers/audit.controller.js';
 import { obtenerEstadoBioHandler, obtenerUltimaTelemetriaHandler } from './controllers/bio.controller.js';
 import { obtenerChangelogHandler, guardarChangelogHandler } from './controllers/changelog.controller.js';
 import {
@@ -54,7 +54,7 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ONLINE',
-    agent: 'A.R.E.S. v2.6 J.A.R.V.I.S. Core',
+    agent: 'A.R.E.S. v2.9 J.A.R.V.I.S. Core',
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
   });
@@ -83,6 +83,7 @@ app.get('/api/documents/:repositoryId', listarDocumentosHandler);
 
 // 3. Espada Binaria: Auditoría SOLID, Big-O y Refactorización OWASP
 app.post('/api/audit', auditarCodigoHandler);
+app.post('/api/audit/github', auditarRepositorioGitHubHandler);
 app.get('/api/audit/:repositoryId', listarAuditoriasHandler);
 app.post('/api/tests/generate', generarPruebasHandler);
 

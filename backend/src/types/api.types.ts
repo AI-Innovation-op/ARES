@@ -24,6 +24,8 @@ export interface ChatRequest {
   provider?: 'gemini' | 'openrouter';
   /** Modelo específico a consultar (ej: deepseek/deepseek-chat) */
   model?: string;
+  /** Modo táctico de combate (v2.9): 'centinela' | 'blitzkrieg' | 'arquitecto' */
+  tacticalMode?: 'centinela' | 'blitzkrieg' | 'arquitecto';
 }
 
 /** Respuesta del endpoint POST /api/chat */

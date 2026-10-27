@@ -41,6 +41,7 @@ export const apiService = {
     imageBase64?: string;
     provider?: 'gemini' | 'openrouter';
     model?: string;
+    tacticalMode?: string;
     onInit?: (data: { stance: Postura; poseNumber: NumeroPose; conversationId: string }) => void;
     onChunk?: (chunk: string, poseDetected?: NumeroPose) => void;
     onDone?: (data: { reply: string; stance: Postura; poseNumber: NumeroPose; conversationId: string }) => void;
@@ -58,6 +59,7 @@ export const apiService = {
           imageBase64: params.imageBase64,
           provider: params.provider,
           model: params.model,
+          tacticalMode: params.tacticalMode,
         }),
       });
 
@@ -129,6 +131,7 @@ export const apiService = {
     imageBase64?: string;
     provider?: 'gemini' | 'openrouter';
     model?: string;
+    tacticalMode?: string;
   }): Promise<RespuestaChat> {
     const { data } = await cliente.post<RespuestaChat>('/chat', params);
     return data;

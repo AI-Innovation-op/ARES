@@ -28,7 +28,7 @@ export const useChatStore = defineStore('chat', () => {
       id: 'bienvenida',
       role: 'model',
       content:
-        '🛡️ **A.R.E.S. Core v2.8 en línea (Live Sandbox Preview & Terminal Táctica Shell Activos).**\n\nSaludos, Comandante. Consola táctica, avatar voxel y empaquetador multi-archivo listos:\n- **Mano derecha:** Espada Binaria de Refactorización (Big-O, SOLID, OWASP).\n- **Mano izquierda:** Escudo Aegis Documental (README, ADR, OpenAPI 3.1, RFC).\n- **Forja de Proyectos:** Generación completa de código y descarga en un solo archivo `.zip`.\n- **Memoria de Batalla:** Historial persistido en SQLite embebido local.\n- **Protocolo Bio-Armadura:** Monitoreo activo de estamina e hidratación.\n\n¿Cuál es la primera orden táctica?',
+        '🛡️ **A.R.E.S. Core v2.9 en línea (Tactical Senses & Repository Intelligence Activos).**\n\nSaludos, Comandante. Oído digital táctico, visualizador de ondas y auditoría de repositorios GitHub listos:\n- **🎙️ Oído Digital Táctico:** Entrada de voz continua con visualización de ondas holográficas y auto-envío verbal.\n- **🔍 Ingesta & Auditoría GitHub:** Escaneo profundo de repositorios con diagramas C4 y blindaje OWASP.\n- **⚡ Modos Tácticos:** Centinela (Auditor), Blitzkrieg (Prototipos) y Arquitecto (RFCs).\n- **▶️ Live Preview Sandbox & Forja .ZIP:** Previsualización interactiva multi-dispositivo y exportación.\n\n¿Cuál es la primera orden táctica?',
       poseNumber: 1,
       timestamp: new Date(),
     },
@@ -205,6 +205,7 @@ export const useChatStore = defineStore('chat', () => {
         imageBase64: imagenBase64,
         provider: proveedorSeleccionado.value,
         model: modeloSeleccionado.value,
+        tacticalMode: uiStore.modoTactico,
 
         onInit(data) {
           conversacionIdActual.value = data.conversationId;
@@ -259,6 +260,7 @@ export const useChatStore = defineStore('chat', () => {
           imageBase64: imagenBase64,
           provider: proveedorSeleccionado.value,
           model: modeloSeleccionado.value,
+          tacticalMode: uiStore.modoTactico,
         });
 
         conversacionIdActual.value = data.conversationId;

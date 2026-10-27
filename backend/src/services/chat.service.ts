@@ -98,7 +98,7 @@ export function derivarPosturaYPose(intencion: IntencionUsuario): {
  * Procesa un mensaje del comandante en el chat de A.R.E.S.
  */
 export async function procesarMensajeChat(request: ChatRequest): Promise<ChatResponse> {
-  const { message, conversationId, imageBase64, commanderId, provider, model } = request;
+  const { message, conversationId, imageBase64, commanderId, provider, model, tacticalMode } = request;
 
   let idConversacion = conversationId;
 
@@ -145,8 +145,29 @@ export async function procesarMensajeChat(request: ChatRequest): Promise<ChatRes
     console.warn('⚠️ [ChatService] No se pudo leer historial previo:', err);
   }
 
+  // Directivas de Modos Tácticos y Detección de GitHub (v2.9)
+  let textoFinalMensaje = message;
+  let directivaTactico = '';
+
+  if (tacticalMode === 'centinela') {
+    directivaTactico += '[MODO TÁCTICO ACTIVO: 🛡️ CENTINELA (AUDITOR Y SEGURIDAD MÁXIMA) - Exige rigor extremo, OWASP, DDD, SOLID y tipado estricto]\n';
+  } else if (tacticalMode === 'blitzkrieg') {
+    directivaTactico += '[MODO TÁCTICO ACTIVO: ⚡ BLITZKRIEG (PROTOTIPADO RÁPIDO) - Prioriza interfaces visuales completas, código funcional para Live Preview inmediato y agilidad]\n';
+  } else if (tacticalMode === 'arquitecto') {
+    directivaTactico += '[MODO TÁCTICO ACTIVO: 🏛️ ARQUITECTO (ESTRATEGIA & RFC) - Estructura decisiones en RFCs maestros, diagramas C4 Mermaid y arquitectura de sistemas]\n';
+  }
+
+  const matchGithub = message.match(/https:\/\/github\.com\/[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+/i);
+  if (matchGithub) {
+    directivaTactico += `[DETECCIÓN DE REPOSITORIO GITHUB: El Comandante proporcionó ${matchGithub[0]}. Si solicita auditarlo, analiza su arquitectura, diagramas C4 y seguridad.]\n`;
+  }
+
+  if (directivaTactico) {
+    textoFinalMensaje = `${directivaTactico}\n${message}`;
+  }
+
   // Construir el turno actual del usuario (incluyendo imagen si se adjuntó)
-  const partesActuales: any[] = [{ text: message }];
+  const partesActuales: any[] = [{ text: textoFinalMensaje }];
   if (imageBase64) {
     partesActuales.unshift({
       inlineData: {
@@ -224,7 +245,7 @@ export type EventoStreamChat =
 export async function* procesarMensajeChatStream(
   request: ChatRequest
 ): AsyncGenerator<EventoStreamChat> {
-  const { message, conversationId, imageBase64, commanderId, provider, model } = request;
+  const { message, conversationId, imageBase64, commanderId, provider, model, tacticalMode } = request;
 
   let idConversacion = conversationId;
   let comandanteId = commanderId;
@@ -276,7 +297,28 @@ export async function* procesarMensajeChatStream(
     // Modo tolerante
   }
 
-  const partesActuales: any[] = [{ text: message }];
+  // Directivas de Modos Tácticos y Detección de GitHub (v2.9)
+  let textoFinalMensaje = message;
+  let directivaTactico = '';
+
+  if (tacticalMode === 'centinela') {
+    directivaTactico += '[MODO TÁCTICO ACTIVO: 🛡️ CENTINELA (AUDITOR Y SEGURIDAD MÁXIMA) - Exige rigor extremo, OWASP, DDD, SOLID y tipado estricto]\n';
+  } else if (tacticalMode === 'blitzkrieg') {
+    directivaTactico += '[MODO TÁCTICO ACTIVO: ⚡ BLITZKRIEG (PROTOTIPADO RÁPIDO) - Prioriza interfaces visuales completas, código funcional para Live Preview inmediato y agilidad]\n';
+  } else if (tacticalMode === 'arquitecto') {
+    directivaTactico += '[MODO TÁCTICO ACTIVO: 🏛️ ARQUITECTO (ESTRATEGIA & RFC) - Estructura decisiones en RFCs maestros, diagramas C4 Mermaid y arquitectura de sistemas]\n';
+  }
+
+  const matchGithub = message.match(/https:\/\/github\.com\/[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+/i);
+  if (matchGithub) {
+    directivaTactico += `[DETECCIÓN DE REPOSITORIO GITHUB: El Comandante proporcionó ${matchGithub[0]}. Si solicita auditarlo, analiza su arquitectura, diagramas C4 y seguridad.]\n`;
+  }
+
+  if (directivaTactico) {
+    textoFinalMensaje = `${directivaTactico}\n${message}`;
+  }
+
+  const partesActuales: any[] = [{ text: textoFinalMensaje }];
   if (imageBase64) {
     partesActuales.unshift({
       inlineData: {

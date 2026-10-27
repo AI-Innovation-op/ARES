@@ -5,6 +5,7 @@ import AvatarCanvas3D from './AvatarCanvas3D.vue';
 import AvatarCanvas2D from './AvatarCanvas2D.vue';
 import MatrixRainCanvas from '../common/MatrixRainCanvas.vue';
 import TechSpecModule from '../modules/TechSpecModule.vue';
+import AudioWaveformVisualizer from '../hud/AudioWaveformVisualizer.vue';
 
 const fsm = useFsmStore();
 const mostrarFichaTecnica = ref(false);
@@ -48,6 +49,9 @@ const mostrarFichaTecnica = ref(false);
       <div class="text-[11px] text-slate-400 line-clamp-2">
         {{ fsm.poseActual.description }}
       </div>
+
+      <!-- Visualizador de Ondas Holográficas de Oído Digital (v2.9) -->
+      <AudioWaveformVisualizer />
 
       <!-- Botón Táctico Ficha Técnica debajo del Avatar -->
       <div class="pt-1">

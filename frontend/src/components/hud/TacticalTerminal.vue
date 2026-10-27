@@ -3,7 +3,10 @@ import { ref, onMounted, nextTick } from 'vue';
 import { useFsmStore } from '../../stores/fsm.store.js';
 import { useChatStore } from '../../stores/chat.store.js';
 import { useBioStore } from '../../stores/bio.store.js';
+import { useUiStore } from '../../stores/ui.store.js';
+import { voiceService } from '../../services/voice.service.js';
 import { zipService } from '../../services/zip.service.js';
+import axios from 'axios';
 
 const emit = defineEmits<{
   (e: 'cerrar'): void;
@@ -12,6 +15,7 @@ const emit = defineEmits<{
 const fsm = useFsmStore();
 const chatStore = useChatStore();
 const bioStore = useBioStore();
+const uiStore = useUiStore();
 
 interface LineaTerminal {
   tipo: 'input' | 'output' | 'error' | 'success' | 'system';
@@ -108,9 +112,13 @@ function ejecutarComando() {
     case 'ayuda':
       historialLineas.value.push({
         tipo: 'output',
-        texto: `COMANDOS DISPONIBLES:
+        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v2.9:
   help / ayuda          Muestra este catálogo de órdenes
-  status                Telemetría del núcleo A.R.E.S. y modelo activo
+  status                Telemetría del núcleo A.R.E.S., modelo y modo táctico
+  voice [on|off|toggle] Activa o desactiva la entrada de voz táctica
+  audit [github-url]    Ejecuta auditoría profunda de repositorio GitHub (OWASP + C4)
+  tactical <modo>       Cambia modo de combate (centinela | blitzkrieg | arquitecto)
+  export                Descarga la misión actual en archivo Markdown (.md)
   pose <1-16>           Fija la pose del avatar 3D directamente
   posture <postura>     Cambia postura FSM (IDLE, SLASH, SHIELD, SPRINT, VICTORY)
   model [nombre]        Muestra o cambia modelo (gemini, deepseek, r1, claude, gpt4o)
@@ -127,8 +135,10 @@ function ejecutarComando() {
     case 'status':
       historialLineas.value.push({
         tipo: 'success',
-        texto: `ESTADO DEL NÚCLEO A.R.E.S. v2.8 (J.A.R.V.I.S. CORE):
+        texto: `ESTADO DEL NÚCLEO A.R.E.S. v2.9 (J.A.R.V.I.S. CORE):
   - Estado: 🟢 ONLINE
+  - Modo táctico: ${uiStore.modoTactico.toUpperCase()}
+  - Oído digital: ${voiceService.estado.value.toUpperCase()}
   - Avatar: ${fsm.modo3DActivo ? 'Three.js 3D (Voxel Anime)' : 'Canvas 2D'}
   - Postura actual: [${fsm.posturaActual}] // Pose #${fsm.poseActual.id} (${fsm.poseActual.name})
   - Proveedor LLM: ${chatStore.proveedorSeleccionado.toUpperCase()}
@@ -301,6 +311,122 @@ function ejecutarComando() {
         texto: `Modo gráfico asignado: ${fsm.modo3DActivo ? 'Three.js 3D' : 'Canvas 2D'}`,
         tiempo,
       });
+      break;
+
+    case 'voice':
+    case 'voz':
+      if (args[0] === 'off' && voiceService.estado.value === 'escuchando') {
+        voiceService.detenerEscucha();
+        historialLineas.value.push({
+          tipo: 'output',
+          texto: '🎙️ Oído digital desactivado.',
+          tiempo,
+        });
+      } else if (args[0] === 'on' && voiceService.estado.value !== 'escuchando') {
+        voiceService.iniciarEscucha();
+        historialLineas.value.push({
+          tipo: 'success',
+          texto: '🎙️ Oído digital activado. Puedes hablar con A.R.E.S.',
+          tiempo,
+        });
+      } else {
+        voiceService.toggleEscucha();
+        historialLineas.value.push({
+          tipo: voiceService.estado.value === 'escuchando' ? 'success' : 'output',
+          texto: `🎙️ Estado de voz alternado: ${voiceService.estado.value.toUpperCase()}`,
+          tiempo,
+        });
+      }
+      break;
+
+    case 'tactical':
+      if (!args[0]) {
+        historialLineas.value.push({
+          tipo: 'output',
+          texto: `Modo táctico activo: ${uiStore.modoTactico.toUpperCase()}\nUsa "tactical centinela", "tactical blitzkrieg" o "tactical arquitecto" para cambiar.`,
+          tiempo,
+        });
+      } else {
+        const modo = args[0].toLowerCase();
+        if (modo === 'centinela' || modo === 'blitzkrieg' || modo === 'arquitecto') {
+          uiStore.setModoTactico(modo as any);
+          historialLineas.value.push({
+            tipo: 'success',
+            texto: `✓ Modo táctico establecido en: ${modo.toUpperCase()}`,
+            tiempo,
+          });
+        } else {
+          historialLineas.value.push({
+            tipo: 'error',
+            texto: `Modo "${args[0]}" inválido. Opciones válidas: centinela, blitzkrieg, arquitecto.`,
+            tiempo,
+          });
+        }
+      }
+      break;
+
+    case 'audit':
+      if (!args[0]) {
+        uiStore.modalGithubAuditAbierto = true;
+        historialLineas.value.push({
+          tipo: 'output',
+          texto: '🔍 Abriendo panel visual de Ingesta y Auditoría de GitHub...',
+          tiempo,
+        });
+      } else {
+        const urlAudit = args[0];
+        historialLineas.value.push({
+          tipo: 'output',
+          texto: `🔍 Iniciando auditoría táctica de repositorio: ${urlAudit}...`,
+          tiempo,
+        });
+        axios
+          .post('/api/audit/github', { url: urlAudit })
+          .then((res) => {
+            historialLineas.value.push({
+              tipo: 'success',
+              texto: `✓ Auditoría completada para ${res.data.metadatos?.nombre} (${res.data.metadatos?.totalArchivos} archivos). Abriendo reporte...`,
+              tiempo: new Date().toLocaleTimeString(),
+            });
+            uiStore.modalGithubAuditAbierto = true;
+          })
+          .catch((err) => {
+            historialLineas.value.push({
+              tipo: 'error',
+              texto: `Error en auditoría: ${err.response?.data?.error || err.message}`,
+              tiempo: new Date().toLocaleTimeString(),
+            });
+          });
+      }
+      break;
+
+    case 'export':
+      if (chatStore.mensajes.length === 0) {
+        historialLineas.value.push({
+          tipo: 'error',
+          texto: 'No hay mensajes en la misión actual para exportar.',
+          tiempo,
+        });
+      } else {
+        let docMision = `# 🛡️ INFORME DE MISIÓN TÁCTICA A.R.E.S. (v2.9)\n\n`;
+        docMision += `> Fecha: ${new Date().toLocaleString()}\n`;
+        docMision += `> Mensajes: ${chatStore.mensajes.length}\n\n---\n\n`;
+        for (const m of chatStore.mensajes) {
+          docMision += `### [${m.role.toUpperCase()}]\n\n${m.content}\n\n---\n\n`;
+        }
+        const blobM = new Blob([docMision], { type: 'text/markdown;charset=utf-8' });
+        const urlM = URL.createObjectURL(blobM);
+        const aM = document.createElement('a');
+        aM.href = urlM;
+        aM.download = `Mision_ARES_${Date.now()}.md`;
+        aM.click();
+        URL.revokeObjectURL(urlM);
+        historialLineas.value.push({
+          tipo: 'success',
+          texto: `✓ Misión exportada exitosamente como Markdown.`,
+          tiempo,
+        });
+      }
       break;
 
     case 'clear':
