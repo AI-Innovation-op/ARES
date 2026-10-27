@@ -6,6 +6,9 @@ import ProjectZipForge from '../common/ProjectZipForge.vue';
 import LivePreviewModal from '../common/LivePreviewModal.vue';
 import { zipService, type ArchivoProyecto } from '../../services/zip.service.js';
 import { previewCompilerService } from '../../services/preview-compiler.service.js';
+import { useUiStore } from '../../stores/ui.store.js';
+
+const uiStore = useUiStore();
 
 
 const props = defineProps<{
@@ -148,6 +151,84 @@ const esMisionEnjambre = computed(() => {
     c.includes('PROTOCOLO MULTI-AGENTE') ||
     (c.includes('Atenea') && c.includes('Vulcano') && c.includes('Mercurio'))
   );
+});
+
+// Detección Intuitiva Táctica para guiar al desarrollador al módulo exacto (v3.8)
+const intuicionModulo = computed(() => {
+  if (esUsuario.value || !props.message.content) return null;
+  const c = props.message.content.toLowerCase();
+
+  if (c.includes('benchmark') || c.includes('stryker') || c.includes('k6') || c.includes('mutación') || c.includes('concurrencia') || c.includes('prueba de carga') || c.includes('msi') || c.includes('e2e')) {
+    return {
+      tipo: 'benchmark',
+      icono: '🧪',
+      etiqueta: 'Abrir Suite E2E & Benchmarks k6',
+      accion: () => { uiStore.modalBenchmarkAbierto = true; },
+      color: 'border-amber-400/80 bg-amber-950/40 text-amber-300 hover:bg-amber-900/60 shadow-[0_0_12px_rgba(245,158,11,0.3)]',
+    };
+  }
+
+  if (c.includes('bounded context') || c.includes('forja') || c.includes('enunciado') || c.includes('ejercicio') || c.includes('domain-driven') || c.includes('ddd') || c.includes('commits atómicos') || c.includes('matriz de equipo')) {
+    return {
+      tipo: 'forge',
+      icono: '📋',
+      etiqueta: 'Abrir Forja Soberana Git & DDD',
+      accion: () => { uiStore.modalForgeAbierto = true; },
+      color: 'border-emerald-400/80 bg-emerald-950/40 text-[#00ffaa] hover:bg-emerald-900/60 shadow-[0_0_12px_rgba(0,255,170,0.3)]',
+    };
+  }
+
+  if (c.includes('c4') || c.includes('radar') || c.includes('topología') || c.includes('arquitectura de sistemas') || c.includes('inyección de caos')) {
+    return {
+      tipo: 'radar',
+      icono: '🌐',
+      etiqueta: 'Abrir Radar de Arquitectura C4',
+      accion: () => { uiStore.modalRadarAbierto = true; },
+      color: 'border-cyan-400/80 bg-cyan-950/40 text-cyan-300 hover:bg-cyan-900/60 shadow-[0_0_12px_rgba(0,229,255,0.3)]',
+    };
+  }
+
+  if (c.includes('enjambre') || c.includes('swarm') || (c.includes('atenea') && c.includes('vulcano'))) {
+    return {
+      tipo: 'swarm',
+      icono: '🐝',
+      etiqueta: 'Abrir Monitor de Enjambre Multi-Agente',
+      accion: () => { uiStore.modalSwarmAbierto = true; },
+      color: 'border-purple-400/80 bg-purple-950/40 text-purple-300 hover:bg-purple-900/60 shadow-[0_0_12px_rgba(168,85,247,0.3)]',
+    };
+  }
+
+  if (c.includes('pipeline') || c.includes('ci/cd') || c.includes('despliegue') || c.includes('docker') || c.includes('github actions')) {
+    return {
+      tipo: 'cicd',
+      icono: '🚀',
+      etiqueta: 'Abrir Orquestador CI/CD',
+      accion: () => { uiStore.modalCicdAbierto = true; },
+      color: 'border-cyan-400/80 bg-cyan-950/40 text-cyan-300 hover:bg-cyan-900/60 shadow-[0_0_12px_rgba(0,229,255,0.3)]',
+    };
+  }
+
+  if (c.includes('memoria vectorial') || c.includes('oráculo') || c.includes('rag') || c.includes('búsqueda semántica') || c.includes('cosine similarity')) {
+    return {
+      tipo: 'memory',
+      icono: '🧠',
+      etiqueta: 'Consultar Oráculo de Memoria Vectorial',
+      accion: () => { uiStore.modalMemoriaAbierto = true; },
+      color: 'border-purple-400/80 bg-purple-950/40 text-purple-300 hover:bg-purple-900/60 shadow-[0_0_12px_rgba(168,85,247,0.3)]',
+    };
+  }
+
+  if (c.includes('auditoría') || c.includes('github audit') || c.includes('owasp') || c.includes('big-o') || c.includes('vulnerabilidades')) {
+    return {
+      tipo: 'audit',
+      icono: '🔍',
+      etiqueta: 'Abrir Auditoría de GitHub & OWASP',
+      accion: () => { uiStore.modalGithubAuditAbierto = true; },
+      color: 'border-[#00ffaa]/80 bg-emerald-950/40 text-[#00ffaa] hover:bg-emerald-900/60 shadow-[0_0_12px_rgba(0,255,170,0.3)]',
+    };
+  }
+
+  return null;
 });
 
 const docCopiado = ref(false);
@@ -442,10 +523,24 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
       />
 
       <!-- Derivación Táctica Automática de Artefactos -->
-      <div v-if="!esUsuario && message.content && (esDocumentacion || esCodigo || esMermaid || archivosProyecto.length > 0 || tieneVistaPreviaVisual)" class="mt-3 pt-2.5 border-t border-[#132a4a] flex flex-wrap items-center gap-2">
+      <div v-if="!esUsuario && message.content && (esDocumentacion || esCodigo || esMermaid || archivosProyecto.length > 0 || tieneVistaPreviaVisual || intuicionModulo)" class="mt-3 pt-2.5 border-t border-[#132a4a] flex flex-wrap items-center gap-2">
         <span class="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1">
           <span>⚡</span> Acciones:
         </span>
+
+        <!-- Píldora de Sugerencia Intuitiva A.R.E.S. (Lleva al programador directamente a lo que está haciendo) -->
+        <button
+          v-if="intuicionModulo"
+          type="button"
+          @click="intuicionModulo.accion"
+          class="px-2.5 py-1 rounded border text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer animate-pulse hover:animate-none"
+          :class="intuicionModulo.color"
+          title="A.R.E.S. intuye tu intención: haz clic para abrir la herramienta especializada directamente"
+        >
+          <span>{{ intuicionModulo.icono }}</span>
+          <span>{{ intuicionModulo.etiqueta }}</span>
+          <span class="text-[10px]">➔</span>
+        </button>
 
         <!-- Botón de Vista Previa en Vivo -->
         <button

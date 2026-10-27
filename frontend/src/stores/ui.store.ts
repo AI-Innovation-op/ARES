@@ -18,6 +18,7 @@ export const useUiStore = defineStore('ui', () => {
   const modalMemoriaAbierto = ref(false);
   const modalRadarAbierto = ref(false);
   const modalForgeAbierto = ref(false);
+  const modalBenchmarkAbierto = ref(false);
   const modoTactico = ref<TacticalMode>('centinela');
 
   // Buffer de transferencia para cada módulo
@@ -53,6 +54,10 @@ export const useUiStore = defineStore('ui', () => {
     modalForgeAbierto.value = !modalForgeAbierto.value;
   }
 
+  function toggleModalBenchmark() {
+    modalBenchmarkAbierto.value = !modalBenchmarkAbierto.value;
+  }
+
   function setModoTactico(modo: TacticalMode) {
     modoTactico.value = modo;
   }
@@ -85,6 +90,7 @@ export const useUiStore = defineStore('ui', () => {
     modalMemoriaAbierto,
     modalRadarAbierto,
     modalForgeAbierto,
+    modalBenchmarkAbierto,
     modoTactico,
     docBuffer,
     codeBuffer,
@@ -96,6 +102,7 @@ export const useUiStore = defineStore('ui', () => {
     toggleModalMemoria,
     toggleModalRadar,
     toggleModalForge,
+    toggleModalBenchmark,
     setModoTactico,
     navegarTab,
     derivarADocumentacion,

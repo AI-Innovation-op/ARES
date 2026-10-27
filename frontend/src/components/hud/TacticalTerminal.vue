@@ -580,6 +580,19 @@ function ejecutarComando() {
       });
       break;
 
+    case 'benchmark':
+    case 'benchmarks':
+    case 'bench':
+    case 'k6':
+    case 'stryker':
+      uiStore.modalBenchmarkAbierto = true;
+      historialLineas.value.push({
+        tipo: 'success',
+        texto: '🧪 Abriendo Suite de Pruebas E2E, Mutación Stryker & Benchmarks Grafana k6 (v3.8)...',
+        tiempo,
+      });
+      break;
+
     case 'clear':
     case 'cls':
       historialLineas.value = [];

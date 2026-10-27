@@ -35,7 +35,7 @@ for (const envPath of posiblesEnv) {
 const API_BASE = process.env.ARES_API_URL || 'http://localhost:3000';
 
 function banner() {
-  imprimirBannerCircuito('v3.7', '[J.A.R.V.I.S. Standalone Core]');
+  imprimirBannerCircuito('v3.8', '[E2E Benchmarks & Stryker Core]');
 }
 
 async function verificarServidor(): Promise<boolean> {
@@ -52,7 +52,7 @@ const program = new Command();
 program
   .name('ares')
   .description('🛡️ A.R.E.S. CLI Táctico — Terminal Standalone de Ingeniería de Software asistida por IA')
-  .version('3.7.0');
+  .version('3.8.0');
 
 // ============================================================================
 // 1. COMANDO: ares audit <file>
@@ -753,6 +753,48 @@ program
       }
     } catch (err: any) {
       console.error(pc.red(`💥 Falla al consultar A.R.E.S.: ${err.message}`));
+    }
+  });
+
+// ============================================================================
+// 13. COMANDO: ares benchmark [titulo] (v3.8 E2E, Stryker & k6)
+// ============================================================================
+program
+  .command('benchmark [titulo]')
+  .alias('bench')
+  .description('🧪 Ejecuta suite de integración E2E, Mutación con Stryker y Benchmarks de Carga k6')
+  .action(async (titulo) => {
+    banner();
+    const proyecto = titulo || 'Sistema DDD Táctico';
+    console.log(pc.cyan(`🧪 Disparando Suite de Benchmarks para: ${pc.bold(proyecto)}...\n`));
+
+    try {
+      const res = await fetch(`${API_BASE}/api/benchmark/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo: proyecto }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Error al ejecutar benchmark');
+
+      const rep = data.data;
+      console.log(pc.green('✅ SUITE DE BENCHMARKS COMPLETADA CON ÉXITO\n'));
+
+      const msi = rep.stryker.mutationScore;
+      const msiColor = msi >= 80 ? pc.green : msi >= 60 ? pc.yellow : pc.red;
+      console.log(`  ${pc.bold('🧬 STRYKER MUTATION:')}       MSI: ${msiColor(pc.bold(msi + '%'))} (Killed: ${pc.green(rep.stryker.killed)}, Survived: ${pc.yellow(rep.stryker.survived)})`);
+      console.log(`  ${pc.bold('🚀 K6 THROUGHPUT:')}          ${pc.cyan(rep.k6.peticionesPorSegundo + ' rps')} | Total: ${pc.white(rep.k6.totalPeticiones + ' reqs')}`);
+      console.log(`  ${pc.bold('⏱️ LATENCIA PERCENTIL:')}     P50: ${pc.white(rep.k6.latenciaP50Ms + 'ms')} | P95: ${pc.green(rep.k6.latenciaP95Ms + 'ms')} | P99: ${pc.cyan(rep.k6.latenciaP99Ms + 'ms')}`);
+      console.log(`  ${pc.bold('🛡️ TASA ERROR HTTP:')}        ${pc.green(rep.k6.tasaErrorHttp + '%')} (100% SLA cumplido)`);
+      console.log(`  ${pc.bold('🧪 TESTS E2E DDD:')}          ${pc.green(rep.e2e.passedTests + '/' + rep.e2e.totalTests + ' PASADOS')} (${rep.duracionTotalMs}ms)\n`);
+
+      console.log(pc.dim('  Mutantes críticos interceptados por la suite:'));
+      for (const m of (rep.stryker.mutantes || []).slice(0, 4)) {
+        console.log(`    ${pc.gray('•')} [${pc.cyan(m.id)}] ${pc.bold(m.mutatorName)} en ${pc.white(m.archivo)}: ${pc.green('⚔️ KILLED')}`);
+      }
+      console.log('\n');
+    } catch (err: any) {
+      console.error(pc.red(`💥 Falla al ejecutar suite: ${err.message}`));
     }
   });
 

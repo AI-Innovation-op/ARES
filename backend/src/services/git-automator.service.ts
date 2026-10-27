@@ -281,6 +281,28 @@ export class GitAutomatorService {
       }
     }
 
+    // 3.5 Commit E2E & Benchmarks: Pruebas de integración, Stryker y k6 (v3.8)
+    const archivosBenchmarks = rutasDisponibles.filter(
+      (r) =>
+        r.includes('tests/e2e/') ||
+        r.includes('stryker.config.json') ||
+        r.includes('benchmarks/') ||
+        r.includes('scripts/run-benchmarks')
+    );
+    if (archivosBenchmarks.length > 0) {
+      const aBench = resolverAutor(undefined, 'test');
+      commits.push({
+        id: `commit-${orden}`,
+        orden: orden++,
+        tipo: 'test',
+        mensaje: 'test(e2e-benchmarks): end-to-end integration suite, stryker mutation config and k6 performance benchmarks',
+        archivos: archivosBenchmarks,
+        autor: aBench.string,
+        autorNombre: aBench.name,
+        autorEmail: aBench.email,
+      });
+    }
+
     // 4. Archivos restantes no asignados (ej: src/main.ts, pruebas generales, etc.)
     const archivosAsignados = new Set(commits.flatMap((c) => c.archivos));
     const restantes = rutasDisponibles.filter(

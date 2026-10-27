@@ -5,6 +5,35 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [3.8.0] - 2026-10-27
+
+### 🧪 Nuevas Funcionalidades (Features)
+- **Suite de Pruebas E2E, Mutación con Stryker y Benchmarks k6 (DDD Industrial Suite):**
+  - **Pruebas de Integración End-to-End Multicontexto (`BenchmarkService`):**
+    - Generador automático de tests de integración para Bounded Contexts DDD (`tests/e2e/integration.e2e.test.ts`).
+    - Validación de consistencia eventual, orquestación de casos de uso y propagación de Domain Events entre contextos.
+  - **Pruebas de Mutación con Stryker (`stryker.config.json`):**
+    - Configuración oficial `@stryker-mutator/core` con plugins: `EqualityOperator`, `BooleanLiteral`, `ArithmeticOperator`, `BlockStatement`, `ConditionalExpression`.
+    - Motor de cálculo y simulación del *Mutation Score Indicator (MSI)* para eliminar falsos positivos en entidades y Value Objects.
+    - Informe detallado de mutantes evaluados: mutantes asesinados (*Killed*) vs sobrevivientes (*Survived*) y pruebas que los detectaron.
+  - **Benchmarks de Carga y Concurrencia Grafana k6 (`benchmarks/k6-load-test.js`):**
+    - Generación de escenarios k6: Smoke test (2 VUs), Ramping load test (50 VUs nominal), y Stress spikes (150 VUs).
+    - Métricas de rendimiento: Throughput (RPS), percentiles de latencia P50, P90, P95 (&lt; 200ms) y P99 (&lt; 400ms).
+    - Umbrales de calidad (Thresholds) y verificación de tasa de errores HTTP (0.00%).
+  - **Integración Nativa en la Forja Soberana de Ejercicios:**
+    - Inclusión automática de `tests/e2e/integration.e2e.test.ts`, `stryker.config.json`, `benchmarks/k6-load-test.js` y `scripts/run-benchmarks.bat` en cada `.zip` forjado.
+    - Commit atómico exclusivo en el plan Git: `test(e2e-benchmarks): end-to-end integration suite, stryker mutation config and k6 performance benchmarks`.
+  - **Panel Visual en Frontend (`BenchmarkSuiteModal.vue`):**
+    - Pestañas interactivas para Mutación Stryker (MSI), Carga k6 y Tests E2E.
+    - Visor de código con botones de un clic para copiar y descargar scripts.
+    - Botón de disparo en vivo con animación de telemetría y ejecución en tiempo real.
+  - **Comandos Standalone en Terminal:**
+    - Subcomando `ares benchmark [titulo]` en CLI.
+    - Orden `benchmark` en la Terminal Táctica Standalone REPL con métricas a color.
+  - **Sincronización Total Monorepo:** Versión `3.8.0` en backend, frontend, cli y mcp.
+
+---
+
 ## [3.7.0] - 2026-10-27
 
 ### ⚡ Nuevas Funcionalidades (Features)

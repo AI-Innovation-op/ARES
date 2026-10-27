@@ -33,7 +33,7 @@ export class TacticalRepl {
 
   async iniciar(): Promise<void> {
     console.clear();
-    imprimirBannerCircuito('v3.7', '[J.A.R.V.I.S. Standalone Core]');
+    imprimirBannerCircuito('v3.8', '[E2E Benchmarks & Stryker Core]');
 
     this.online = await this.verificarServidor();
 
@@ -51,6 +51,7 @@ export class TacticalRepl {
       'help',
       'chat',
       'forge',
+      'benchmark',
       'swarm',
       'audit',
       'radar',
@@ -145,6 +146,11 @@ export class TacticalRepl {
           continue;
         }
 
+        if (cmd === 'benchmark' || cmd === 'bench' || cmd === 'k6') {
+          await this.ejecutarBenchmark(args.join(' '));
+          continue;
+        }
+
         // Si el usuario escribe "chat <pregunta>" o simplemente cualquier texto libre
         const textoChat = cmd === 'chat' ? args.join(' ') : trimmed;
         await this.ejecutarChatStreaming(textoChat);
@@ -156,9 +162,10 @@ export class TacticalRepl {
   }
 
   private mostrarAyuda(): void {
-    imprimirLineaDivisoria('CATÁLOGO DE ÓRDENES TÁCTICAS (v3.7 REPL STANDALONE)');
+    imprimirLineaDivisoria('CATÁLOGO DE ÓRDENES TÁCTICAS (v3.8 REPL STANDALONE)');
     console.log(`  ${pc.bold(pc.cyan('chat <mensaje>'))}       Conversa con A.R.E.S. con streaming token a token (o escribe directo)`);
     console.log(`  ${pc.bold(pc.cyan('forge [archivo.txt]'))}  Forja de ejercicios DDD, desofuscador de PDFs y commits atómicos Git`);
+    console.log(`  ${pc.bold(pc.cyan('benchmark [titulo]'))}   Ejecuta suite de pruebas E2E, Mutación Stryker (MSI) y Benchmarks k6`);
     console.log(`  ${pc.bold(pc.cyan('swarm <misión>'))}      Despacha orden al Enjambre Multi-Agente (Atenea, Vulcano, Mercurio, Némesis)`);
     console.log(`  ${pc.bold(pc.cyan('audit <archivo>'))}      Auditoría OWASP, SOLID y Big-O de cualquier archivo fuente`);
     console.log(`  ${pc.bold(pc.cyan('radar'))}                Muestra la topología de arquitectura C4 en formato textual`);
@@ -167,6 +174,48 @@ export class TacticalRepl {
     console.log(`  ${pc.bold(pc.cyan('status'))}               Telemetría en vivo del núcleo A.R.E.S. y modelos IA`);
     console.log(`  ${pc.bold(pc.cyan('clear / cls'))}          Limpia la pantalla y redibuja el banner cibernético`);
     console.log(`  ${pc.bold(pc.cyan('exit / quit'))}          Cierra la sesión de la terminal standalone\n`);
+  }
+
+  private async ejecutarBenchmark(titulo?: string): Promise<void> {
+    const proyecto = titulo?.trim() || 'Sistema DDD Táctico';
+    imprimirLineaDivisoria(`SUITE DE BENCHMARKS DDD & MUTACIÓN: "${proyecto}"`);
+    console.log(pc.yellow('  🧪 [1/3] Evaluando integración E2E multicontexto...'));
+    console.log(pc.magenta('  🧬 [2/3] Inyectando mutantes con Stryker Mutator...'));
+    console.log(pc.cyan('  🚀 [3/3] Disparando benchmark de carga con Grafana k6 (50 VUs)...\n'));
+
+    try {
+      const res = await fetch(`${this.apiBase}/api/benchmark/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo: proyecto }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Falla al ejecutar benchmark');
+
+      const rep = data.data;
+
+      // 1. Stryker MSI Card
+      const msi = rep.stryker.mutationScore;
+      const msiColor = msi >= 80 ? pc.green : msi >= 60 ? pc.yellow : pc.red;
+      console.log(`  ${pc.bold('🧬 STRYKER MUTATION:')}       MSI: ${msiColor(pc.bold(msi + '%'))} (Asesinados: ${pc.green(rep.stryker.killed)}, Vivos: ${pc.yellow(rep.stryker.survived)})`);
+
+      // 2. k6 Metrics Card
+      console.log(`  ${pc.bold('🚀 K6 LOAD THROUGHPUT:')}     ${pc.cyan(rep.k6.peticionesPorSegundo + ' rps')} | Total: ${pc.white(rep.k6.totalPeticiones + ' reqs')}`);
+      console.log(`  ${pc.bold('⏱️ LATENCIA PERCENTIL:')}     P50: ${pc.white(rep.k6.latenciaP50Ms + 'ms')} | P95: ${pc.green(rep.k6.latenciaP95Ms + 'ms')} | P99: ${pc.cyan(rep.k6.latenciaP99Ms + 'ms')}`);
+      console.log(`  ${pc.bold('🛡️ TASA ERROR HTTP:')}        ${pc.green(rep.k6.tasaErrorHttp + '%')} (100% SLA cumplido)`);
+
+      // 3. E2E Tests
+      console.log(`  ${pc.bold('🧪 TESTS E2E DDD:')}          ${pc.green(rep.e2e.passedTests + '/' + rep.e2e.totalTests + ' PASADOS')} (${rep.duracionTotalMs}ms)\n`);
+
+      // Lista de mutantes asesinados
+      console.log(pc.dim('  Mutantes críticos interceptados por los tests:'));
+      for (const m of (rep.stryker.mutantes || []).slice(0, 3)) {
+        console.log(`    ${pc.gray('•')} [${pc.cyan(m.id)}] ${pc.bold(m.mutatorName)} en ${pc.white(m.archivo)}: ${pc.green('⚔️ KILLED')}`);
+      }
+      console.log('\n');
+    } catch (err: any) {
+      console.error(pc.red(`  ❌ Error ejecutando suite de benchmarks: ${err.message}\n`));
+    }
   }
 
   private async mostrarEstado(): Promise<void> {

@@ -58,6 +58,11 @@ import {
   executeGitHandler,
   listStacksHandler,
 } from './controllers/assignment.controller.js';
+import {
+  runBenchmarkHandler,
+  generateBenchmarkFilesHandler,
+  listBenchmarkPresetsHandler,
+} from './controllers/benchmark.controller.js';
 import { MemoryService } from './services/memory.service.js';
 import { CATALOGO_MODELOS } from './services/llm.service.js';
 import { ejecutarHerramienta, DECLARACIONES_HERRAMIENTAS } from './services/tools.service.js';
@@ -89,7 +94,7 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ONLINE',
-    agent: 'A.R.E.S. v3.7 Standalone CLI Core',
+    agent: 'A.R.E.S. v3.8 Benchmark & E2E Core',
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
   });
@@ -136,6 +141,11 @@ app.post('/api/assignment/clean-text', cleanTextHandler);
 app.post('/api/assignment/forge', forgeAssignmentHandler);
 app.post('/api/assignment/execute-git', executeGitHandler);
 app.get('/api/assignment/stacks', listStacksHandler);
+
+// 1.6 Suite de Pruebas E2E, Mutación Stryker & Benchmarks k6 (v3.8)
+app.post('/api/benchmark/run', runBenchmarkHandler);
+app.post('/api/benchmark/generate', generateBenchmarkFilesHandler);
+app.get('/api/benchmark/presets', listBenchmarkPresetsHandler);
 
 // 1.1 Persistencia y Sesiones de Chat (Memoria Total)
 app.get('/api/conversations', listarConversacionesHandler);
@@ -193,7 +203,7 @@ app.use(manejadorErrores);
 // ============================================================================
 async function iniciarServidor(): Promise<void> {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🛡️  INICIALIZANDO SISTEMA TÁCTICO A.R.E.S. v3.7 (STANDALONE TACTICAL CLI & REPL CORE)...');
+  console.log('🛡️  INICIALIZANDO SISTEMA TÁCTICO A.R.E.S. v3.8 (E2E SUITE & BENCHMARKS DDD CORE)...');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
   // Inicializar Oráculo de Memoria Semántica Vectorial Local

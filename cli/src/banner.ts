@@ -8,8 +8,8 @@
 import pc from 'picocolors';
 
 export function imprimirBannerCircuito(
-  version: string = 'v3.7',
-  subtitulo: string = '[J.A.R.V.I.S. Standalone Core]'
+  version: string = 'v3.8',
+  subtitulo: string = '[E2E Benchmarks & Stryker Core]'
 ): void {
   const w = (txt: string) => pc.bold(pc.white(txt));
   const c = (txt: string) => pc.cyan(txt);

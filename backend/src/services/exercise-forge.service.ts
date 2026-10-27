@@ -7,6 +7,7 @@
 
 import { AnalisisEnunciado, BoundedContextMeta } from './exercise-parser.service.js';
 import { GitAuthorConfig, GitAutomatorService, PlanGitCommits, ArchivoGenerado } from './git-automator.service.js';
+import { BenchmarkService } from './benchmark.service.js';
 
 export interface ProyectoForjado {
   titulo: string;
@@ -71,6 +72,44 @@ export class ExerciseForgeService {
     archivos.push({
       ruta: 'src/main.ts',
       contenido: this.generarMainTs(analisis),
+    });
+
+    // 6.1 Suite E2E, Mutación Stryker & Benchmarks k6 (v3.8)
+    const ctxList = analisis.boundedContexts.map((c) => ({ nombre: c.nombre, identificador: c.identificador }));
+    archivos.push({
+      ruta: 'tests/e2e/integration.e2e.test.ts',
+      contenido: BenchmarkService.generarSuiteE2E(analisis.titulo, ctxList),
+    });
+
+    archivos.push({
+      ruta: 'stryker.config.json',
+      contenido: BenchmarkService.generarStrykerConfig('vitest'),
+    });
+
+    archivos.push({
+      ruta: 'benchmarks/k6-load-test.js',
+      contenido: BenchmarkService.generarScriptK6(analisis.titulo),
+    });
+
+    archivos.push({
+      ruta: 'scripts/run-benchmarks.bat',
+      contenido: `@echo off
+echo ========================================================
+echo  A.R.E.S. INDUSTRIAL DDD BENCHMARK SUITE (v3.8)
+echo ========================================================
+echo [1/3] Ejecutando pruebas de integracion E2E...
+npm test tests/e2e/integration.e2e.test.ts
+echo.
+echo [2/3] Ejecutando pruebas de mutacion con Stryker...
+npx stryker run
+echo.
+echo [3/3] Ejecutando benchmark de carga con k6...
+k6 run benchmarks/k6-load-test.js
+echo ========================================================
+echo  SUITE COMPLETADA
+echo ========================================================
+pause
+`,
     });
 
     // 7. Planificar Commits Atómicos

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useChatStore } from '../../stores/chat.store.js';
 import { useUiStore } from '../../stores/ui.store.js';
 import ChatMessage from './ChatMessage.vue';
@@ -10,12 +10,77 @@ import PipelineMonitorModal from '../cicd/PipelineMonitorModal.vue';
 import MemoryOracleModal from '../memory/MemoryOracleModal.vue';
 import ArchitectureRadarModal from '../architecture/ArchitectureRadarModal.vue';
 import AssignmentForgeModal from '../forge/AssignmentForgeModal.vue';
+import BenchmarkSuiteModal from '../benchmark/BenchmarkSuiteModal.vue';
 
 const chatStore = useChatStore();
 const uiStore = useUiStore();
 const scrollContainer = ref<HTMLDivElement | null>(null);
 const mostrarHistorial = ref(false);
 const exportado = ref(false);
+const menuModulosAbierto = ref(false);
+
+function abrirModulo(modulo: string) {
+  menuModulosAbierto.value = false;
+  if (modulo === 'forge') uiStore.modalForgeAbierto = true;
+  else if (modulo === 'benchmark') uiStore.modalBenchmarkAbierto = true;
+  else if (modulo === 'radar') uiStore.modalRadarAbierto = true;
+  else if (modulo === 'memory') uiStore.modalMemoriaAbierto = true;
+  else if (modulo === 'cicd') uiStore.modalCicdAbierto = true;
+  else if (modulo === 'swarm') uiStore.modalSwarmAbierto = true;
+  else if (modulo === 'audit') uiStore.modalGithubAuditAbierto = true;
+}
+
+const menuModoAbierto = ref(false);
+
+const modosDisponibles = [
+  {
+    id: 'centinela',
+    nombre: 'Centinela',
+    icono: '🛡️',
+    descripcion: 'Rigor formal, DDD y blindaje OWASP',
+    badgeColor: 'border-[#00ffaa]/60 text-[#00ffaa] bg-[#00ffaa]/10 shadow-[0_0_8px_rgba(0,255,170,0.25)]',
+  },
+  {
+    id: 'blitzkrieg',
+    nombre: 'Blitzkrieg',
+    icono: '⚡',
+    descripcion: 'Prototipado rápido y Live Preview',
+    badgeColor: 'border-cyan-400/60 text-cyan-300 bg-cyan-950/30 shadow-[0_0_8px_rgba(0,229,255,0.25)]',
+  },
+  {
+    id: 'arquitecto',
+    nombre: 'Arquitecto',
+    icono: '🏛️',
+    descripcion: 'RFCs profundos, diagramas C4 y ADRs',
+    badgeColor: 'border-purple-400/60 text-purple-300 bg-purple-950/30 shadow-[0_0_8px_rgba(168,85,247,0.25)]',
+  },
+  {
+    id: 'enjambre',
+    nombre: 'Enjambre',
+    icono: '🐝',
+    descripcion: 'Swarm multi-agente: 4 especialistas',
+    badgeColor: 'border-amber-400/60 text-amber-300 bg-amber-950/30 shadow-[0_0_8px_rgba(245,158,11,0.25)]',
+  },
+];
+
+const modoActualInfo = computed(() => {
+  return modosDisponibles.find((m) => m.id === uiStore.modoTactico) || modosDisponibles[0];
+});
+
+function seleccionarModo(id: any) {
+  uiStore.setModoTactico(id);
+  menuModoAbierto.value = false;
+}
+
+function cerrarMenuSiClickFuera(e: MouseEvent) {
+  const target = e.target as HTMLElement;
+  if (!target.closest('.dropdown-arsenal-tactico')) {
+    menuModulosAbierto.value = false;
+  }
+  if (!target.closest('.dropdown-modo-tactico')) {
+    menuModoAbierto.value = false;
+  }
+}
 
 function handleInsertarEnChat(prompt: string) {
   chatStore.enviarMensaje(prompt);
@@ -62,6 +127,11 @@ function scrollToBottom() {
 onMounted(() => {
   scrollToBottom();
   chatStore.cargarConversaciones();
+  window.addEventListener('click', cerrarMenuSiClickFuera);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('click', cerrarMenuSiClickFuera);
 });
 
 watch(
@@ -121,105 +191,176 @@ function seleccionarMision(id: string) {
           <span class="hidden sm:inline">Nueva Misión</span>
         </button>
 
-        <!-- Botón Ingesta y Auditoría de GitHub (v2.9) -->
-        <button
-          @click="uiStore.toggleModalGithubAudit"
-          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#0b1b36] border border-[#00ffaa]/60 hover:border-[#00ffaa] hover:bg-[#00ffaa]/15 text-[#00ffaa] text-[11px] font-bold cursor-pointer transition shadow-[0_0_8px_rgba(0,255,170,0.2)]"
-          title="Abrir analizador e ingesta táctica de repositorios GitHub"
-        >
-          <span>🔍</span>
-          <span>GITHUB AUDIT</span>
-        </button>
+        <!-- Barra de Selección Táctica: Menú Desplegable de Arsenal de Módulos (v3.8) -->
+        <div class="relative dropdown-arsenal-tactico">
+          <button
+            type="button"
+            @click.stop="menuModulosAbierto = !menuModulosAbierto"
+            class="flex items-center gap-1.5 px-3 py-1 rounded bg-[#0b1b36] border border-cyan-400/60 hover:border-cyan-300 hover:bg-cyan-900/30 text-cyan-300 text-[11px] font-bold font-mono cursor-pointer transition shadow-[0_0_12px_rgba(0,229,255,0.2)]"
+            title="Desplegar Arsenal Táctico de Módulos de Ingeniería A.R.E.S."
+          >
+            <span>⚡</span>
+            <span>ARSENAL TÁCTICO</span>
+            <span class="text-[9px] bg-cyan-950/90 px-1 py-0.2 rounded border border-cyan-700 text-cyan-300 font-bold">7</span>
+            <span class="text-[9px] text-cyan-400 font-bold transition-transform duration-200" :class="menuModulosAbierto ? 'rotate-180' : ''">▼</span>
+          </button>
 
-        <!-- Botón Monitor de Enjambre Multi-Agente (v3.1) -->
-        <button
-          @click="uiStore.toggleModalSwarm"
-          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#150d2a] border border-purple-500/60 hover:border-purple-400 hover:bg-purple-900/30 text-purple-300 text-[11px] font-bold cursor-pointer transition shadow-[0_0_10px_rgba(168,85,247,0.25)]"
-          title="Abrir monitor del Enjambre Táctico Multi-Agente (Atenea, Vulcano, Mercurio, Némesis)"
-        >
-          <span>🐝</span>
-          <span>ENJAMBRE</span>
-        </button>
+          <!-- Menú Flotante Cyberpunk -->
+          <div
+            v-if="menuModulosAbierto"
+            class="absolute left-0 mt-1.5 w-72 bg-[#061022] border border-cyan-500/60 rounded-lg shadow-2xl py-1 z-50 divide-y divide-[#132a4a] animate-fade-in font-mono text-xs backdrop-blur-md"
+          >
+            <div class="px-3 py-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider bg-[#09152b] rounded-t">
+              Módulos Especializados A.R.E.S.
+            </div>
 
-        <!-- Botón Monitor de CI/CD & Despliegues Autónomos (v3.2) -->
-        <button
-          @click="uiStore.toggleModalCicd"
-          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#071d2b] border border-cyan-500/60 hover:border-cyan-400 hover:bg-cyan-900/30 text-cyan-300 text-[11px] font-bold cursor-pointer transition shadow-[0_0_10px_rgba(0,229,255,0.25)]"
-          title="Abrir orquestador de CI/CD, pipelines industriales y despliegues autónomos con zero-downtime"
-        >
-          <span>🚀</span>
-          <span>CI/CD</span>
-        </button>
+            <!-- 1. Forja Git DDD -->
+            <button
+              type="button"
+              @click="abrirModulo('forge')"
+              class="w-full px-3 py-2 text-left hover:bg-emerald-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-[#00ffaa] group cursor-pointer"
+            >
+              <span class="text-base group-hover:scale-110 transition">📋</span>
+              <div>
+                <div class="font-bold text-[11px]">Forja Soberana Git (v3.5)</div>
+                <div class="text-[10px] text-slate-400">Desofuscador de PDF, Squad Matrix & Commits</div>
+              </div>
+            </button>
 
-        <!-- Botón Oráculo de Memoria Semántica Vectorial (v3.3) -->
-        <button
-          @click="uiStore.toggleModalMemoria"
-          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#1e0e33] border border-purple-500/60 hover:border-purple-400 hover:bg-purple-900/30 text-purple-300 text-[11px] font-bold cursor-pointer transition shadow-[0_0_10px_rgba(168,85,247,0.25)]"
-          title="Abrir Oráculo de Memoria Semántica Vectorial Local y RAG Arquitectónico"
-        >
-          <span>🧠</span>
-          <span>MEMORIA</span>
-        </button>
+            <!-- 2. Suite E2E & Benchmarks -->
+            <button
+              type="button"
+              @click="abrirModulo('benchmark')"
+              class="w-full px-3 py-2 text-left hover:bg-amber-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-amber-300 group cursor-pointer"
+            >
+              <span class="text-base group-hover:scale-110 transition">🧪</span>
+              <div>
+                <div class="font-bold text-[11px]">Suite E2E & Benchmarks (v3.8)</div>
+                <div class="text-[10px] text-slate-400">Mutación Stryker (MSI) & Grafana k6</div>
+              </div>
+            </button>
 
-        <!-- Botón Radar de Arquitectura de Sistemas C4 (v3.4) -->
-        <button
-          @click="uiStore.toggleModalRadar"
-          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#041a2e] border border-cyan-400/60 hover:border-cyan-300 hover:bg-cyan-900/40 text-cyan-200 text-[11px] font-bold cursor-pointer transition shadow-[0_0_10px_rgba(0,229,255,0.25)]"
-          title="Abrir Radar de Arquitectura C4, topologías distribuidas y simulador de tráfico/caos"
-        >
-          <span>🌐</span>
-          <span>RADAR C4</span>
-        </button>
+            <!-- 3. Radar de Arquitectura C4 -->
+            <button
+              type="button"
+              @click="abrirModulo('radar')"
+              class="w-full px-3 py-2 text-left hover:bg-cyan-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-cyan-300 group cursor-pointer"
+            >
+              <span class="text-base group-hover:scale-110 transition">🌐</span>
+              <div>
+                <div class="font-bold text-[11px]">Radar de Arquitectura C4 (v3.4)</div>
+                <div class="text-[10px] text-slate-400">Topología distribuida, caos y tracing</div>
+              </div>
+            </button>
 
-        <!-- Botón Forja Soberana de Ejercicios & Git Autónomo (v3.5) -->
+            <!-- 4. Memoria Vectorial -->
+            <button
+              type="button"
+              @click="abrirModulo('memory')"
+              class="w-full px-3 py-2 text-left hover:bg-purple-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-purple-300 group cursor-pointer"
+            >
+              <span class="text-base group-hover:scale-110 transition">🧠</span>
+              <div>
+                <div class="font-bold text-[11px]">Oráculo de Memoria Vectorial (v3.3)</div>
+                <div class="text-[10px] text-slate-400">128D Cosine Similarity & RAG local</div>
+              </div>
+            </button>
+
+            <!-- 5. CI/CD Pipeline Engine -->
+            <button
+              type="button"
+              @click="abrirModulo('cicd')"
+              class="w-full px-3 py-2 text-left hover:bg-cyan-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-cyan-300 group cursor-pointer"
+            >
+              <span class="text-base group-hover:scale-110 transition">🚀</span>
+              <div>
+                <div class="font-bold text-[11px]">CI/CD Pipeline Engine (v3.2)</div>
+                <div class="text-[10px] text-slate-400">Orquestador de 6 etapas & Despliegues</div>
+              </div>
+            </button>
+
+            <!-- 6. Enjambre Multi-Agente -->
+            <button
+              type="button"
+              @click="abrirModulo('swarm')"
+              class="w-full px-3 py-2 text-left hover:bg-purple-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-purple-300 group cursor-pointer"
+            >
+              <span class="text-base group-hover:scale-110 transition">🐝</span>
+              <div>
+                <div class="font-bold text-[11px]">Enjambre Multi-Agente Swarm (v3.1)</div>
+                <div class="text-[10px] text-slate-400">Atenea, Vulcano, Mercurio, Némesis</div>
+              </div>
+            </button>
+
+            <!-- 7. Ingesta GitHub -->
+            <button
+              type="button"
+              @click="abrirModulo('audit')"
+              class="w-full px-3 py-2 text-left hover:bg-emerald-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-[#00ffaa] group cursor-pointer"
+            >
+              <span class="text-base group-hover:scale-110 transition">🔍</span>
+              <div>
+                <div class="font-bold text-[11px]">Auditoría de GitHub & OWASP (v3.0)</div>
+                <div class="text-[10px] text-slate-400">Análisis AST de repositorios remotos</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Acceso Rápido Directo a la Forja Soberana -->
         <button
+          type="button"
           @click="uiStore.toggleModalForge"
-          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#07241c] border border-emerald-400/70 hover:border-[#00ffaa] hover:bg-[#00ffaa]/20 text-[#00ffaa] text-[11px] font-bold cursor-pointer transition shadow-[0_0_10px_rgba(0,255,170,0.25)]"
-          title="Abrir Forja Soberana de Ejercicios DDD, Desofuscador de PDFs y Commits Atómicos por Bounded Context"
+          class="hidden xl:flex items-center gap-1 px-2.5 py-1 rounded bg-[#07241c] border border-emerald-400/70 hover:border-[#00ffaa] hover:bg-[#00ffaa]/20 text-[#00ffaa] text-[11px] font-bold cursor-pointer transition shadow-[0_0_10px_rgba(0,255,170,0.2)]"
+          title="Abrir Forja Soberana de Ejercicios DDD"
         >
           <span>📋</span>
           <span>FORJA GIT</span>
         </button>
       </div>
 
-      <!-- Selector de Modo Táctico (v2.9 / v3.1 Swarm) -->
-      <div class="hidden md:flex items-center gap-1 bg-[#040914] p-0.5 rounded border border-[#132a4a] text-[11px]">
+      <!-- Selector Compacto de Modo Táctico: Barra de Selección Dropdown (v3.8) -->
+      <div class="relative dropdown-modo-tactico hidden sm:block">
         <button
           type="button"
-          @click="uiStore.setModoTactico('centinela')"
-          class="px-2 py-0.5 rounded transition cursor-pointer"
-          :class="uiStore.modoTactico === 'centinela' ? 'bg-[#00ffaa]/20 border border-[#00ffaa]/50 text-[#00ffaa] font-bold' : 'text-slate-400 hover:text-slate-200'"
-          title="Modo Centinela: Auditoría, rigor formal, DDD y blindaje OWASP"
+          @click.stop="menuModoAbierto = !menuModoAbierto"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#040914] border text-[11px] font-mono font-bold cursor-pointer transition select-none"
+          :class="modoActualInfo.badgeColor"
+          :title="`Modo Táctico Actual: ${modoActualInfo.nombre}. Clic para cambiar de postura táctica.`"
         >
-          🛡️ Centinela
+          <span class="text-xs">{{ modoActualInfo.icono }}</span>
+          <span>{{ modoActualInfo.nombre }}</span>
+          <span class="text-[9px] opacity-75 font-bold transition-transform duration-200" :class="menuModoAbierto ? 'rotate-180' : ''">▼</span>
         </button>
-        <button
-          type="button"
-          @click="uiStore.setModoTactico('blitzkrieg')"
-          class="px-2 py-0.5 rounded transition cursor-pointer"
-          :class="uiStore.modoTactico === 'blitzkrieg' ? 'bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 font-bold' : 'text-slate-400 hover:text-slate-200'"
-          title="Modo Blitzkrieg: Prototipado veloz, interfaces interactivas y Live Preview instantáneo"
+
+        <!-- Menú Flotante Cyberpunk de Modos Tácticos -->
+        <div
+          v-if="menuModoAbierto"
+          class="absolute right-0 mt-1.5 w-64 bg-[#061022] border border-[#132a4a] rounded-lg shadow-2xl py-1 z-50 divide-y divide-[#132a4a] animate-fade-in font-mono text-xs backdrop-blur-md"
         >
-          ⚡ Blitzkrieg
-        </button>
-        <button
-          type="button"
-          @click="uiStore.setModoTactico('arquitecto')"
-          class="px-2 py-0.5 rounded transition cursor-pointer"
-          :class="uiStore.modoTactico === 'arquitecto' ? 'bg-purple-500/20 border border-purple-400/50 text-purple-300 font-bold' : 'text-slate-400 hover:text-slate-200'"
-          title="Modo Arquitecto: RFCs profundos, diagramas C4 y ADRs"
-        >
-          🏛️ Arquitecto
-        </button>
-        <button
-          type="button"
-          @click="uiStore.setModoTactico('enjambre')"
-          class="px-2 py-0.5 rounded transition cursor-pointer"
-          :class="uiStore.modoTactico === 'enjambre' ? 'bg-amber-500/25 border border-amber-400/60 text-amber-300 font-bold shadow-[0_0_8px_rgba(245,158,11,0.3)]' : 'text-slate-400 hover:text-slate-200'"
-          title="Modo Enjambre: Coordinación de 4 subagentes especializados con protocolo de consenso"
-        >
-          🐝 Enjambre
-        </button>
+          <div class="px-3 py-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider bg-[#09152b] rounded-t flex items-center justify-between">
+            <span>Postura / Modo Táctico</span>
+            <span class="text-[9px] text-[#00ffaa]">FSM ACTIVE</span>
+          </div>
+
+          <button
+            v-for="m in modosDisponibles"
+            :key="m.id"
+            type="button"
+            @click="seleccionarModo(m.id)"
+            class="w-full px-3 py-2 text-left flex items-center justify-between transition cursor-pointer group"
+            :class="uiStore.modoTactico === m.id ? 'bg-[#00ffaa]/15 text-[#00ffaa]' : 'text-slate-300 hover:bg-[#0b1b36] hover:text-slate-100'"
+          >
+            <div class="flex items-center gap-2">
+              <span class="text-sm group-hover:scale-110 transition">{{ m.icono }}</span>
+              <div>
+                <div class="font-bold text-[11px]">{{ m.nombre }}</div>
+                <div class="text-[10px] text-slate-400">{{ m.descripcion }}</div>
+              </div>
+            </div>
+            <span v-if="uiStore.modoTactico === m.id" class="text-xs text-[#00ffaa] font-bold">✓</span>
+          </button>
+        </div>
       </div>
 
       <!-- Acciones de Cabecera: Exportar Misión y Limpiar -->
@@ -359,6 +500,12 @@ function seleccionarMision(id: string) {
     <AssignmentForgeModal
       v-if="uiStore.modalForgeAbierto"
       @cerrar="uiStore.modalForgeAbierto = false"
+    />
+
+    <!-- Modal Suite de Pruebas E2E & Benchmarks DDD (v3.8) -->
+    <BenchmarkSuiteModal
+      v-if="uiStore.modalBenchmarkAbierto"
+      @cerrar="uiStore.modalBenchmarkAbierto = false"
     />
   </div>
 </template>
