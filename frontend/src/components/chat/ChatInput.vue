@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { voiceService } from '../../services/voice.service.js';
 
 const emit = defineEmits<{
@@ -85,6 +85,16 @@ function toggleMic() {
     },
   });
 }
+
+// Limpiar la caja de texto cuando la orden vocal es despachada
+watch(
+  () => voiceService.estado.value,
+  (nuevo, viejo) => {
+    if (viejo === 'escuchando' && nuevo === 'inactivo' && !voiceService.transcripcion.value) {
+      texto.value = '';
+    }
+  }
+);
 </script>
 
 <template>

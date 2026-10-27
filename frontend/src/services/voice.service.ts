@@ -6,6 +6,7 @@
  */
 
 import { ref } from 'vue';
+import { useChatStore } from '../stores/chat.store.js';
 
 export type EstadoVoz = 'inactivo' | 'solicitando' | 'escuchando' | 'procesando' | 'error';
 
@@ -68,29 +69,26 @@ export class VoiceService {
       const textoActual = final || interim;
       this.transcripcion.value = textoActual;
 
-      // Detectar comando verbal táctico: "A.R.E.S., enviar" o "enviar orden"
-      const minusculas = textoActual.toLowerCase().trim();
-      if (
-        minusculas.includes('ares enviar') ||
-        minusculas.includes('a.r.e.s. enviar') ||
-        minusculas.includes('enviar orden') ||
-        minusculas.includes('ejecutar orden')
-      ) {
-        // Limpiar el comando del texto y disparar envío
+      // Detectar comando verbal táctico flexible (con comas, pausas o sinónimos de enviar)
+      const regexComandoMedio = /(?:a\.?r\.?e\.?s\.?|ares)[,\s]+(?:enviar|envía|envia|manda|ejecutar)/i;
+      const regexComandoFinal = /(?:(?:a\.?r\.?e\.?s\.?|ares)[,\s]+)?(?:enviar|envía|envia|manda|ejecutar)(?:\s+orden|\s+ahora|\s+mensaje)?$/i;
+
+      if (regexComandoMedio.test(textoActual) || (regexComandoFinal.test(textoActual.trim()) && textoActual.trim().length > 5)) {
+        // Limpiar el comando del texto y disparar despacho inmediato
         const textoLimpio = textoActual
-          .replace(/a\.?r\.?e\.?s\.?\s*,?\s*enviar/gi, '')
-          .replace(/enviar\s+orden/gi, '')
-          .replace(/ejecutar\s+orden/gi, '')
+          .replace(/(?:a\.?r\.?e\.?s\.?|ares)[,\s]+(?:enviar|envía|envia|manda|ejecutar)(?:\s+orden|\s+ahora|\s+mensaje)?/gi, '')
+          .replace(/(?:enviar|envía|envia|ejecutar)\s+(?:orden|ahora|mensaje)/gi, '')
+          .replace(/\s+(?:enviar|envía|envia)$/gi, '')
           .trim();
 
-        if (this.callbacks.onTranscripcion) {
-          this.callbacks.onTranscripcion(textoLimpio, true);
+        if (textoLimpio.length > 0) {
+          this.transcripcion.value = textoLimpio;
+          if (this.callbacks.onTranscripcion) {
+            this.callbacks.onTranscripcion(textoLimpio, true);
+          }
+          this.despacharOrdenVocal(textoLimpio);
+          return;
         }
-        if (this.callbacks.onComandoEnviar) {
-          this.callbacks.onComandoEnviar();
-        }
-        this.detenerEscucha();
-        return;
       }
 
       if (this.callbacks.onTranscripcion) {
@@ -243,6 +241,24 @@ export class VoiceService {
     } else {
       this.iniciarEscucha(callbacks);
     }
+  }
+
+  /**
+   * Despacha directamente la transcripción vocal acumulada a la consola de A.R.E.S.
+   */
+  despacharOrdenVocal(textoManual?: string): void {
+    const textoAEnviar = (textoManual || this.transcripcion.value).trim();
+    if (!textoAEnviar) return;
+
+    this.detenerEscucha();
+    try {
+      const chatStore = useChatStore();
+      chatStore.enviarMensaje(textoAEnviar);
+    } catch (err) {
+      console.warn('⚠️ [VoiceService] Error al despachar a chatStore:', err);
+      this.callbacks.onComandoEnviar?.();
+    }
+    this.transcripcion.value = '';
   }
 }
 

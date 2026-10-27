@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { voiceService } from '../../services/voice.service.js';
 
-const emit = defineEmits<{
-  (e: 'enviar'): void;
-}>();
-
 function toggleVoz() {
   voiceService.toggleEscucha();
 }
@@ -54,7 +50,7 @@ function toggleVoz() {
       <button
         v-if="voiceService.transcripcion.value"
         type="button"
-        @click="emit('enviar')"
+        @click="voiceService.despacharOrdenVocal()"
         class="px-2 py-0.5 rounded bg-[#00ffaa] hover:bg-[#00e699] text-[#040914] text-[10px] font-orbitron font-bold shrink-0 cursor-pointer shadow-[0_0_8px_rgba(0,255,170,0.4)]"
       >
         ENVIAR AHORA ➔
