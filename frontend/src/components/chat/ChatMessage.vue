@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import type { MensajeChat } from '../../types/ares.types.js';
 import MermaidViewer from '../common/MermaidViewer.vue';
 import ProjectZipForge from '../common/ProjectZipForge.vue';
-import { useUiStore } from '../../stores/ui.store.js';
 import { zipService, type ArchivoProyecto } from '../../services/zip.service.js';
 
-const uiStore = useUiStore();
 
 const props = defineProps<{
   message: MensajeChat;
@@ -64,19 +62,38 @@ const esMermaid = computed(() => {
   return /```mermaid/i.test(props.message.content);
 });
 
-function derivarADoc() {
-  uiStore.derivarADocumentacion(props.message.content, 'Propuesta Técnica Generada', 'RFC');
+const docCopiado = ref(false);
+function copiarDoc() {
+  navigator.clipboard.writeText(props.message.content);
+  docCopiado.value = true;
+  setTimeout(() => {
+    docCopiado.value = false;
+  }, 2000);
 }
 
-function derivarACode() {
+function descargarDocMD() {
+  const blob = new Blob([props.message.content], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const matchTitulo = props.message.content.match(/^#+\s*(.+)$/m);
+  const nombre = matchTitulo
+    ? matchTitulo[1].toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-')
+    : 'documento-ares';
+  a.download = `${nombre}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+const codigoCopiado = ref(false);
+function copiarCodigoBloque() {
   const match = props.message.content.match(/```([a-z0-9_-]*)\n([\s\S]*?)```/i);
   const code = match ? match[2].trim() : props.message.content;
-  const lang = match ? match[1] : 'typescript';
-  uiStore.derivarACodigo(code, lang);
-}
-
-function derivarAArq() {
-  uiStore.derivarAArquitecto(props.message.content);
+  navigator.clipboard.writeText(code);
+  codigoCopiado.value = true;
+  setTimeout(() => {
+    codigoCopiado.value = false;
+  }, 2000);
 }
 
 interface SegmentoMensaje {
@@ -227,34 +244,38 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
           <span>Descargar .ZIP ({{ archivosProyecto.length }})</span>
         </button>
 
+        <!-- Acciones directas de Documentación -->
         <button
           v-if="esDocumentacion"
-          @click="derivarADoc"
+          type="button"
+          @click="descargarDocMD"
           class="px-2.5 py-1 rounded bg-[#0b1b36] border border-cyan-500/60 hover:border-cyan-400 hover:bg-cyan-950/40 text-cyan-300 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer shadow"
-          title="Abrir este documento en el Escudo Documental para guardarlo o exportarlo"
+          title="Descargar el documento técnico en formato Markdown (.md)"
         >
           <span>🛡️</span>
-          <span>Escudo Documental</span>
+          <span>Descargar .MD</span>
         </button>
 
         <button
-          v-if="esCodigo"
-          @click="derivarACode"
+          v-if="esDocumentacion"
+          type="button"
+          @click="copiarDoc"
+          class="px-2.5 py-1 rounded bg-[#0b1b36] border border-[#132a4a] hover:border-cyan-400 hover:bg-cyan-950/40 text-slate-300 hover:text-cyan-200 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer shadow"
+        >
+          <span>📋</span>
+          <span>{{ docCopiado ? '✓ Copiado' : 'Copiar Doc' }}</span>
+        </button>
+
+        <!-- Acciones directas de Código -->
+        <button
+          v-if="esCodigo && archivosProyecto.length === 0"
+          type="button"
+          @click="copiarCodigoBloque"
           class="px-2.5 py-1 rounded bg-[#0b1b36] border border-emerald-500/60 hover:border-emerald-400 hover:bg-emerald-950/40 text-emerald-300 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer shadow"
-          title="Abrir este código en la Espada Full-Stack para auditar SOLID, Big-O y generar tests"
+          title="Copiar código fuente al portapapeles"
         >
           <span>⚔️</span>
-          <span>Espada Full-Stack</span>
-        </button>
-
-        <button
-          v-if="esMermaid"
-          @click="derivarAArq"
-          class="px-2.5 py-1 rounded bg-[#0b1b36] border border-purple-500/60 hover:border-purple-400 hover:bg-purple-950/40 text-purple-300 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer shadow"
-          title="Ver este diagrama en el módulo de Arquitectura de Sistemas"
-        >
-          <span>🏛️</span>
-          <span>Arquitecto</span>
+          <span>{{ codigoCopiado ? '✓ Código Copiado' : 'Copiar Código' }}</span>
         </button>
       </div>
 

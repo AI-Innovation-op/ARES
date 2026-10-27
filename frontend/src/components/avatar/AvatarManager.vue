@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useFsmStore } from '../../stores/fsm.store.js';
 import AvatarCanvas3D from './AvatarCanvas3D.vue';
 import AvatarCanvas2D from './AvatarCanvas2D.vue';
 import MatrixRainCanvas from '../common/MatrixRainCanvas.vue';
+import TechSpecModule from '../modules/TechSpecModule.vue';
 
 const fsm = useFsmStore();
+const mostrarFichaTecnica = ref(false);
 </script>
 
 <template>
@@ -33,8 +36,8 @@ const fsm = useFsmStore();
       <AvatarCanvas2D v-else />
     </div>
 
-    <!-- Panel de Estado de Pose Inferior -->
-    <div class="p-3 border-t border-[#132a4a] bg-[#091326]/80 text-xs font-mono space-y-1">
+    <!-- Panel de Estado de Pose Inferior y Ficha Técnica -->
+    <div class="p-3 border-t border-[#132a4a] bg-[#091326]/80 text-xs font-mono space-y-2">
       <div class="flex items-center justify-between text-slate-400">
         <span>POSE #{{ fsm.poseActual.id }} // {{ fsm.poseActual.code }}</span>
         <span class="text-[#00ffaa] font-semibold">{{ fsm.poseActual.eyes }}</span>
@@ -44,6 +47,44 @@ const fsm = useFsmStore();
       </div>
       <div class="text-[11px] text-slate-400 line-clamp-2">
         {{ fsm.poseActual.description }}
+      </div>
+
+      <!-- Botón Táctico Ficha Técnica debajo del Avatar -->
+      <div class="pt-1">
+        <button
+          type="button"
+          @click="mostrarFichaTecnica = true"
+          class="w-full py-1.5 px-3 rounded border border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/50 hover:border-cyan-400 text-cyan-300 font-mono text-[11px] font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-[0_0_8px_rgba(0,229,255,0.15)]"
+          title="Consultar especificaciones, arquitectura y datos técnicos de A.R.E.S."
+        >
+          <span>📋</span>
+          <span>FICHA TÉCNICA MAESTRA</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Ficha Técnica Maestra -->
+    <div
+      v-if="mostrarFichaTecnica"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      @click.self="mostrarFichaTecnica = false"
+    >
+      <div class="bg-[#071329] border border-cyan-500/60 rounded-xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-[0_10px_40px_rgba(0,0,0,0.9)] overflow-hidden">
+        <div class="p-3 border-b border-[#132a4a] bg-[#091326] flex items-center justify-between">
+          <div class="flex items-center gap-2 font-orbitron font-bold text-slate-100 text-sm">
+            <span>📋</span>
+            <span>FICHA TÉCNICA MAESTRA // J.A.R.V.I.S. CORE</span>
+          </div>
+          <button
+            @click="mostrarFichaTecnica = false"
+            class="text-slate-400 hover:text-white px-2.5 py-1 text-xs font-mono cursor-pointer rounded hover:bg-rose-950/50 hover:text-rose-300 transition"
+          >
+            ✕ CERRAR
+          </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4">
+          <TechSpecModule />
+        </div>
       </div>
     </div>
   </div>
