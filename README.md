@@ -1,8 +1,8 @@
-# 🛡️ A.R.E.S. Ecosystem (v3.2 Industrial CI/CD & Autonomous Deployments // Sovereign Architecture)
+# 🛡️ A.R.E.S. Ecosystem (v3.3 Vector Semantic Memory & RAG Architecture // Sovereign Core)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
-> 🏷️ **Versión Actual:** [Release Oficial v3.2 en GitHub](https://github.com/AI-Innovation-op/ARES/releases/tag/v3.2.0) — *Pipelines de CI/CD Industriales, Despliegues Autónomos, Grafo en Vivo y Rollback Táctico.*
+> 🏷️ **Versión Actual:** [Release Oficial v3.3 en GitHub](https://github.com/AI-Innovation-op/ARES/releases/tag/v3.3.0) — *Memoria Semántica Vectorial Local (128D Cosine Similarity), Oráculo de ADRs y RAG Táctico.*
 
 [![Node.js](https://img.shields.io/badge/Node.js-24+-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -151,6 +151,19 @@ Heredado de **Cori**, no permito que mi Comandante destruya su salud física o m
 * **Auditor de Seguridad de CI/CD:** Análisis estático de archivos YAML para prevenir Supply Chain Attacks mediante detección de tags mutables (`@master`), permisos de token excesivos (`write-all`), timeouts ausentes y omisión de verificaciones de salud post-despliegue.
 * **Protocolo de Rollback Táctico Inmediato:** Botón de reversión de emergencia ante incidentes de producción que re-enruta el tráfico hacia la última versión estable validada.
 * **Comandos en la Terminal Táctica:** Soporte de `cicd open`, `cicd run` y `docker` dentro de la shell interactiva.
+
+### 🧠 Módulo M: Oráculo de Memoria Semántica Vectorial & RAG Arquitectónico (v3.3+)
+* **Motor Vectorial Local de Ultra Baja Latencia:** Implementado directamente sobre `node:sqlite` nativo en modo WAL, indexando documentos técnicos con normalización L2 y cálculo de **Similitud de Cosenos** con latencias inferiores a **1.5ms**.
+* **Base de Conocimiento Arquitectónico Sembrada:** Repositorio pre-cargado con 6 directivas maestras:
+  - `ADR-001`: Arquitectura Hexagonal y Puertos/Adaptadores en Monorepo TypeScript.
+  - `ADR-002`: Inmutabilidad Absoluta en Value Objects y Entidades DDD.
+  - `ADR-003`: Persistencia de Ultra Baja Latencia con `node:sqlite` Nativo.
+  - `ADR-004`: Blindaje contra Supply Chain Attacks en Pipelines de CI/CD.
+  - `CODE-001`: Generic Result / Either Monad Tipado para Manejo Funcional de Errores.
+  - `SEC-001`: Directivas OWASP Top 10 para Sanitización en Node.js 24 y Express 5.
+* **RAG Táctico en el Chat:** Detección de intención semántica e inyección automática en el prompt de Gemini o DeepSeek cuando la consulta coincide con documentos de la base de conocimiento ($\ge 65\%$).
+* **Monitor Táctico del Oráculo (`[ 🧠 MEMORIA ]`):** Modal interactivo (`MemoryOracleModal.vue`) con buscador semántico en lenguaje natural, control de umbral por slider, forja de nuevos ADRs y explorador del banco de conocimiento.
+* **Comandos de Terminal:** Soporte de `memory open`, `memory search <consulta>` y `memory stats`.
 
 ---
 

@@ -201,6 +201,20 @@ function ejecutarEsquemaInicial(db: DatabaseSync): void {
       trigger_source TEXT NOT NULL,
       occurred_at TEXT NOT NULL DEFAULT (NOW())
     );
+
+    CREATE TABLE IF NOT EXISTS architectural_memories (
+      id TEXT PRIMARY KEY DEFAULT (gen_random_uuid()),
+      collection TEXT NOT NULL DEFAULT 'general',
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      tags TEXT NOT NULL DEFAULT '[]',
+      metadata TEXT NOT NULL DEFAULT '{}',
+      embedding TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (NOW()),
+      updated_at TEXT NOT NULL DEFAULT (NOW())
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_memories_collection ON architectural_memories (collection);
   `;
 
   db.exec(ddl);

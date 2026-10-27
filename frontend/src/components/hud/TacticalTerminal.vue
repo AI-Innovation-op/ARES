@@ -112,9 +112,10 @@ function ejecutarComando() {
     case 'ayuda':
       historialLineas.value.push({
         tipo: 'output',
-        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v3.2 (CI/CD INDUSTRIAL CORE):
+        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v3.3 (VECTOR MEMORY CORE):
   help / ayuda          Muestra este catálogo de órdenes
   status                Telemetría del núcleo A.R.E.S., modelo y modo táctico
+  memory [open|search]  Oráculo de Memoria Semántica Vectorial Local y RAG Arquitectónico
   cicd [open|run]       Motor de CI/CD, Workflows industriales y simulación de despliegues
   swarm [monitor|run]   Control y monitor del Enjambre Multi-Agente (Atenea, Vulcano, Mercurio, Némesis)
   agents                Lista los 4 subagentes operativos de la legión
@@ -522,6 +523,27 @@ function ejecutarComando() {
         texto: '🐳 Abriendo Forja de Dockerfiles multi-stage y Compose en CI/CD...',
         tiempo,
       });
+      break;
+
+    case 'memory':
+    case 'memoria':
+    case 'oraculo':
+      if (args[0] === 'open' || args[0] === 'ui' || !args[0]) {
+        uiStore.modalMemoriaAbierto = true;
+        historialLineas.value.push({
+          tipo: 'success',
+          texto: '🧠 Abriendo Oráculo de Memoria Semántica Vectorial Local (128D Cosine Similarity)...',
+          tiempo,
+        });
+      } else {
+        const queryMem = args.join(' ');
+        historialLineas.value.push({
+          tipo: 'output',
+          texto: `🧠 Buscando en memoria vectorial: "${queryMem}"...`,
+          tiempo,
+        });
+        uiStore.modalMemoriaAbierto = true;
+      }
       break;
 
     case 'clear':

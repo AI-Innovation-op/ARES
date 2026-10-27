@@ -37,6 +37,14 @@ import {
   ejecutarPipelineSimulacionHandler,
   ejecutarPipelineStreamHandler,
 } from './controllers/cicd.controller.js';
+import {
+  listarMemoriasHandler,
+  guardarMemoriaHandler,
+  buscarSemanticaHandler,
+  eliminarMemoriaHandler,
+  obtenerEstadisticasHandler,
+} from './controllers/memory.controller.js';
+import { MemoryService } from './services/memory.service.js';
 import { CATALOGO_MODELOS } from './services/llm.service.js';
 import { ejecutarHerramienta, DECLARACIONES_HERRAMIENTAS } from './services/tools.service.js';
 import { manejadorErrores } from './middleware/error.middleware.js';
@@ -67,7 +75,7 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ONLINE',
-    agent: 'A.R.E.S. v3.2 CI/CD Core',
+    agent: 'A.R.E.S. v3.3 Vector Memory Core',
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
   });
@@ -92,6 +100,13 @@ app.post('/api/cicd/audit', auditarWorkflowHandler);
 app.get('/api/cicd/status', obtenerEstadoPipelineHandler);
 app.post('/api/cicd/simulate', ejecutarPipelineSimulacionHandler);
 app.get('/api/cicd/simulate/stream', ejecutarPipelineStreamHandler);
+
+// 1.3 Oráculo de Memoria Semántica Vectorial Local & RAG (v3.3)
+app.get('/api/memory', listarMemoriasHandler);
+app.post('/api/memory', guardarMemoriaHandler);
+app.post('/api/memory/search', buscarSemanticaHandler);
+app.delete('/api/memory/:id', eliminarMemoriaHandler);
+app.get('/api/memory/stats', obtenerEstadisticasHandler);
 
 // 1.1 Persistencia y Sesiones de Chat (Memoria Total)
 app.get('/api/conversations', listarConversacionesHandler);
@@ -149,8 +164,16 @@ app.use(manejadorErrores);
 // ============================================================================
 async function iniciarServidor(): Promise<void> {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🛡️  INICIALIZANDO SISTEMA TÁCTICO A.R.E.S. v3.1 (SOVEREIGN SWARM)...');
+  console.log('🛡️  INICIALIZANDO SISTEMA TÁCTICO A.R.E.S. v3.3 (VECTOR MEMORY CORE)...');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+  // Inicializar Oráculo de Memoria Semántica Vectorial Local
+  try {
+    await MemoryService.inicializar();
+    console.log('🧠 [Memoria Vectorial] Oráculo de conocimiento arquitectónico sincronizado.');
+  } catch (err) {
+    console.warn('⚠️  [Aviso] No se pudo inicializar la memoria vectorial local:', err);
+  }
 
   // Intentar conectar a PostgreSQL
   try {

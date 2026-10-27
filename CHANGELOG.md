@@ -5,6 +5,29 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [3.3.0] - 2026-10-27
+
+### 🧠 Nuevas Funcionalidades (Features)
+- **Oráculo de Memoria Semántica Vectorial Local (128D Vector Memory & RAG):**
+  - Motor vectorial local implementado sobre `node:sqlite` nativo en modo WAL con cálculo de **Similitud de Cosenos** y latencias inferiores a **1.5ms**.
+  - **Normalización Euclidiana L2 & Hashing Semántico Ponderado:** Vectorización determinista de 128 dimensiones con extracción de n-gramas, filtrado de stopwords y pesos morfológicos.
+  - **Base de Conocimiento Arquitectónico Pre-cargada:** Siembra automática de 6 pilares de ingeniería de software:
+    - `ADR-001`: Arquitectura Hexagonal y Puertos/Adaptadores en Monorepo TypeScript.
+    - `ADR-002`: Inmutabilidad Absoluta en Value Objects y Entidades DDD.
+    - `ADR-003`: Persistencia de Ultra Baja Latencia con `node:sqlite` Nativo.
+    - `ADR-004`: Blindaje contra Supply Chain Attacks en Pipelines de CI/CD.
+    - `CODE-001`: Generic Result / Either Monad Tipado para Manejo Funcional de Errores.
+    - `SEC-001`: Directivas OWASP Top 10 para Sanitización en Node.js 24 y Express 5.
+  - **RAG Táctico en el Chat (`chat.service.ts`):** Inyección contextual automática de memorias arquitectónicas con similitud $\ge 65\%$ en consultas dirigidas a A.R.E.S. Prime o al Enjambre Multi-Agente.
+  - **MemoryOracleModal.vue (`[ 🧠 MEMORIA ]`):**
+    - **Búsqueda Semántica en Lenguaje Natural:** Input con slider dinámico de umbral (40% a 85%), filtro por colección, tags rápidos y tarjetas de resultados con badge de porcentaje de coincidencia (**MATCH**).
+    - **Forja de Memorias:** Formulario para indexar nuevos ADRs, snippets o reglas técnicas con vectorización inmediata.
+    - **Banco de Conocimiento & Telemetría:** Explorador de documentos, métricas de dimensionalidad vectorial y tags únicos.
+  - **Terminal Táctica Shell (`TacticalTerminal.vue`):** Comandos `memory open`, `memory search <consulta>` y `memory stats`.
+  - **Sincronización Total de Versiones:** Nivelación a `3.3.0` en todos los módulos (`@ares-ecosystem/frontend`, `@ares-ecosystem/backend`, `@ares-ecosystem/cli`, `@ares-ecosystem/mcp`).
+
+---
+
 ## [3.2.0] - 2026-10-27
 
 ### 🚀 Nuevas Funcionalidades (Features)

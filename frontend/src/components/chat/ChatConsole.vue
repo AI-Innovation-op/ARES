@@ -7,6 +7,7 @@ import ChatInput from './ChatInput.vue';
 import GithubAuditModal from '../audit/GithubAuditModal.vue';
 import SwarmMonitorModal from '../swarm/SwarmMonitorModal.vue';
 import PipelineMonitorModal from '../cicd/PipelineMonitorModal.vue';
+import MemoryOracleModal from '../memory/MemoryOracleModal.vue';
 
 const chatStore = useChatStore();
 const uiStore = useUiStore();
@@ -146,6 +147,16 @@ function seleccionarMision(id: string) {
         >
           <span>🚀</span>
           <span>CI/CD</span>
+        </button>
+
+        <!-- Botón Oráculo de Memoria Semántica Vectorial (v3.3) -->
+        <button
+          @click="uiStore.toggleModalMemoria"
+          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#1e0e33] border border-purple-500/60 hover:border-purple-400 hover:bg-purple-900/30 text-purple-300 text-[11px] font-bold cursor-pointer transition shadow-[0_0_10px_rgba(168,85,247,0.25)]"
+          title="Abrir Oráculo de Memoria Semántica Vectorial Local y RAG Arquitectónico"
+        >
+          <span>🧠</span>
+          <span>MEMORIA</span>
         </button>
       </div>
 
@@ -308,6 +319,12 @@ function seleccionarMision(id: string) {
     <PipelineMonitorModal
       v-if="uiStore.modalCicdAbierto"
       @cerrar="uiStore.modalCicdAbierto = false"
+    />
+
+    <!-- Modal Oráculo de Memoria Semántica Vectorial (v3.3) -->
+    <MemoryOracleModal
+      v-if="uiStore.modalMemoriaAbierto"
+      @cerrar="uiStore.modalMemoriaAbierto = false"
     />
   </div>
 </template>

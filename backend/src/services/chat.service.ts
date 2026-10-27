@@ -6,6 +6,7 @@
 
 import { invocarLLM, invocarLLMStream } from './llm.service.js';
 import { PROMPT_CONSEJO_ENJAMBRE } from './swarm.service.js';
+import { MemoryService } from './memory.service.js';
 import {
   crearConversacion,
   obtenerConversacionPorId,
@@ -167,6 +168,16 @@ export async function procesarMensajeChat(request: ChatRequest): Promise<ChatRes
     directivaTactico += `[DETECCIÓN DE REPOSITORIO GITHUB: El Comandante proporcionó ${matchGithub[0]}. Si solicita auditarlo, analiza su arquitectura, diagramas C4 y seguridad.]\n`;
   }
 
+  // RAG Táctico: Recuperar contexto de memoria vectorial si existe coincidencia semántica
+  try {
+    const contextoRAG = await MemoryService.recuperarContextoRAG(message);
+    if (contextoRAG) {
+      directivaTactico += contextoRAG;
+    }
+  } catch (err) {
+    // Falla silenciosa de RAG para no interrumpir el chat principal
+  }
+
   if (directivaTactico) {
     textoFinalMensaje = `${directivaTactico}\n${message}`;
   }
@@ -322,6 +333,16 @@ export async function* procesarMensajeChatStream(
   const matchGithub = message.match(/https:\/\/github\.com\/[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+/i);
   if (matchGithub) {
     directivaTactico += `[DETECCIÓN DE REPOSITORIO GITHUB: El Comandante proporcionó ${matchGithub[0]}. Si solicita auditarlo, analiza su arquitectura, diagramas C4 y seguridad.]\n`;
+  }
+
+  // RAG Táctico: Recuperar contexto de memoria vectorial si existe coincidencia semántica
+  try {
+    const contextoRAG = await MemoryService.recuperarContextoRAG(message);
+    if (contextoRAG) {
+      directivaTactico += contextoRAG;
+    }
+  } catch (err) {
+    // Falla silenciosa de RAG para no interrumpir el chat principal
   }
 
   if (directivaTactico) {
