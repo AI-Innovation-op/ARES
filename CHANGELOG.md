@@ -5,6 +5,33 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [3.4.0] - 2026-10-27
+
+### 🌐 Nuevas Funcionalidades (Features)
+- **Radar de Arquitectura de Sistemas C4 & Tracing de Eventos (Interactive C4 Topology Radar):**
+  - **Lienzo Topológico Interactivo en Vivo (`ArchitectureRadarModal.vue`):**
+    - Renderizado de nodos según arquetipos DDD (`client`, `gateway`, `service`, `database`, `queue`).
+    - Flujo de tráfico en tiempo real con partículas y líneas discontinuas animadas mediante gradientes neón (`#00ffaa` a `#0284c7`).
+    - Métricas globales consolidadas: Total RPS, Latencia P50, Error Rate y adherencia SOLID.
+  - **Catálogo de Topologías Distribuidas Maestras:**
+    - *A.R.E.S. Sovereign Industrial Core:* Topología hexagonal monorepo enlazando HUD 3D, Express API, SQLite WAL, Redis y Multi-LLM Gateway.
+    - *E-Commerce Global DDD Distribuido:* Arquitectura event-driven con bounded contexts desacoplados (Catálogo, Pedidos, Facturación SUNAT con IGV 18% y Event Bus).
+  - **Inspector Táctico de Nodos (Node Inspector):**
+    - Inspección en caliente de Bounded Context, Capa DDD (*Presentation*, *Application*, *Domain*, *Infrastructure*), latencia nominal y carga por segundo.
+    - Enlace reactivo directo con el Oráculo de Memoria Vectorial (v3.3) mediante botón `[ Ver ADR ➔ ]`.
+  - **Simulador de Ráfagas de Tráfico & Chaos Engineering:**
+    - Botón `[ ⚡ Ráfaga (2.5x) ]`: Simulación de picos de carga (escalado hasta 850+ RPS) con recálculo dinámico de latencia por nodo.
+    - Botón `[ 💥 Inyectar Caos ]`: Simulación de degradación de red y activación automática de *Circuit Breakers* y modos defensivos.
+    - Botón `[ 🔄 Restaurar ]`: Recuperación instantánea al estado nominal 100% saludable.
+  - **Exportador C4 Container Formal:**
+    - Generador de especificaciones Mermaid en sintaxis estándar `C4Container` (`Person`, `Container`, `ContainerDb`, `ContainerQueue`, `Rel`) con modal de copiado y botón directo `[ 💬 Enviar al Chat ]`.
+  - **Comandos en la Terminal Táctica Shell (`TacticalTerminal.vue`):**
+    - `radar open`: Apertura del Radar Topológico C4.
+    - `radar traffic`: Disparo de ráfaga de tráfico.
+  - **Sincronización Total de Versiones:** Nivelación a `3.4.0` en todos los módulos (`@ares-ecosystem/frontend`, `@ares-ecosystem/backend`, `@ares-ecosystem/cli`, `@ares-ecosystem/mcp`).
+
+---
+
 ## [3.3.0] - 2026-10-27
 
 ### 🧠 Nuevas Funcionalidades (Features)

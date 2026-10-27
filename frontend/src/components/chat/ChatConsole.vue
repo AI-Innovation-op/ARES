@@ -8,6 +8,7 @@ import GithubAuditModal from '../audit/GithubAuditModal.vue';
 import SwarmMonitorModal from '../swarm/SwarmMonitorModal.vue';
 import PipelineMonitorModal from '../cicd/PipelineMonitorModal.vue';
 import MemoryOracleModal from '../memory/MemoryOracleModal.vue';
+import ArchitectureRadarModal from '../architecture/ArchitectureRadarModal.vue';
 
 const chatStore = useChatStore();
 const uiStore = useUiStore();
@@ -157,6 +158,16 @@ function seleccionarMision(id: string) {
         >
           <span>🧠</span>
           <span>MEMORIA</span>
+        </button>
+
+        <!-- Botón Radar de Arquitectura de Sistemas C4 (v3.4) -->
+        <button
+          @click="uiStore.toggleModalRadar"
+          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#041a2e] border border-cyan-400/60 hover:border-cyan-300 hover:bg-cyan-900/40 text-cyan-200 text-[11px] font-bold cursor-pointer transition shadow-[0_0_10px_rgba(0,229,255,0.25)]"
+          title="Abrir Radar de Arquitectura C4, topologías distribuidas y simulador de tráfico/caos"
+        >
+          <span>🌐</span>
+          <span>RADAR C4</span>
         </button>
       </div>
 
@@ -325,6 +336,12 @@ function seleccionarMision(id: string) {
     <MemoryOracleModal
       v-if="uiStore.modalMemoriaAbierto"
       @cerrar="uiStore.modalMemoriaAbierto = false"
+    />
+
+    <!-- Modal Radar de Arquitectura C4 & Tracing de Eventos (v3.4) -->
+    <ArchitectureRadarModal
+      v-if="uiStore.modalRadarAbierto"
+      @cerrar="uiStore.modalRadarAbierto = false"
     />
   </div>
 </template>

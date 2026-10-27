@@ -44,6 +44,14 @@ import {
   eliminarMemoriaHandler,
   obtenerEstadisticasHandler,
 } from './controllers/memory.controller.js';
+import {
+  listarTopologiasHandler,
+  obtenerTopologiaHandler,
+  simularTraficoHandler,
+  inyectarCaosHandler,
+  restaurarTopologiaHandler,
+  exportarC4Handler,
+} from './controllers/architecture.controller.js';
 import { MemoryService } from './services/memory.service.js';
 import { CATALOGO_MODELOS } from './services/llm.service.js';
 import { ejecutarHerramienta, DECLARACIONES_HERRAMIENTAS } from './services/tools.service.js';
@@ -75,7 +83,7 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ONLINE',
-    agent: 'A.R.E.S. v3.3 Vector Memory Core',
+    agent: 'A.R.E.S. v3.4 C4 Radar Core',
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
   });
@@ -107,6 +115,15 @@ app.post('/api/memory', guardarMemoriaHandler);
 app.post('/api/memory/search', buscarSemanticaHandler);
 app.delete('/api/memory/:id', eliminarMemoriaHandler);
 app.get('/api/memory/stats', obtenerEstadisticasHandler);
+
+// 1.4 Radar de Arquitectura de Sistemas C4 & Tracing de Eventos (v3.4)
+app.get('/api/architecture/topologies', listarTopologiasHandler);
+app.get('/api/architecture/topology', obtenerTopologiaHandler);
+app.get('/api/architecture/topology/:id', obtenerTopologiaHandler);
+app.post('/api/architecture/simulate-traffic', simularTraficoHandler);
+app.post('/api/architecture/inject-chaos', inyectarCaosHandler);
+app.post('/api/architecture/restore', restaurarTopologiaHandler);
+app.get('/api/architecture/export/c4', exportarC4Handler);
 
 // 1.1 Persistencia y Sesiones de Chat (Memoria Total)
 app.get('/api/conversations', listarConversacionesHandler);

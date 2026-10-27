@@ -1,8 +1,8 @@
-# 🛡️ A.R.E.S. Ecosystem (v3.3 Vector Semantic Memory & RAG Architecture // Sovereign Core)
+# 🛡️ A.R.E.S. Ecosystem (v3.4 C4 Architecture Radar & Distributed Event Flow // Sovereign Core)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
-> 🏷️ **Versión Actual:** [Release Oficial v3.3 en GitHub](https://github.com/AI-Innovation-op/ARES/releases/tag/v3.3.0) — *Memoria Semántica Vectorial Local (128D Cosine Similarity), Oráculo de ADRs y RAG Táctico.*
+> 🏷️ **Versión Actual:** [Release Oficial v3.4 en GitHub](https://github.com/AI-Innovation-op/ARES/releases/tag/v3.4.0) — *Radar de Arquitectura C4 en Vivo, Tracing de Flujos de Eventos, Chaos Engineering y Exportador Mermaid.*
 
 [![Node.js](https://img.shields.io/badge/Node.js-24+-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -164,6 +164,13 @@ Heredado de **Cori**, no permito que mi Comandante destruya su salud física o m
 * **RAG Táctico en el Chat:** Detección de intención semántica e inyección automática en el prompt de Gemini o DeepSeek cuando la consulta coincide con documentos de la base de conocimiento ($\ge 65\%$).
 * **Monitor Táctico del Oráculo (`[ 🧠 MEMORIA ]`):** Modal interactivo (`MemoryOracleModal.vue`) con buscador semántico en lenguaje natural, control de umbral por slider, forja de nuevos ADRs y explorador del banco de conocimiento.
 * **Comandos de Terminal:** Soporte de `memory open`, `memory search <consulta>` y `memory stats`.
+
+### 🌐 Módulo N: Radar de Arquitectura de Sistemas C4 & Tracing de Eventos (v3.4+)
+* **Lienzo Topológico Interactivo en Vivo:** Mapa visual interactivo de nodos distribuidos (`client`, `gateway`, `service`, `database`, `queue`) con aristas de protocolo (SSE, HTTP, SQL, gRPC, AMQP) y pulsos de tráfico luminosos animados en tiempo real.
+* **Inspector Táctico de Nodos (Node Inspector):** Inspección de Bounded Context, Capa DDD (*Domain*, *Application*, *Infrastructure*, *Presentation*), latencia P50, métricas de RPS y enlace directo con ADRs persistidos en el Oráculo de Memoria Vectorial (v3.3).
+* **Simulador de Ráfagas & Chaos Engineering:** Pruebas dinámicas de escalado de tráfico (2.5x RPS), inyección controlada de latencia extrema para validación de *Circuit Breakers* y restauración instantánea a parámetros nominales de salud.
+* **Exportador C4 Container:** Generación en un solo clic de diagramas de arquitectura en sintaxis estándar Mermaid `C4Container` con integración directa para auditoría en el chat táctico.
+* **Comandos de Shell Táctica:** Soporte de `radar open` y `radar traffic` desde la terminal embebida.
 
 ---
 

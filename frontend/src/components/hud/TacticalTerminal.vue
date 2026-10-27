@@ -112,9 +112,10 @@ function ejecutarComando() {
     case 'ayuda':
       historialLineas.value.push({
         tipo: 'output',
-        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v3.3 (VECTOR MEMORY CORE):
+        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v3.4 (C4 RADAR CORE):
   help / ayuda          Muestra este catálogo de órdenes
   status                Telemetría del núcleo A.R.E.S., modelo y modo táctico
+  radar [open|traffic]  Radar de Arquitectura C4, topología en vivo y caos
   memory [open|search]  Oráculo de Memoria Semántica Vectorial Local y RAG Arquitectónico
   cicd [open|run]       Motor de CI/CD, Workflows industriales y simulación de despliegues
   swarm [monitor|run]   Control y monitor del Enjambre Multi-Agente (Atenea, Vulcano, Mercurio, Némesis)
@@ -543,6 +544,26 @@ function ejecutarComando() {
           tiempo,
         });
         uiStore.modalMemoriaAbierto = true;
+      }
+      break;
+
+    case 'radar':
+    case 'c4':
+    case 'architecture':
+      if (args[0] === 'traffic' || args[0] === 'stress') {
+        uiStore.modalRadarAbierto = true;
+        historialLineas.value.push({
+          tipo: 'success',
+          texto: '🌐 Abriendo Radar C4 e inyectando ráfaga de tráfico (2.5x)...',
+          tiempo,
+        });
+      } else {
+        uiStore.modalRadarAbierto = true;
+        historialLineas.value.push({
+          tipo: 'success',
+          texto: '🌐 Abriendo Radar de Arquitectura de Sistemas C4 & Tracing de Eventos...',
+          tiempo,
+        });
       }
       break;
 
