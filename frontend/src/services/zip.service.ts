@@ -68,6 +68,42 @@ export class ZipService {
       }
     }
 
+    // Patrón 4 (Fallback para UIs y Live Previews): Si no se detectaron archivos con rutas explícitas,
+    // detectar bloques completos de HTML (<!DOCTYPE, <html, <head, <body) o componentes Vue (<template>)
+    if (archivos.length === 0) {
+      // 4a. Bloque HTML completo
+      const regexHtml = /```(?:html|xml)?\s*\n([\s\S]*?(?:<!DOCTYPE|<html|<head|<body)[\s\S]*?)```/gi;
+      let matchHtml: RegExpExecArray | null;
+      let htmlIdx = 1;
+      while ((matchHtml = regexHtml.exec(texto)) !== null) {
+        const contenido = matchHtml[1]?.trim();
+        if (contenido) {
+          const ruta = htmlIdx === 1 ? 'index.html' : `preview-${htmlIdx}.html`;
+          if (!rutasDetectadas.has(ruta)) {
+            rutasDetectadas.add(ruta);
+            archivos.push({ ruta, contenido, lenguaje: 'html' });
+            htmlIdx++;
+          }
+        }
+      }
+
+      // 4b. Bloque Vue SFC
+      const regexVue = /```(?:vue)?\s*\n([\s\S]*?<template[\s\S]*?)```/gi;
+      let matchVue: RegExpExecArray | null;
+      let vueIdx = 1;
+      while ((matchVue = regexVue.exec(texto)) !== null) {
+        const contenido = matchVue[1]?.trim();
+        if (contenido) {
+          const ruta = vueIdx === 1 ? 'src/App.vue' : `src/components/Component-${vueIdx}.vue`;
+          if (!rutasDetectadas.has(ruta)) {
+            rutasDetectadas.add(ruta);
+            archivos.push({ ruta, contenido, lenguaje: 'vue' });
+            vueIdx++;
+          }
+        }
+      }
+    }
+
     return archivos;
   }
 

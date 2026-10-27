@@ -88,6 +88,17 @@ function copiarCodigo() {
           <span>{{ expandido ? 'OCULTAR' : 'EXPLORAR' }}</span>
         </button>
 
+        <!-- Botón Estelar 1: Vista Previa en Vivo (Sandbox) -->
+        <button
+          type="button"
+          @click="modalPreviewAbierto = true"
+          class="px-2.5 py-1.5 rounded border border-emerald-500/60 bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 hover:text-emerald-200 transition cursor-pointer flex items-center gap-1.5 font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+          title="Abrir vista previa interactiva en vivo (Sandbox responsivo)"
+        >
+          <span>▶️</span>
+          <span>VISTA PREVIA</span>
+        </button>
+
         <!-- Botón Estelar: Descargar .ZIP -->
         <button
           type="button"

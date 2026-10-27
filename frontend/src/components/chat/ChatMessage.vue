@@ -3,7 +3,9 @@ import { ref, computed } from 'vue';
 import type { MensajeChat } from '../../types/ares.types.js';
 import MermaidViewer from '../common/MermaidViewer.vue';
 import ProjectZipForge from '../common/ProjectZipForge.vue';
+import LivePreviewModal from '../common/LivePreviewModal.vue';
 import { zipService, type ArchivoProyecto } from '../../services/zip.service.js';
+import { previewCompilerService } from '../../services/preview-compiler.service.js';
 
 
 const props = defineProps<{
@@ -38,6 +40,62 @@ function descargarProyectoZipDirecto() {
   if (archivosProyecto.value.length === 0) return;
   zipService.descargarProyectoZip(archivosProyecto.value, `${nombreSugeridoProyecto.value}.zip`, true);
 }
+
+// Detección táctica para Live Preview Sandbox (v2.8)
+const archivosParaPreview = computed<ArchivoProyecto[]>(() => {
+  if (archivosProyecto.value.length > 0) {
+    return archivosProyecto.value;
+  }
+  const c = props.message.content;
+  if (!c) return [];
+  // Fallback para bloques HTML o Vue completos sin convención de archivo
+  const matchHtml =
+    c.match(/```(?:html|xml)?\s*\n([\s\S]*?(?:<!DOCTYPE|<html|<head|<body)[\s\S]*?)```/i) ||
+    c.match(/```html\s*\n([\s\S]*?)```/i);
+  if (matchHtml) {
+    return [{ ruta: 'index.html', contenido: matchHtml[1].trim(), lenguaje: 'html' }];
+  }
+  const matchVue = c.match(/```(?:vue)?\s*\n([\s\S]*?<template[\s\S]*?)```/i);
+  if (matchVue) {
+    return [{ ruta: 'src/App.vue', contenido: matchVue[1].trim(), lenguaje: 'vue' }];
+  }
+  return [];
+});
+
+const tieneVistaPreviaVisual = computed(() => {
+  if (esUsuario.value || !props.message.content) return false;
+  return (
+    archivosParaPreview.value.length > 0 &&
+    archivosParaPreview.value.some(
+      (a) =>
+        a.ruta.endsWith('.html') ||
+        a.ruta.endsWith('.vue') ||
+        a.contenido.includes('<!DOCTYPE') ||
+        a.contenido.includes('<html') ||
+        a.contenido.includes('<template>')
+    )
+  );
+});
+
+const modalPreviewAbierto = ref(false);
+const mostrarPreviewInline = ref(
+  props.message.content.toLowerCase().includes('vista previa') ||
+  props.message.content.toLowerCase().includes('tienda de café')
+);
+const versionMiniRender = ref(0);
+
+function recargarMiniPreview() {
+  versionMiniRender.value++;
+}
+
+const srcdocCompilado = computed(() => {
+  if (!tieneVistaPreviaVisual.value) return '';
+  versionMiniRender.value;
+  return previewCompilerService.compilarProyectoParaPreview(
+    archivosParaPreview.value,
+    nombreSugeridoProyecto.value
+  );
+});
 
 // Detección automática de artefactos para derivación táctica
 const esDocumentacion = computed(() => {
@@ -220,6 +278,84 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
         </div>
       </div>
 
+      <!-- Banner de Vista Previa Visual en Vivo (v2.8) -->
+      <div
+        v-if="!esUsuario && tieneVistaPreviaVisual"
+        class="my-3 p-3 rounded-lg border border-[#00ffaa]/50 bg-[#071329] shadow-[0_0_15px_rgba(0,255,170,0.15)] flex flex-wrap items-center justify-between gap-2 font-mono"
+      >
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">🎨</span>
+          <div>
+            <div class="font-orbitron font-bold text-[#00ffaa] text-xs sm:text-sm flex items-center gap-2">
+              <span>VISTA PREVIA VISUAL INTERACTIVA</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] bg-cyan-950 border border-cyan-500/50 text-cyan-300 font-bold">
+                EN VIVO
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-300">
+              La interfaz gráfica ha sido compilada. Puedes verla aquí o en el sandbox responsivo.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            @click="mostrarPreviewInline = !mostrarPreviewInline"
+            class="px-2.5 py-1.5 rounded border border-cyan-500/50 bg-[#040914] hover:bg-cyan-950/40 text-cyan-300 hover:text-cyan-200 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow"
+          >
+            <span>{{ mostrarPreviewInline ? '▲' : '👁️' }}</span>
+            <span>{{ mostrarPreviewInline ? 'OCULTAR MINI VIEWPORT' : 'VER EN CHAT' }}</span>
+          </button>
+
+          <button
+            type="button"
+            @click="modalPreviewAbierto = true"
+            class="px-3 py-1.5 rounded border border-[#00ffaa] bg-[#00ffaa]/20 hover:bg-[#00ffaa]/30 text-[#00ffaa] text-xs font-orbitron font-bold transition shadow-[0_0_10px_rgba(0,255,170,0.3)] cursor-pointer flex items-center gap-1.5"
+            title="Abrir sandbox táctico en ventana completa (Desktop, Tablet, Móvil)"
+          >
+            <span>▶️</span>
+            <span>ABRIR SANDBOX</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mini Viewport Interactivo Renderizado en el Mensaje -->
+      <div
+        v-if="!esUsuario && tieneVistaPreviaVisual && mostrarPreviewInline"
+        class="my-3 rounded-lg border border-cyan-500/60 overflow-hidden bg-white shadow-2xl transition-all"
+      >
+        <div class="bg-[#091326] px-3 py-1.5 border-b border-[#132a4a] flex items-center justify-between text-xs font-mono">
+          <span class="text-[#00ffaa] font-bold flex items-center gap-1.5">
+            <span>🌐</span> INTERFAZ WEB RENDERIZADA
+          </span>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              @click="recargarMiniPreview"
+              class="text-slate-400 hover:text-cyan-300 text-[11px] cursor-pointer"
+              title="Recargar mini preview"
+            >
+              🔄 Recargar
+            </button>
+            <button
+              type="button"
+              @click="modalPreviewAbierto = true"
+              class="text-cyan-300 hover:text-white font-bold cursor-pointer text-[11px] flex items-center gap-1"
+            >
+              <span>Abrir Sandbox Completo</span>
+              <span>↗</span>
+            </button>
+          </div>
+        </div>
+        <iframe
+          :key="versionMiniRender"
+          :srcdoc="srcdocCompilado"
+          sandbox="allow-scripts allow-forms allow-same-origin allow-modals"
+          class="w-full h-80 border-none bg-white"
+        ></iframe>
+      </div>
+
       <!-- Forja de Proyecto .ZIP Interactivo (v2.7) -->
       <ProjectZipForge
         v-if="!esUsuario && archivosProyecto.length > 0"
@@ -228,10 +364,22 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
       />
 
       <!-- Derivación Táctica Automática de Artefactos -->
-      <div v-if="!esUsuario && message.content && (esDocumentacion || esCodigo || esMermaid || archivosProyecto.length > 0)" class="mt-3 pt-2.5 border-t border-[#132a4a] flex flex-wrap items-center gap-2">
+      <div v-if="!esUsuario && message.content && (esDocumentacion || esCodigo || esMermaid || archivosProyecto.length > 0 || tieneVistaPreviaVisual)" class="mt-3 pt-2.5 border-t border-[#132a4a] flex flex-wrap items-center gap-2">
         <span class="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1">
           <span>⚡</span> Acciones:
         </span>
+
+        <!-- Botón de Vista Previa en Vivo -->
+        <button
+          v-if="tieneVistaPreviaVisual"
+          type="button"
+          @click="modalPreviewAbierto = true"
+          class="px-2.5 py-1 rounded bg-[#0b1b36] border border-[#00ffaa] hover:bg-[#00ffaa]/20 text-[#00ffaa] text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer shadow-[0_0_8px_rgba(0,255,170,0.3)]"
+          title="Abrir vista previa interactiva en vivo en sandbox multi-dispositivo"
+        >
+          <span>▶️</span>
+          <span>Vista Previa en Vivo</span>
+        </button>
 
         <!-- Botón de Descarga .ZIP Rápida -->
         <button
@@ -297,6 +445,14 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
           </a>
         </div>
       </div>
+
+      <!-- Modal de Vista Previa Interactiva en Vivo (Sandbox) -->
+      <LivePreviewModal
+        v-if="modalPreviewAbierto"
+        :archivos="archivosParaPreview"
+        :nombreProyecto="nombreSugeridoProyecto"
+        @cerrar="modalPreviewAbierto = false"
+      />
     </div>
   </div>
 </template>

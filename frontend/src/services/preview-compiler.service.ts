@@ -26,10 +26,25 @@ export class PreviewCompilerService {
         !a.ruta.toLowerCase().includes('vite.config')
     );
 
+    // 1. Si existe un index.html con contenido rico directo (como landing pages o previews HTML autocontenidos)
+    const esIndexRico =
+      indexHtml &&
+      (!appVue ||
+        indexHtml.contenido.includes('<header') ||
+        indexHtml.contenido.includes('<main') ||
+        indexHtml.contenido.includes('<nav') ||
+        indexHtml.contenido.includes('<button') ||
+        indexHtml.contenido.includes('<style') ||
+        indexHtml.contenido.length > 400);
+
+    if (esIndexRico && indexHtml && (indexHtml.contenido.includes('<body') || indexHtml.contenido.includes('<!DOCTYPE') || indexHtml.contenido.includes('<html'))) {
+      return this.inyectarIntercepcionLogs(indexHtml.contenido);
+    }
+
     // Unificar estilos CSS personalizados
     const estilosCombinados = cssFiles.map((c) => c.contenido).join('\n\n');
 
-    // Extraer template, script y styles si hay App.vue
+    // Extraer template, script y styles si hay App.vue o componentes Vue
     let templateVue = '<div class="p-8 text-center"><h1 class="text-2xl font-bold text-slate-800">☕ Aplicación Cargada</h1></div>';
     let scriptVue = 'export default {}';
 
@@ -42,13 +57,35 @@ export class PreviewCompilerService {
       const { template, script } = this.desglosarSFCVue(vueFiles[0].contenido);
       if (template) templateVue = template;
       if (script) scriptVue = script;
-    } else if (indexHtml && indexHtml.contenido.includes('<body')) {
-      // Si ya es un index.html con contenido rico directo
+    } else if (indexHtml) {
       return this.inyectarIntercepcionLogs(indexHtml.contenido);
     }
 
     // Normalizar el script exportado de Vue para convertirlo en objeto accesible por Vue 3 CDN
     const scriptLimpio = this.adaptarScriptVue(scriptVue);
+
+    // Registrar subcomponentes Vue si existen en el proyecto
+    const subComponentes = vueFiles.filter((f) => f !== appVue);
+    let subComponentesDefs = '';
+    let subComponentesRegistros = '';
+
+    subComponentes.forEach((comp, idx) => {
+      const nombreBase = comp.ruta.split('/').pop()?.replace('.vue', '') || `Comp${idx}`;
+      const nombreKebab = nombreBase.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+      const { template, script } = this.desglosarSFCVue(comp.contenido);
+      const scriptAdaptado = this.adaptarScriptVue(script);
+
+      subComponentesDefs += `
+      const ${nombreBase} = {
+        ...(${scriptAdaptado}),
+        template: ${JSON.stringify(template || '<div></div>')}
+      };
+      `;
+      subComponentesRegistros += `
+      app.component('${nombreBase}', ${nombreBase});
+      app.component('${nombreKebab}', ${nombreBase});
+      `;
+    });
 
     // Ensamblar código de modelos / repositorios JS si existen
     const scriptsDominio = jsFiles
@@ -90,18 +127,26 @@ export class PreviewCompilerService {
   </script>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased min-h-full font-sans">
-  <div id="app">
-    ${templateVue}
-  </div>
+  <div id="app"></div>
 
   <script>
     try {
+      const { ref, reactive, computed, onMounted, onUnmounted, watch, watchEffect } = Vue;
+
       ${scriptsDominio}
 
-      const AppDefinition = ${scriptLimpio};
+      ${subComponentesDefs}
+
+      const AppDefinition = {
+        ...(${scriptLimpio}),
+        template: ${JSON.stringify(templateVue)}
+      };
 
       const { createApp } = Vue;
       const app = createApp(AppDefinition);
+
+      ${subComponentesRegistros}
+
       app.mount('#app');
       console.log('✅ A.R.E.S. Live Sandbox inicializado exitosamente.');
     } catch (err) {
@@ -192,7 +237,13 @@ export class PreviewCompilerService {
       });
     </script>`;
 
-    return html.replace('<head>', `<head>\n${scriptLog}`);
+    if (/<head\b[^>]*>/i.test(html)) {
+      return html.replace(/<head\b[^>]*>/i, `$&\n${scriptLog}`);
+    } else if (/<html\b[^>]*>/i.test(html)) {
+      return html.replace(/<html\b[^>]*>/i, `$&\n<head>\n${scriptLog}\n</head>`);
+    } else {
+      return `<head>\n${scriptLog}\n</head>\n${html}`;
+    }
   }
 }
 
