@@ -1,8 +1,8 @@
-# 🛡️ A.R.E.S. Ecosystem (v3.6 Team Matrix & Multi-Contributor Forge // Sovereign Core)
+# 🛡️ A.R.E.S. Ecosystem (v3.7 Standalone Tactical CLI & REPL Core // Sovereign Bridge)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo. Y un proyecto sin tu autoría es una batalla ganada sin honor."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
-> 🏷️ **Versión Actual:** **v3.6.0** — *Matriz de Equipo DDD, Multi-Contributor Git Dispatcher, Desofuscador de PDFs, Commits Atómicos y README Grupal Humanizado.*
+> 🏷️ **Versión Actual:** **v3.7.0** — *Terminal Táctica Standalone (Puente hacia v4.0), Banner Cibernético PCB, Streaming Token a Token en Consola Pura y Matriz de Equipo DDD.*
 
 [![Node.js](https://img.shields.io/badge/Node.js-24+-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -258,6 +258,22 @@ npm run dev
 ```
 Accede a mi consola interactiva en:
 👉 **`http://localhost:5173/`**
+
+### 4. Terminal Táctica Standalone (v3.7 — Puente v4.0)
+¡No necesitas abrir el navegador para comandar a A.R.E.S.! Puedes ejecutarlo directamente desde CMD, PowerShell o tu terminal favorita con el banner cibernético de circuito integrado (PCB):
+
+```powershell
+# Iniciar sesión interactiva REPL táctica con autocompletado y streaming:
+npm run --prefix cli start
+# O si lo instalas globalmente:
+ares
+
+# O ejecutar órdenes directas:
+ares chat "Hola A.R.E.S., reporta estado"
+ares forge enunciado.txt -a "Kevin Commander" -e "kevin@gmail.com" -o ./mi-proyecto
+ares audit src/index.ts
+ares bio
+```
 
 ---
 

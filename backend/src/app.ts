@@ -89,7 +89,7 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ONLINE',
-    agent: 'A.R.E.S. v3.6 Multi-Contributor Matrix Core',
+    agent: 'A.R.E.S. v3.7 Standalone CLI Core',
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
   });
@@ -193,7 +193,7 @@ app.use(manejadorErrores);
 // ============================================================================
 async function iniciarServidor(): Promise<void> {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🛡️  INICIALIZANDO SISTEMA TÁCTICO A.R.E.S. v3.6 (TEAM MATRIX & MULTI-CONTRIBUTOR FORGE)...');
+  console.log('🛡️  INICIALIZANDO SISTEMA TÁCTICO A.R.E.S. v3.7 (STANDALONE TACTICAL CLI & REPL CORE)...');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
   // Inicializar Oráculo de Memoria Semántica Vectorial Local

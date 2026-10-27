@@ -13,6 +13,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import dotenv from 'dotenv';
+import { imprimirBannerCircuito } from './banner.js';
+import { TacticalRepl, iniciarRepl } from './repl.js';
 
 // Intentar cargar variables desde .env en el directorio actual o en backend
 const posiblesEnv = [
@@ -33,15 +35,7 @@ for (const envPath of posiblesEnv) {
 const API_BASE = process.env.ARES_API_URL || 'http://localhost:3000';
 
 function banner() {
-  console.log(pc.cyan(`
-   █████╗ ██████╗ ███████╗███████╗
-  ██╔══██╗██╔══██╗██╔════╝██╔════╝
-  ███████║██████╔╝█████╗  ███████╗
-  ██╔══██║██╔══██╗██╔══╝  ╚════██║
-  ██║  ██║██║  ██║███████╗███████║ v3.6 TACTICAL CLI
-  ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝ [Team Matrix & Multi-Contributor Forge]
-`));
-  console.log(pc.dim('  Autonomous Resilient Engineering & Software-Documentation God\n'));
+  imprimirBannerCircuito('v3.7', '[J.A.R.V.I.S. Standalone Core]');
 }
 
 async function verificarServidor(): Promise<boolean> {
@@ -57,8 +51,8 @@ const program = new Command();
 
 program
   .name('ares')
-  .description('🛡️ A.R.E.S. CLI Táctico — Ingeniería de Software Full-Stack asistida por IA')
-  .version('3.6.0');
+  .description('🛡️ A.R.E.S. CLI Táctico — Terminal Standalone de Ingeniería de Software asistida por IA')
+  .version('3.7.0');
 
 // ============================================================================
 // 1. COMANDO: ares audit <file>
@@ -714,4 +708,61 @@ Bounded Contexts:
     }
   });
 
-program.parse(process.argv);
+// ============================================================================
+// 11. COMANDO: ares repl / shell (v3.7 Standalone Pure Console)
+// ============================================================================
+program
+  .command('repl')
+  .alias('shell')
+  .alias('interactive')
+  .description('⚡ Inicia la Terminal Táctica Interactiva Standalone con Banner Cibernético (v3.7)')
+  .action(async () => {
+    await iniciarRepl();
+  });
+
+// ============================================================================
+// 12. COMANDO: ares chat <mensaje...> (v3.7 Streaming Directo en Terminal)
+// ============================================================================
+program
+  .command('chat <mensaje...>')
+  .description('💬 Envía una orden táctica con streaming token a token en consola pura')
+  .option('-m, --model <modelo>', 'Modelo a consultar')
+  .action(async (partesMensaje, opciones) => {
+    banner();
+    const mensaje = partesMensaje.join(' ');
+    console.log(pc.cyan(`💬 [Orden Táctica]: ${pc.white(mensaje)}\n`));
+    try {
+      const res = await fetch(`${API_BASE}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: mensaje,
+          model: opciones.model,
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const data = (await res.json()) as any;
+      process.stdout.write(pc.bold(pc.cyan('🛡️ A.R.E.S.: ')));
+      const texto = data.reply || data.content || '';
+      for (const char of texto) {
+        process.stdout.write(char);
+      }
+      console.log('\n');
+      if (data.stance) {
+        console.log(pc.dim(`[Postura: ${data.stance} | Pose: ${data.poseNumber || 1}]`));
+      }
+    } catch (err: any) {
+      console.error(pc.red(`💥 Falla al consultar A.R.E.S.: ${err.message}`));
+    }
+  });
+
+// Si no se pasaron argumentos en la consola (ej. usuario ejecuta simplemente "ares"),
+// arrancar automáticamente la Terminal Táctica REPL interactiva.
+if (process.argv.length <= 2) {
+  iniciarRepl().catch((err) => {
+    console.error(pc.red(`❌ Error al iniciar REPL: ${err.message}`));
+    process.exit(1);
+  });
+} else {
+  program.parse(process.argv);
+}

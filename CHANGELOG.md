@@ -5,6 +5,29 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [3.7.0] - 2026-10-27
+
+### ⚡ Nuevas Funcionalidades (Features)
+- **Terminal Táctica Standalone & Banner Cibernético PCB (Puente hacia A.R.E.S. v4.0):**
+  - **Banner de Placa de Circuito Impreso (PCB) (`banner.ts`):**
+    - Recreación en arte ASCII/Unicode del diseño de hardware táctico con microprocesadores de silicio, líneas de trazas de cobre cian y pines de conexión en la base conforme al diseño táctico de referencia.
+    - Tarjeta de telemetría del sistema (`imprimirTarjetaEstado`) con tiempo activo, postura de enlace, bio-estamina y núcleo IA.
+  - **Shell Interactivo REPL Standalone (`TacticalRepl` en `repl.ts`):**
+    - Terminal interactiva 100% autónoma ejecutable desde CMD, PowerShell o Bash sin necesidad de abrir la interfaz web.
+    - Autocompletado dinámico mediante tecla `Tab` para órdenes operativas (`chat`, `forge`, `swarm`, `audit`, `radar`, `memory`, `bio`, `status`, `help`, `clear`, `exit`).
+    - Streaming en consola pura token a token con cadencia táctica inmersiva.
+    - Ejecución integrada de misiones del Enjambre Multi-Agente (`swarm <misión>`), Forja Soberana de Ejercicios DDD (`forge [archivo]`), Auditoría OWASP/Big-O (`audit <archivo>`), Topología C4 (`radar`), y Búsqueda Semántica Vectorial (`memory <query>`).
+    - Arranque automático en modo REPL al ejecutar simplemente `ares` sin argumentos en la consola.
+  - **Comandos Standalone en Línea de Comandos (`cli/src/index.ts`):**
+    - Subcomando `ares repl` / `ares shell` para iniciar la sesión interactiva en cualquier momento.
+    - Subcomando `ares chat <mensaje...>` para consultas rápidas con respuesta y postura táctica en la consola.
+  - **Sincronización Total de Versiones:**
+    - Monorepo actualizado a `3.7.0` en todos los paquetes (`@ares-ecosystem/cli`, `@ares-ecosystem/backend`, `@ares-ecosystem/frontend`, `@ares-ecosystem/mcp`).
+    - Badge de HUD web actualizado a `v3.7 STANDALONE CLI`.
+    - Healthcheck de backend sincronizado a `A.R.E.S. v3.7 Standalone CLI Core`.
+
+---
+
 ## [3.6.0] - 2026-10-27
 
 ### 👥 Nuevas Funcionalidades (Features)
