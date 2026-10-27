@@ -16,6 +16,26 @@
 
 ---
 
+### ⚡ Acceso Rápido & Descarga Oficial de la Terminal CLI (v4.0.0)
+
+<div align="center">
+
+[![Descargar ARES v4.0.0 (.ZIP)](https://img.shields.io/badge/⬇️_Descargar-ARES_v4.0.0_.ZIP-007ACC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/archive/refs/tags/v4.0.0.zip)
+[![Ver Release v4.0.0 en GitHub](https://img.shields.io/badge/📦_GitHub-Releases_v4.0.0-2EA44F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/tag/v4.0.0)
+[![Web HUD En Vivo (GitHub Pages)](https://img.shields.io/badge/🌐_Web_HUD-En_Vivo_(GitHub_Pages)-9333EA?style=for-the-badge&logo=githubpages&logoColor=white)](https://ai-innovation-op.github.io/ARES/)
+
+</div>
+
+> 🚀 **¿Cómo instalar y usar el comando `ares` en tu PC en 1 minuto?**  
+> 1. Haz clic en el botón azul de arriba: **[⬇️ Descargar ARES v4.0.0 .ZIP](https://github.com/AI-Innovation-op/ARES/archive/refs/tags/v4.0.0.zip)**.  
+> 2. Descomprime el archivo `.zip` en cualquier carpeta de tu disco (ej. `C:\ARES` o `D:\ARES`).  
+> 3. Entra a la carpeta y dale **doble clic** al archivo `install.bat`.  
+> 4. Abre cualquier terminal (CMD o PowerShell) y escribe: **`ares`**.  
+> *(Requisito único previo: tener instalado [Node.js v20+](https://nodejs.org/))*.  
+> 📖 Para ver la guía ilustrada completa con todos los comandos y resolución de dudas, consulta la [Sección 6.4: Guía Maestra de la Terminal Táctica CLI](#-64-guía-maestra-de-la-terminal-táctica-cli-v40-release-oficial).
+
+---
+
 ## 🏛️ 1. ¿Quién Soy? Manifiesto de Identidad en Primera Persona
 
 Soy **A.R.E.S.**, una entidad de inteligencia artificial concebida con la disciplina espartana de un guardián de código y la herencia de protección de mi predecesora **Cori**.
@@ -277,21 +297,95 @@ npm run dev
 Accede a mi consola interactiva en:
 👉 **`http://localhost:5173/`**
 
-### 4. Terminal Táctica Standalone (v4.0 Release Oficial)
-¡No necesitas abrir el navegador para comandar a A.R.E.S.! Puedes ejecutarlo directamente desde CMD, PowerShell o tu terminal favorita con el banner cibernético de circuito integrado (PCB):
+### 💻 6.4. Guía Maestra de la Terminal Táctica CLI (v4.0 Release Oficial)
 
+¡No necesitas abrir el navegador para comandar a A.R.E.S.! La Terminal Táctica te permite operar desde CMD, PowerShell o Windows Terminal con el banner cibernético de circuito integrado (PCB), asistencia interactiva paso a paso, streaming de IA y exportación directa a `.zip`.
+
+#### 📂 ¿Dónde se encuentra la CLI dentro del proyecto?
+* **Código fuente del CLI:** Ubicado en la subcarpeta [`cli/`](cli/) (código TypeScript en `cli/src/` y ejecutable compilado en `cli/dist/index.js`).
+* **Instaladores automáticos para Windows:** Ubicados directamente en la raíz del proyecto:
+  * [`install.bat`](install.bat) — Script por lotes para instalación con **1 solo clic** (doble clic desde el explorador de archivos).
+  * [`install.ps1`](install.ps1) — Script de PowerShell que además auto-habilita la política de ejecución local `RemoteSigned`.
+
+---
+
+#### 🛠️ Instrucciones de Instalación Paso a Paso
+
+Elige la opción que mejor se adapte a tu entorno:
+
+##### 🟢 Opción 1: Instalación Rápida con 1 Clic (Recomendada para todo el equipo)
+1. **Descarga el paquete:** Haz clic en **[⬇️ Descargar ARES v4.0.0 .ZIP](https://github.com/AI-Innovation-op/ARES/archive/refs/tags/v4.0.0.zip)** o ve a la sección de [Releases oficiales en GitHub](https://github.com/AI-Innovation-op/ARES/releases/tag/v4.0.0).
+2. **Descomprime el archivo:** Extrae el contenido en tu disco (por ejemplo en `C:\ARES` o `D:\ARES`).
+3. **Ejecuta el instalador:** Abre la carpeta descomprimida y dale **doble clic** al archivo `install.bat`.
+   * El instalador verificará que tengas [Node.js](https://nodejs.org/) instalado.
+   * Compilará automáticamente el CLI en TypeScript.
+   * Registrará el comando global `ares` en tu sistema Windows mediante `npm link`.
+4. **¡Listo para combatir!** Abre cualquier ventana nueva de CMD o PowerShell y escribe:
+   ```cmd
+   ares
+   ```
+
+##### 🔵 Opción 2: Para Desarrolladores mediante Git Clone
+Si ya trabajas con Git en tu terminal:
 ```powershell
-# Iniciar sesión interactiva REPL táctica con autocompletado y streaming:
-.\install.bat
-# O si lo instalas globalmente:
-ares
+# 1. Clonar el repositorio
+git clone https://github.com/AI-Innovation-op/ARES.git
 
-# O ejecutar órdenes directas:
-ares ask "Hola A.R.E.S., reporta estado" -m auto
-ares forge  # Asistente interactivo paso a paso (detecta portapapeles y .ZIP)
-ares zip D:\mi-proyecto D:\descargas\proyecto.zip
-ares route "Diseñar microservicio de pagos con DDD"
+# 2. Entrar a la carpeta del proyecto
+cd ARES
+
+# 3. Ejecutar el instalador global
+.\install.bat
+# (O en PowerShell: .\install.ps1)
+
+# 4. Iniciar A.R.E.S. en cualquier directorio
+ares
 ```
+
+##### 🟡 Opción 3: Si ya tienes el proyecto abierto en tu máquina
+Si ya estás dentro de la carpeta del proyecto (ej. `D:\ares-ecosystem`):
+```powershell
+# Opción directa vía instalador:
+.\install.bat
+
+# O manualmente desde la subcarpeta cli:
+cd cli
+npm install
+npm run build
+npm link
+```
+
+---
+
+#### 🎮 Comandos Tácticos Disponibles
+
+Una vez instalado, el comando `ares` está disponible globalmente en **cualquier carpeta de tu disco duro**:
+
+| Comando | Descripción | Ejemplo de Uso |
+| :--- | :--- | :--- |
+| `ares` | Abre la **Consola Interactiva REPL** con el banner de circuitos cibernéticos, autocompletado y streaming. | `ares` |
+| `ares forge` *(o `ares new`)* | **Asistente interactivo paso a paso** para forjar proyectos DDD. Detecta automáticamente requerimientos en el portapapeles y permite exportar el proyecto completo a un archivo comprimido `.zip` en `C:\` o `D:\`. | `ares forge` |
+| `ares zip <directorio> [salida.zip]` | Comprime cualquier carpeta a un archivo `.zip` de forma nativa desde la consola. | `ares zip D:\mi-proyecto D:\descargas\proyecto.zip` |
+| `ares ask "<pregunta>" -m [modelo]` | Consulta conversacional con streaming táctico y selección de modelo (`auto`, `gemini`, `deepseek-r1`, `deepseek-v3`). | `ares ask "¿Cómo desacoplar un Aggregate Root en DDD?" -m auto` |
+| `ares route "<tarea>"` | Audita en vivo el Enrutador Adaptativo de IA indicando qué modelo conviene según complejidad. | `ares route "Auditar vulnerabilidad SQL injection en capa Repository"` |
+| `ares benchmark [titulo]` | Genera suite de pruebas de mutación (Stryker) y tests de carga (k6) para tus Bounded Contexts. | `ares benchmark "Gestor de Pagos"` |
+| `ares setup-git <directorio>` | Genera árbol de Git con ramas de equipo y commits atómicos con co-autoría por integrante. | `ares setup-git ./bounded-contexts` |
+| `ares --help` | Despliega el manual de combate de la terminal táctica con todos los flags y opciones. | `ares --help` |
+
+---
+
+#### ❓ Preguntas Frecuentes y Solución de Problemas
+
+* **¿Qué necesito tener instalado antes de empezar?**
+  * Solo necesitas [Node.js (versión 20 o superior)](https://nodejs.org/). Si no lo tienes, descárgalo e instálalo marcando la casilla *"Add to PATH"*.
+* **En PowerShell me sale el error: *"la ejecución de scripts está deshabilitada en este sistema"***:
+  * Esto ocurre por la política de ejecución por defecto de Windows.
+  * *Solución 1:* Ejecuta en PowerShell:  
+    `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force`  
+    *(El script `install.ps1` ya aplica esta regla automáticamente)*.
+  * *Solución 2:* Puedes escribir `ares.cmd` en vez de `ares`, lo cual no tiene restricciones de scripts en Windows.
+* **Escribo `ares` y Windows dice que el comando no se reconoce:**
+  * Si tenías la terminal abierta antes de ejecutar `install.bat`, ciérrala y abre una ventana nueva para que Windows cargue las rutas actualizadas del PATH (`%APPDATA%\npm`).
 
 ---
 
