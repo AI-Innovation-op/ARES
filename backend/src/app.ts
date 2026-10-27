@@ -65,6 +65,7 @@ import {
 } from './controllers/benchmark.controller.js';
 import { MemoryService } from './services/memory.service.js';
 import { CATALOGO_MODELOS } from './services/llm.service.js';
+import { AiRouterService } from './services/ai-router.service.js';
 import { ejecutarHerramienta, DECLARACIONES_HERRAMIENTAS } from './services/tools.service.js';
 import { manejadorErrores } from './middleware/error.middleware.js';
 
@@ -94,7 +95,7 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ONLINE',
-    agent: 'A.R.E.S. v3.8 Benchmark & E2E Core',
+    agent: 'A.R.E.S. v3.9 Auto-Router AI & Regression Core',
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
   });
@@ -105,6 +106,16 @@ app.post('/api/chat', chatHandler);
 app.post('/api/chat/stream', chatStreamHandler);
 app.get('/api/models', (_req, res) => {
   res.status(200).json({ models: CATALOGO_MODELOS });
+});
+
+// 1.0 Enrutador Adaptativo & Conmutador Automático de IA (v3.9)
+app.post('/api/models/route', (req, res) => {
+  const { prompt, hasImage } = req.body;
+  const decision = AiRouterService.clasificarYEnrutar(prompt || '', Boolean(hasImage));
+  res.status(200).json({
+    success: true,
+    decision,
+  });
 });
 
 // 1.1 Enjambre de Subagentes Especializados (Multi-Agent Swarm v3.1)

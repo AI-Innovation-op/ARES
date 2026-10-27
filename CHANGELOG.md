@@ -5,6 +5,38 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [3.9.0] - 2026-10-27
+
+### 🤖 Nuevas Funcionalidades (Features)
+- **Cambio de IA Automática (Enrutador Adaptativo & Conmutador Failover Resiliente - `AiRouterService`):**
+  - **Enrutamiento Inteligente Basado en Intención Táctica:**
+    - `REASONING_DDD`: Enruta consultas de modelado Domain-Driven Design, Bounded Contexts, Value Objects, mutación Stryker y análisis de complejidad Big-O a **DeepSeek R1** (`deepseek/deepseek-r1`) con cadena reflexiva de pensamiento.
+    - `CODE_GEN`: Enruta generación masiva de código TypeScript, componentes Vue 3, refactorización y arquitectura limpia a **DeepSeek V3** (`deepseek/deepseek-chat`).
+    - `VISION_MULTIMODAL`: Enruta capturas de pantalla, imágenes y diagramas gráficos a **Gemini 3 Flash** (`gemini-3-flash-preview`) aprovechando su visión táctica nativa multimodal.
+    - `SEARCH_GROUNDING`: Enruta consultas de versiones actualizadas y librerías externas a **Gemini 3 Flash** con Google Search Grounding en tiempo real.
+    - `GENERAL_FAST`: Respuestas instantáneas y chat ágil con **Gemini 3 Flash** o **DeepSeek V3**.
+  - **Conmutación Resiliente en Cascada (Cascading Circuit Breaker Failover):**
+    - Protocolo de auto-recuperación transparente: si un modelo arroja timeout, error de cuota HTTP 429 o caída 5xx, el sistema conmuta automáticamente al siguiente candidato de la cadena sin interrumpir al Comandante.
+    - *Emergency Sentinel Fallback*: En caso de pérdida total de internet o claves de API agotadas, se activa el Núcleo Heurístico Centinela Local (`ares-local-sentinel`) preservando la sesión y estado del proyecto.
+  - **Endpoint REST Dedicado:**
+    - `POST /api/models/route`: Permite consultar y previsualizar en caliente la decisión del enrutador, su categoría de intención, motivo y cadena de conmutación.
+  - **Integración Visual en Tactical HUD & Chat:**
+    - Opción predeterminada `🤖 AUTO: Enrutador Inteligente` añadida al selector táctico de modelos de IA.
+    - Insignias reactivas en `ChatMessage.vue`:
+      - `[🤖 Auto-IA: Modelo [CATEGORÍA]]` para trazabilidad de enrutamiento transparente.
+      - `[⚠️ Failover: ModeloInicial ➔ ModeloFinal]` con animación de pulso táctico en caso de conmutación resiliente.
+  - **Terminal Táctica Standalone & CLI:**
+    - Subcomando `ares route <prompt>` para auditar decisiones de enrutamiento desde CMD / PowerShell / Bash.
+    - Soporte nativo de `ares ask -m auto` e integración en el REPL interactivo con la orden `route`.
+- **Suite Integral de Pruebas de Regresión (`test-regression-v3.9.mjs`):**
+  - Protocolo de verificación automatizado para los 15 subsistemas del monorepo (v3.1 Swarm, v3.2 CI/CD, v3.3 Memoria 128D, v3.4 Radar C4, v3.5/v3.6 Forja DDD & Git Multi-Contributor, v3.7 Standalone CLI & REPL, v3.8 E2E Benchmarks & Stryker, v3.9 Auto-Router AI).
+  - Tasa de aprobación del 100% (15/15 subsistemas operativos).
+- **Sincronización Monorepo v3.9.0:**
+  - Actualización de versión en `@ares-ecosystem/backend`, `@ares-ecosystem/frontend`, `@ares-ecosystem/cli` y `@ares-ecosystem/mcp`.
+  - Banner y healthcheck de la API sincronizados a `A.R.E.S. v3.9 Auto-Router AI & Regression Core`.
+
+---
+
 ## [3.8.0] - 2026-10-27
 
 ### 🧪 Nuevas Funcionalidades (Features)

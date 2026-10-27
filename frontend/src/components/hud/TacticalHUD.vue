@@ -13,6 +13,7 @@ const { audioSilenciado, toggleSilencio } = useAudio();
 const { vozHabilitada, toggleVoz } = useTacticalVoice();
 
 const modelosFallback = [
+  { id: 'auto', nombre: 'AUTO: Enrutador Inteligente', proveedor: 'gemini', icono: '🤖' },
   { id: 'gemini-3-flash-preview', nombre: 'Gemini 3 Flash', proveedor: 'gemini', icono: '🟣' },
   { id: 'deepseek/deepseek-chat', nombre: 'DeepSeek V3', proveedor: 'openrouter', icono: '⚡' },
   { id: 'deepseek/deepseek-r1-0528', nombre: 'DeepSeek R1', proveedor: 'openrouter', icono: '🧠' },
@@ -58,10 +59,10 @@ function onSelectModelo(id: string) {
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-orbitron font-bold text-sm tracking-widest text-slate-100">
-            A.R.E.S. <span class="text-[#00ffaa] text-xs font-normal">v3.8 BENCHMARK CORE</span>
+            A.R.E.S. <span class="text-[#00ffaa] text-xs font-normal">v3.9 AUTO-ROUTER AI</span>
           </h1>
           <span class="px-1.5 py-0.2 rounded text-[10px] font-mono bg-cyan-950/60 border border-cyan-800 text-cyan-300">
-            MULTI-MODEL
+            AUTO-FAILOVER
           </span>
         </div>
         <p class="text-[10px] font-mono text-slate-400 hidden sm:block">

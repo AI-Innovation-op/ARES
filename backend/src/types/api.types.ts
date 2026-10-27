@@ -44,6 +44,14 @@ export interface ChatResponse {
   provider?: string;
   /** Modelo específico usado */
   model?: string;
+  /** Datos de enrutamiento y conmutación automática de IA (v3.9) */
+  conmutacion?: {
+    fueConmutado: boolean;
+    modeloInicial: string;
+    modeloFinal: string;
+    motivoConmutacion?: string;
+    categoria?: string;
+  };
 }
 
 // ============================================================================

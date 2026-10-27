@@ -59,6 +59,22 @@ export interface Metricas {
   seguridad_despues: string;
 }
 
+export interface InfoConmutacion {
+  fueConmutado: boolean;
+  modeloInicial: string;
+  modeloFinal: string;
+  nombreModelo?: string;
+  motivoConmutacion?: string;
+  categoria?: string;
+  intentos?: Array<{
+    modelo: string;
+    proveedor: string;
+    exitoso: boolean;
+    error?: string;
+    latenciaMs: number;
+  }>;
+}
+
 export interface MensajeChat {
   id: string;
   role: 'user' | 'model';
@@ -66,6 +82,9 @@ export interface MensajeChat {
   sources?: Array<{ uri: string; title: string }>;
   poseNumber?: NumeroPose;
   timestamp: Date;
+  conmutacion?: InfoConmutacion;
+  modeloUsado?: string;
+  proveedorUsado?: string;
 }
 
 export interface RespuestaChat {
@@ -74,6 +93,9 @@ export interface RespuestaChat {
   poseNumber: NumeroPose;
   conversationId: string;
   sources: Array<{ uri: string; title: string }>;
+  conmutacion?: InfoConmutacion;
+  model?: string;
+  provider?: string;
 }
 
 export interface RespuestaAuditoria {

@@ -7,6 +7,7 @@
 import { invocarLLM, invocarLLMStream } from './llm.service.js';
 import { PROMPT_CONSEJO_ENJAMBRE } from './swarm.service.js';
 import { MemoryService } from './memory.service.js';
+import { AiRouterService } from './ai-router.service.js';
 import {
   crearConversacion,
   obtenerConversacionPorId,
@@ -231,6 +232,7 @@ export async function procesarMensajeChat(request: ChatRequest): Promise<ChatRes
     sources: respuesta.fuentes,
     provider: respuesta.proveedorUsado,
     model: respuesta.modeloUsado,
+    conmutacion: respuesta.conmutacionAutomatica,
   };
 }
 
@@ -252,9 +254,9 @@ export function extraerPoseDeTexto(texto: string): NumeroPose | null {
  * Eventos emitidos durante el streaming de chat.
  */
 export type EventoStreamChat =
-  | { type: 'init'; stance: Postura; poseNumber: NumeroPose; conversationId: string }
+  | { type: 'init'; stance: Postura; poseNumber: NumeroPose; conversationId: string; model?: string; provider?: string }
   | { type: 'chunk'; text: string; poseDetected?: NumeroPose }
-  | { type: 'done'; reply: string; stance: Postura; poseNumber: NumeroPose; conversationId: string };
+  | { type: 'done'; reply: string; stance: Postura; poseNumber: NumeroPose; conversationId: string; conmutacion?: any; model?: string; provider?: string };
 
 /**
  * Procesa un mensaje de chat emitiendo tokens en tiempo real mediante SSE.
@@ -263,6 +265,24 @@ export async function* procesarMensajeChatStream(
   request: ChatRequest
 ): AsyncGenerator<EventoStreamChat> {
   const { message, conversationId, imageBase64, commanderId, provider, model, tacticalMode } = request;
+
+  let modeloUsadoParaStream = model;
+  let proveedorUsadoParaStream = provider;
+  let infoConmutacionStream: any = undefined;
+
+  if (!model || model === 'auto' || (provider as any) === 'auto') {
+    const decision = AiRouterService.clasificarYEnrutar(message, !!imageBase64);
+    modeloUsadoParaStream = decision.modeloSeleccionado.modelo;
+    proveedorUsadoParaStream = decision.modeloSeleccionado.proveedor;
+    infoConmutacionStream = {
+      fueConmutado: false,
+      modeloInicial: 'auto',
+      modeloFinal: decision.modeloSeleccionado.modelo,
+      nombreModelo: decision.modeloSeleccionado.nombre,
+      categoria: decision.categoriaIntencion,
+      motivoConmutacion: `Auto-enrutado a ${decision.modeloSeleccionado.nombre} (${decision.explicacion})`,
+    };
+  }
 
   let idConversacion = conversationId;
   let comandanteId = commanderId;
@@ -296,6 +316,8 @@ export async function* procesarMensajeChatStream(
     stance,
     poseNumber,
     conversationId: idConversacion,
+    model: modeloUsadoParaStream,
+    provider: proveedorUsadoParaStream,
   };
 
   // Historial previo
@@ -413,5 +435,8 @@ export async function* procesarMensajeChatStream(
     stance: 'VICTORY',
     poseNumber,
     conversationId: idConversacion,
+    conmutacion: infoConmutacionStream,
+    model: modeloUsadoParaStream,
+    provider: proveedorUsadoParaStream,
   };
 }

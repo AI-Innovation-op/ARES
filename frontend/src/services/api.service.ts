@@ -42,9 +42,9 @@ export const apiService = {
     provider?: 'gemini' | 'openrouter';
     model?: string;
     tacticalMode?: string;
-    onInit?: (data: { stance: Postura; poseNumber: NumeroPose; conversationId: string }) => void;
+    onInit?: (data: { stance: Postura; poseNumber: NumeroPose; conversationId: string; model?: string; provider?: string }) => void;
     onChunk?: (chunk: string, poseDetected?: NumeroPose) => void;
-    onDone?: (data: { reply: string; stance: Postura; poseNumber: NumeroPose; conversationId: string }) => void;
+    onDone?: (data: { reply: string; stance: Postura; poseNumber: NumeroPose; conversationId: string; conmutacion?: any; model?: string; provider?: string }) => void;
     onError?: (error: Error) => void;
   }): Promise<void> {
     try {
@@ -289,5 +289,16 @@ export const apiService = {
   async obtenerModelos(): Promise<any[]> {
     const { data } = await cliente.get<{ models: any[] }>('/models');
     return data.models;
+  },
+
+  /**
+   * Consulta al Enrutador Adaptativo de IA la mejor decisión de modelo (v3.9).
+   */
+  async predecirEnrutamientoIA(prompt: string, hasImage: boolean = false) {
+    const { data } = await cliente.post<{ success: boolean; decision: any }>('/models/route', {
+      prompt,
+      hasImage,
+    });
+    return data.decision;
   },
 };

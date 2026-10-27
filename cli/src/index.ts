@@ -35,7 +35,7 @@ for (const envPath of posiblesEnv) {
 const API_BASE = process.env.ARES_API_URL || 'http://localhost:3000';
 
 function banner() {
-  imprimirBannerCircuito('v3.8', '[E2E Benchmarks & Stryker Core]');
+  imprimirBannerCircuito('v3.9', '[Auto-Router AI & Regression Core]');
 }
 
 async function verificarServidor(): Promise<boolean> {
@@ -52,7 +52,7 @@ const program = new Command();
 program
   .name('ares')
   .description('🛡️ A.R.E.S. CLI Táctico — Terminal Standalone de Ingeniería de Software asistida por IA')
-  .version('3.8.0');
+  .version('3.9.0');
 
 // ============================================================================
 // 1. COMANDO: ares audit <file>
@@ -306,11 +306,11 @@ program
 program
   .command('ask <consulta>')
   .description('💬 Envía una orden táctica o pregunta directa a A.R.E.S.')
-  .option('-m, --model <modelo>', 'Modelo a consultar (gemini-3-flash-preview, deepseek/deepseek-chat, etc.)')
-  .option('-p, --provider <proveedor>', 'Proveedor de IA (gemini o openrouter)', 'openrouter')
+  .option('-m, --model <modelo>', 'Modelo a consultar (auto, gemini-3-flash-preview, deepseek/deepseek-chat, etc.)', 'auto')
+  .option('-p, --provider <proveedor>', 'Proveedor de IA (gemini o openrouter)', 'gemini')
   .action(async (consulta, opciones) => {
     banner();
-    console.log(pc.cyan(`💬 [${opciones.provider.toUpperCase()} | ${opciones.model || 'default'}]: ${pc.white(consulta)}\n`));
+    console.log(pc.cyan(`💬 [${opciones.provider.toUpperCase()} | ${opciones.model}]: ${pc.white(consulta)}\n`));
 
     try {
       const res = await fetch(`${API_BASE}/api/chat`, {
@@ -327,9 +327,50 @@ program
       const data = (await res.json()) as any;
 
       console.log(data.reply);
+
+      if (data.conmutacion?.fueConmutado) {
+        console.log(pc.yellow(`\n⚠️ [Failover Resiliente]: ${data.conmutacion.modeloInicial} ➔ ${data.conmutacion.modeloFinal} (${data.conmutacion.motivoConmutacion || 'Fallo detectado'})`));
+      } else if (data.conmutacion) {
+        console.log(pc.cyan(`\n🤖 [Auto-Router]: Enrutado a ${data.conmutacion.modeloFinal} [${data.conmutacion.categoria || 'Auto'}]`));
+      }
+
       console.log(pc.dim(`\n[Postura: ${data.stance} | Pose: ${data.poseNumber}]`));
     } catch (err: any) {
       console.error(pc.red(`💥 Falla al consultar A.R.E.S.: ${err.message}`));
+    }
+  });
+
+// ============================================================================
+// 5.1 COMANDO: ares route <prompt>
+// ============================================================================
+program
+  .command('route <consulta>')
+  .description('🤖 Consulta al Enrutador Adaptativo qué motor de IA recomienda para una tarea')
+  .action(async (consulta) => {
+    banner();
+    console.log(pc.cyan(`🔍 Analizando prompt táctico con AiRouterService...`));
+    try {
+      const res = await fetch(`${API_BASE}/api/models/route`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: consulta }),
+      });
+      const data = (await res.json()) as any;
+      if (data.success && data.decision) {
+        const d = data.decision;
+        console.log(pc.bold(pc.green(`\n🎯 MODELO SELECCIONADO: ${d.modeloSeleccionado.icono} ${d.modeloSeleccionado.nombre} (${d.modeloSeleccionado.modelo})`)));
+        console.log(pc.white(`   Categoría:   ${pc.yellow(d.categoriaIntencion)}`));
+        console.log(pc.white(`   Motivo:      ${pc.cyan(d.modeloSeleccionado.motivo)}`));
+        console.log(pc.white(`   Explicación: ${d.explicacion}`));
+        console.log(pc.dim(`\n   Cadena de Failover en Cascada:`));
+        for (let i = 0; i < d.cadenaFailover.length; i++) {
+          const c = d.cadenaFailover[i];
+          console.log(pc.dim(`     [${i + 1}] ${c.icono} ${c.nombre} (${c.modelo})`));
+        }
+        console.log('');
+      }
+    } catch (err: any) {
+      console.error(pc.red(`💥 Error al consultar enrutador: ${err.message}`));
     }
   });
 

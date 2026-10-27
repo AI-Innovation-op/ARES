@@ -33,7 +33,7 @@ export class TacticalRepl {
 
   async iniciar(): Promise<void> {
     console.clear();
-    imprimirBannerCircuito('v3.8', '[E2E Benchmarks & Stryker Core]');
+    imprimirBannerCircuito('v3.9', '[Auto-Router AI & Regression Core]');
 
     this.online = await this.verificarServidor();
 
@@ -50,6 +50,7 @@ export class TacticalRepl {
     const ordenesCompletables = [
       'help',
       'chat',
+      'route',
       'forge',
       'benchmark',
       'swarm',
@@ -146,6 +147,11 @@ export class TacticalRepl {
           continue;
         }
 
+        if (cmd === 'route') {
+          await this.consultarEnrutador(args.join(' '));
+          continue;
+        }
+
         if (cmd === 'benchmark' || cmd === 'bench' || cmd === 'k6') {
           await this.ejecutarBenchmark(args.join(' '));
           continue;
@@ -162,8 +168,9 @@ export class TacticalRepl {
   }
 
   private mostrarAyuda(): void {
-    imprimirLineaDivisoria('CATÁLOGO DE ÓRDENES TÁCTICAS (v3.8 REPL STANDALONE)');
+    imprimirLineaDivisoria('CATÁLOGO DE ÓRDENES TÁCTICAS (v3.9 REPL STANDALONE)');
     console.log(`  ${pc.bold(pc.cyan('chat <mensaje>'))}       Conversa con A.R.E.S. con streaming token a token (o escribe directo)`);
+    console.log(`  ${pc.bold(pc.cyan('route <consulta>'))}      Consulta al Enrutador Adaptativo qué motor de IA recomienda`);
     console.log(`  ${pc.bold(pc.cyan('forge [archivo.txt]'))}  Forja de ejercicios DDD, desofuscador de PDFs y commits atómicos Git`);
     console.log(`  ${pc.bold(pc.cyan('benchmark [titulo]'))}   Ejecuta suite de pruebas E2E, Mutación Stryker (MSI) y Benchmarks k6`);
     console.log(`  ${pc.bold(pc.cyan('swarm <misión>'))}      Despacha orden al Enjambre Multi-Agente (Atenea, Vulcano, Mercurio, Némesis)`);
@@ -174,6 +181,37 @@ export class TacticalRepl {
     console.log(`  ${pc.bold(pc.cyan('status'))}               Telemetría en vivo del núcleo A.R.E.S. y modelos IA`);
     console.log(`  ${pc.bold(pc.cyan('clear / cls'))}          Limpia la pantalla y redibuja el banner cibernético`);
     console.log(`  ${pc.bold(pc.cyan('exit / quit'))}          Cierra la sesión de la terminal standalone\n`);
+  }
+
+  private async consultarEnrutador(promptTexto: string): Promise<void> {
+    if (!promptTexto) {
+      console.log(pc.yellow('  Uso: route <consulta o tarea>. Ej: route diseñar agregado ddd para banco\n'));
+      return;
+    }
+    imprimirLineaDivisoria('ENRUTADOR ADAPTATIVO & CONMUTADOR IA (v3.9)');
+    try {
+      const res = await fetch(`${this.apiBase}/api/models/route`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: promptTexto }),
+      });
+      const data = await res.json();
+      if (data.success && data.decision) {
+        const d = data.decision;
+        console.log(`  ${pc.bold('🎯 MODELO SELECCIONADO:')} ${d.modeloSeleccionado.icono} ${pc.bold(d.modeloSeleccionado.nombre)} (${pc.cyan(d.modeloSeleccionado.modelo)})`);
+        console.log(`  ${pc.bold('📂 Categoría:')}          ${pc.yellow(d.categoriaIntencion)}`);
+        console.log(`  ${pc.bold('💡 Motivo:')}             ${d.modeloSeleccionado.motivo}`);
+        console.log(`  ${pc.bold('🧠 Explicación:')}        ${pc.dim(d.explicacion)}`);
+        console.log(`  ${pc.bold('🛡️ Failover en Cascada:')}`);
+        for (let i = 0; i < d.cadenaFailover.length; i++) {
+          const c = d.cadenaFailover[i];
+          console.log(`    ${pc.gray(`[${i + 1}]`)} ${c.icono} ${pc.white(c.nombre)} ${pc.dim(`(${c.modelo})`)}`);
+        }
+        console.log('\n');
+      }
+    } catch (err: any) {
+      console.error(pc.red(`  Error al consultar enrutador: ${err.message}\n`));
+    }
   }
 
   private async ejecutarBenchmark(titulo?: string): Promise<void> {
@@ -449,7 +487,14 @@ Bounded Contexts:
       for (const char of texto) {
         process.stdout.write(char);
       }
-      console.log('\n');
+      console.log('');
+
+      if (data.conmutacion?.fueConmutado) {
+        console.log(pc.yellow(`[⚠️ Failover Resiliente]: ${data.conmutacion.modeloInicial} ➔ ${data.conmutacion.modeloFinal} (${data.conmutacion.motivoConmutacion || 'Fallo detectado'})`));
+      } else if (data.conmutacion) {
+        console.log(pc.dim(`[🤖 Auto-Router]: Enrutado a ${data.conmutacion.modeloFinal} [${data.conmutacion.categoria || 'Auto'}]`));
+      }
+      console.log('');
     } catch (err: any) {
       console.log(pc.yellow('\n[Modo Local] Comandante, estoy procesando tu orden de forma autónoma.'));
       console.log(pc.dim(`(Para chat multimodal profundo con Gemini o DeepSeek, asegúrate de que el backend esté en ejecución).\n`));

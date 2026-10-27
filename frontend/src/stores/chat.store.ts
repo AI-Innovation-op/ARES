@@ -40,9 +40,9 @@ export const useChatStore = defineStore('chat', () => {
   const cargandoHistorial = ref(false);
   const errorMensaje = ref<string | null>(null);
 
-  // Selector Multi-Modelo (Google Gemini + OpenRouter)
+  // Selector Multi-Modelo (Google Gemini + OpenRouter + Enrutador Auto v3.9)
   const modelosDisponibles = ref<any[]>([]);
-  const modeloSeleccionado = ref<string>(localStorage.getItem('ares.selected_model') || 'gemini-3-flash-preview');
+  const modeloSeleccionado = ref<string>(localStorage.getItem('ares.selected_model') || 'auto');
   const proveedorSeleccionado = ref<'gemini' | 'openrouter'>((localStorage.getItem('ares.selected_provider') as any) || 'gemini');
 
   /**
@@ -212,6 +212,8 @@ export const useChatStore = defineStore('chat', () => {
           localStorage.setItem('ares.active_conv', data.conversationId);
           if (mensajes.value[targetIdx]) {
             mensajes.value[targetIdx].poseNumber = data.poseNumber;
+            if (data.model) mensajes.value[targetIdx].modeloUsado = data.model;
+            if (data.provider) mensajes.value[targetIdx].proveedorUsado = data.provider;
           }
           fsm.cambiarPostura(data.stance, data.poseNumber);
         },
@@ -232,6 +234,9 @@ export const useChatStore = defineStore('chat', () => {
           if (mensajes.value[targetIdx]) {
             mensajes.value[targetIdx].content = data.reply;
             mensajes.value[targetIdx].poseNumber = data.poseNumber;
+            if (data.conmutacion) mensajes.value[targetIdx].conmutacion = data.conmutacion;
+            if (data.model) mensajes.value[targetIdx].modeloUsado = data.model;
+            if (data.provider) mensajes.value[targetIdx].proveedorUsado = data.provider;
           }
           fsm.cambiarPostura(data.stance, data.poseNumber);
 
@@ -268,6 +273,9 @@ export const useChatStore = defineStore('chat', () => {
         if (mensajes.value[targetIdx]) {
           mensajes.value[targetIdx].content = data.reply;
           mensajes.value[targetIdx].poseNumber = data.poseNumber || 1;
+          if (data.conmutacion) mensajes.value[targetIdx].conmutacion = data.conmutacion;
+          if (data.model) mensajes.value[targetIdx].modeloUsado = data.model;
+          if (data.provider) mensajes.value[targetIdx].proveedorUsado = data.provider;
         }
         fsm.cambiarPostura(data.stance || 'IDLE', data.poseNumber || 1);
 

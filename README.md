@@ -1,8 +1,8 @@
-# 🛡️ A.R.E.S. Ecosystem (v3.8 E2E Testing Suite & DDD Benchmarks // Industrial Core)
+# 🛡️ A.R.E.S. Ecosystem (v3.9 Auto-Router AI & Regression Core // Industrial Sovereign)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo. Y un proyecto sin tu autoría es una batalla ganada sin honor."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
-> 🏷️ **Versión Actual:** **v3.8.0** — *Suite de Pruebas E2E Multicontexto, Mutación con Stryker (MSI), Benchmarks de Carga Grafana k6 y Terminal Táctica Standalone.*
+> 🏷️ **Versión Actual:** **v3.9.0** — *Enrutador Adaptativo & Conmutador Automático de IA (Failover Resiliente), Suite de Pruebas E2E Multicontexto, Mutación con Stryker (MSI), Benchmarks de Carga Grafana k6 y Terminal Táctica Standalone.*
 
 [![Node.js](https://img.shields.io/badge/Node.js-24+-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -180,6 +180,24 @@ Heredado de **Cori**, no permito que mi Comandante destruya su salud física o m
 * **Empaquetado Dual & Ejecución de 1-Clic:** Descarga el proyecto en `.zip` con scripts ejecutables integrados (`setup-git.bat` para Windows y `setup-git.sh` para Linux/macOS) que inicializan el repositorio, crean la rama `feature/...` y disparan los commits con doble clic, o ejecuta el push directo a GitHub vía sandbox backend con tu Personal Access Token.
 * **Modal Interactivo `[ 📋 FORJA GIT ]` (`AssignmentForgeModal.vue`):** Asistente táctico de 4 pasos con presets inmediatos (Préstamos Bibliotecarios, E-Commerce y Citas Médicas), configuración de autor/squad y visor de código en vivo.
 * **Comandos en Terminal y CLI:** Soporte de `forge`, `assign` y `git` en la terminal web y comando `ares forge` en la CLI.
+
+### 🧪 Módulo P: Suite de Pruebas E2E, Mutación con Stryker & Benchmarks k6 (v3.8+)
+* **Pruebas de Integración End-to-End DDD (`tests/e2e/integration.e2e.test.ts`):** Validador de consistencia entre múltiples Bounded Contexts, orquestación de casos de uso y propagación de Domain Events.
+* **Mutación con Stryker (`stryker.config.json`):** Evaluación del *Mutation Score Indicator (MSI)* inyectando mutantes en operadores de igualdad, booleanos, aritméticos y condicionales para erradicar falsos positivos en entidades y Value Objects.
+* **Benchmarks de Carga Grafana k6 (`benchmarks/k6-load-test.js`):** Pruebas de estrés y throughput (50-150 VUs), percentiles P50, P95 y P99 (<200ms) y verificación de tasa de error 0.00%.
+* **Modal Táctico `[ 🧪 BENCHMARKS ]` (`BenchmarkSuiteModal.vue`):** Panel interactivo con visor de scripts, selector de presets y ejecución de benchmarks con métricas en tiempo real.
+* **Comandos en Terminal:** `ares benchmark [titulo]` en CLI y orden `benchmark` en el REPL standalone.
+
+### 🤖 Módulo Q: Enrutador Adaptativo & Conmutador Automático de IA (v3.9+)
+* **Enrutamiento Inteligente por Intención Táctica (`AiRouterService`):**
+  - `REASONING_DDD` ➔ **DeepSeek R1** (Razonamiento reflexivo, modelado DDD, Stryker, algoritmos).
+  - `CODE_GEN` ➔ **DeepSeek V3** (Generación masiva de código TypeScript, componentes Vue 3, refactorización limpia).
+  - `VISION_MULTIMODAL` ➔ **Gemini 3 Flash** (Análisis multimodal de imágenes, capturas y diagramas).
+  - `SEARCH_GROUNDING` ➔ **Gemini 3 Flash** con Google Search Grounding en tiempo real.
+  - `GENERAL_FAST` ➔ **Gemini 3 Flash** / **DeepSeek V3** (Respuestas ultrarrápidas).
+* **Conmutación Resiliente en Cascada (Cascading Circuit Breaker Failover):** Auto-recuperación transparente ante errores HTTP 429, timeouts o caídas de red, conmutando al siguiente candidato de respaldo sin interrumpir la sesión y activando el Núcleo Heurístico Centinela Local si se pierde la conexión a internet.
+* **Insignias Tácticas en Chat (`ChatMessage.vue`):** Muestra badges como `[🤖 Auto-IA: DeepSeek R1 [REASONING_DDD]]` o alertas de conmutación `[⚠️ Failover: Gemini ➔ DeepSeek V3]`.
+* **Comandos CLI & REPL:** Orden `ares route <prompt>` para auditar en caliente las decisiones de enrutamiento y soporte de `ares ask -m auto`.
 
 ---
 

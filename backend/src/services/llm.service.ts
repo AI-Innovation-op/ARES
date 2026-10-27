@@ -7,10 +7,11 @@
 
 import { invocarGemini, invocarGeminiStream, MEGA_PROMPT_ARES } from './gemini.service.js';
 import { invocarOpenRouter, invocarOpenRouterStream, type MensajeOpenRouter } from './openrouter.service.js';
+import { AiRouterService, type ResultadoInvocacionResiliente } from './ai-router.service.js';
 import { env } from '../config/env.js';
 import type { ContenidoGemini } from '../types/gemini.types.js';
 
-export type ProveedorLLM = 'gemini' | 'openrouter';
+export type ProveedorLLM = 'gemini' | 'openrouter' | 'auto';
 
 export interface ModeloDisponible {
   id: string;
@@ -22,6 +23,14 @@ export interface ModeloDisponible {
 }
 
 export const CATALOGO_MODELOS: ModeloDisponible[] = [
+  {
+    id: 'auto',
+    nombre: '🤖 AUTO: Enrutamiento Inteligente & Failover',
+    proveedor: 'auto',
+    descripcion: 'Analiza tu consulta y elige automáticamente la mejor IA (DeepSeek R1 para lógica/DDD, V3 para código, Gemini para velocidad) con conmutación resiliente por fallo.',
+    especialidad: 'general',
+    icono: '🤖',
+  },
   {
     id: 'gemini-3-flash-preview',
     nombre: 'Gemini 3 Flash (Google)',
@@ -76,7 +85,16 @@ export interface RespuestaConsultaLLM {
   texto: string;
   proveedorUsado: ProveedorLLM;
   modeloUsado: string;
+  nombreModeloUsado?: string;
+  iconoModeloUsado?: string;
   fuentes: Array<{ uri: string; title: string }>;
+  conmutacionAutomatica?: {
+    fueConmutado: boolean;
+    modeloInicial: string;
+    modeloFinal: string;
+    motivoConmutacion?: string;
+    categoria?: string;
+  };
 }
 
 /**
@@ -105,56 +123,26 @@ function transformarMensajesAOpenRouter(
 }
 
 /**
- * Ejecuta una consulta a través del motor Multi-Modelo con failover automático.
+ * Ejecuta una consulta a través del motor Multi-Modelo con failover automático y enrutamiento inteligente.
  */
 export async function invocarLLM(opciones: OpcionesConsultaLLM): Promise<RespuestaConsultaLLM> {
-  const proveedor = opciones.provider || (env.LLM_PROVIDER as ProveedorLLM) || 'gemini';
+  const resultado = await AiRouterService.ejecutarConmutacionResiliente({
+    contents: opciones.contents,
+    modeloDeseado: opciones.model,
+    proveedorDeseado: opciones.provider,
+    systemInstruction: opciones.systemInstruction,
+    enableSearch: opciones.enableSearch,
+  });
 
-  // 1. Si el proveedor solicitado es OpenRouter
-  if (proveedor === 'openrouter') {
-    const messages = transformarMensajesAOpenRouter(opciones.contents, opciones.systemInstruction);
-    const res = await invocarOpenRouter({
-      messages,
-      model: opciones.model || env.OPENROUTER_DEFAULT_MODEL,
-    });
-    return {
-      texto: res.texto,
-      proveedorUsado: 'openrouter',
-      modeloUsado: res.modelUsado,
-      fuentes: [],
-    };
-  }
-
-  // 2. Si el proveedor es Gemini (con failover automático a OpenRouter en caso de error de cuota 429)
-  try {
-    const res = await invocarGemini({
-      contents: opciones.contents,
-      enableSearch: opciones.enableSearch ?? true,
-    });
-    return {
-      texto: res.texto,
-      proveedorUsado: 'gemini',
-      modeloUsado: env.GEMINI_TEXT_MODEL || 'gemini-3-flash-preview',
-      fuentes: res.fuentes,
-    };
-  } catch (error: any) {
-    // Si Gemini falla por cuota (429) y OpenRouter está configurado, conmutar elegantemente
-    if (env.OPENROUTER_API_KEY && (error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('quota'))) {
-      console.warn('⚠️ [LLMGateway] Cuota de Gemini agotada. Conmutando automáticamente a OpenRouter (DeepSeek V3)...');
-      const messages = transformarMensajesAOpenRouter(opciones.contents, opciones.systemInstruction);
-      const resOR = await invocarOpenRouter({
-        messages,
-        model: env.OPENROUTER_DEFAULT_MODEL,
-      });
-      return {
-        texto: resOR.texto,
-        proveedorUsado: 'openrouter',
-        modeloUsado: resOR.modelUsado,
-        fuentes: [],
-      };
-    }
-    throw error;
-  }
+  return {
+    texto: resultado.texto,
+    proveedorUsado: resultado.proveedorUsado,
+    modeloUsado: resultado.modeloUsado,
+    nombreModeloUsado: resultado.nombreModeloUsado,
+    iconoModeloUsado: resultado.iconoModeloUsado,
+    fuentes: resultado.fuentes,
+    conmutacionAutomatica: resultado.conmutacionAutomatica,
+  };
 }
 
 /**
@@ -163,13 +151,25 @@ export async function invocarLLM(opciones: OpcionesConsultaLLM): Promise<Respues
 export async function* invocarLLMStream(
   opciones: OpcionesConsultaLLM
 ): AsyncGenerator<string> {
-  const proveedor = opciones.provider || (env.LLM_PROVIDER as ProveedorLLM) || 'gemini';
+  let modelTarget = opciones.model;
+  let provTarget = opciones.provider || (env.LLM_PROVIDER as ProveedorLLM) || 'gemini';
 
-  if (proveedor === 'openrouter') {
+  // Si se solicita modo automático o no se especificó modelo, clasificar intención
+  if (!modelTarget || modelTarget === 'auto' || provTarget === 'auto') {
+    const ultimoTexto = opciones.contents
+      .filter((c) => c.role === 'user')
+      .flatMap((c) => c.parts.map((p) => p.text || ''))
+      .join(' ');
+    const decision = AiRouterService.clasificarYEnrutar(ultimoTexto);
+    provTarget = decision.modeloSeleccionado.proveedor;
+    modelTarget = decision.modeloSeleccionado.modelo;
+  }
+
+  if (provTarget === 'openrouter') {
     const messages = transformarMensajesAOpenRouter(opciones.contents, opciones.systemInstruction);
     yield* invocarOpenRouterStream({
       messages,
-      model: opciones.model || env.OPENROUTER_DEFAULT_MODEL,
+      model: modelTarget || env.OPENROUTER_DEFAULT_MODEL,
     });
     return;
   }
@@ -179,7 +179,7 @@ export async function* invocarLLMStream(
     yield* invocarGeminiStream({
       contents: opciones.contents,
       systemInstruction: opciones.systemInstruction,
-      model: opciones.model,
+      model: modelTarget,
     });
   } catch (error: any) {
     // Failover a OpenRouter en streaming

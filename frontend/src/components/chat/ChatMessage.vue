@@ -369,8 +369,34 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
       ]"
     >
       <!-- Encabezado de Turno de A.R.E.S. -->
-      <div v-if="!esUsuario" class="flex items-center justify-between pb-2 mb-2 border-b border-[#132a4a] text-xs font-mono text-slate-400">
-        <span class="font-orbitron font-bold text-[#00ffaa]">A.R.E.S. TACTICAL</span>
+      <div v-if="!esUsuario" class="flex flex-wrap items-center justify-between gap-1 pb-2 mb-2 border-b border-[#132a4a] text-xs font-mono text-slate-400">
+        <div class="flex items-center gap-2">
+          <span class="font-orbitron font-bold text-[#00ffaa]">A.R.E.S. TACTICAL</span>
+          <!-- Badge de Enrutamiento o Failover IA (v3.9) -->
+          <span
+            v-if="message.conmutacion?.fueConmutado"
+            class="px-2 py-0.5 rounded text-[10px] bg-amber-950/80 border border-amber-500/60 text-amber-300 flex items-center gap-1 font-bold animate-pulse"
+            :title="message.conmutacion.motivoConmutacion || 'Conmutación por failover resiliente'"
+          >
+            <span>⚠️ Failover:</span>
+            <span>{{ message.conmutacion.modeloFinal }}</span>
+          </span>
+          <span
+            v-else-if="message.conmutacion"
+            class="px-2 py-0.5 rounded text-[10px] bg-cyan-950/70 border border-cyan-500/50 text-cyan-300 flex items-center gap-1"
+            :title="message.conmutacion.motivoConmutacion"
+          >
+            <span>🤖 Auto-IA:</span>
+            <span class="font-bold">{{ message.conmutacion.nombreModelo || message.conmutacion.modeloFinal }}</span>
+            <span v-if="message.conmutacion.categoria" class="text-[9px] text-cyan-400 opacity-80">[{{ message.conmutacion.categoria }}]</span>
+          </span>
+          <span
+            v-else-if="message.modeloUsado"
+            class="px-1.5 py-0.2 rounded text-[10px] bg-[#040914] border border-[#132a4a] text-slate-400"
+          >
+            {{ message.modeloUsado }}
+          </span>
+        </div>
         <span v-if="message.poseNumber" class="text-cyan-400">
           [POSE-{{ message.poseNumber }}]
         </span>
