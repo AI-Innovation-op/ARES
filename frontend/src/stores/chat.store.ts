@@ -28,7 +28,7 @@ export const useChatStore = defineStore('chat', () => {
       id: 'bienvenida',
       role: 'model',
       content:
-        '🛡️ **A.R.E.S. Core v2.9 en línea (Tactical Senses & Repository Intelligence Activos).**\n\nSaludos, Comandante. Oído digital táctico, visualizador de ondas y auditoría de repositorios GitHub listos:\n- **🎙️ Oído Digital Táctico:** Entrada de voz continua con visualización de ondas holográficas y auto-envío verbal.\n- **🔍 Ingesta & Auditoría GitHub:** Escaneo profundo de repositorios con diagramas C4 y blindaje OWASP.\n- **⚡ Modos Tácticos:** Centinela (Auditor), Blitzkrieg (Prototipos) y Arquitecto (RFCs).\n- **▶️ Live Preview Sandbox & Forja .ZIP:** Previsualización interactiva multi-dispositivo y exportación.\n\n¿Cuál es la primera orden táctica?',
+        '🛡️ **A.R.E.S. Core v3.0 en línea (Heavy Engineering Sovereign Release).**\n\nSaludos, Comandante. Bienvenido a la era v3.0. Capacidades sensoriales y forja de alta ingeniería activas:\n- **🎙️ Oído Digital & Espectro Holográfico:** Entrada por voz en tiempo real con despacho fonético directo.\n- **🖥️ Live Sandbox & Forja .ZIP:** Previsualizaciones interactivas reactivas (Desktop/Tablet/Móvil) y empaquetado modular DDD.\n- **🔍 Ingesta & Auditoría GitHub:** Escaneo profundo de repositorios con diagramas C4 y blindaje OWASP.\n- **⚡ Modos de Combate:** Centinela (Auditor), Blitzkrieg (Prototipado) y Arquitecto (Estratega).\n\n¿Cuál es la primera orden táctica?',
       poseNumber: 1,
       timestamp: new Date(),
     },
@@ -405,7 +405,7 @@ export const useChatStore = defineStore('chat', () => {
         id: 'bienvenida',
         role: 'model',
         content:
-          '🛡️ **A.R.E.S. Core v2.6 en línea (Persistencia Total SQLite Activa).**\n\nConsola reiniciada. ¿Cuál es tu siguiente orden táctica, Comandante?',
+          '🛡️ **A.R.E.S. Core v3.0 en línea (Heavy Engineering Sovereign Release).**\n\nConsola reiniciada. Todos los sistemas tácticos en orden. ¿Cuál es tu siguiente orden táctica, Comandante?',
         poseNumber: 1,
         timestamp: new Date(),
       },

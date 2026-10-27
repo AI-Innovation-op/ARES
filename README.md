@@ -1,8 +1,8 @@
-# 🛡️ A.R.E.S. Ecosystem (v2.9 J.A.R.V.I.S. Core // Tactical Senses & Repository Intelligence)
+# 🛡️ A.R.E.S. Ecosystem (v3.0 Heavy Industrial Core // Sovereign Autonomous Architecture)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
-> 🏷️ **Hito Mayor:** [Release Oficial v2.0 en GitHub](https://github.com/AI-Innovation-op/ARES/releases/tag/v2.0.0) — *Consolidación de la era v2.0 hacia la futura v3.0.*
+> 🏷️ **Hito Mayor:** [Release Oficial v3.0 en GitHub](https://github.com/AI-Innovation-op/ARES/releases/tag/v3.0.0) — *Consolidación de la era Sovereign Engineering.*
 
 [![Node.js](https://img.shields.io/badge/Node.js-24+-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -102,32 +102,33 @@ Heredado de **Cori**, no permito que mi Comandante destruya su salud física o m
   $$\text{Estamina} = \max\left(5, \min\left(100, \text{round}\left(100 - (\text{minutos} \times 0.18) - (100 - \text{agua}) \times 0.3 - \text{penalización} + \text{bono}\right)\right)\right)$$
 * **Alertas Espartanas y Regaños Tácticos:** Si la estamina cae por debajo del 40% o el agua por debajo del 25%, restrinjo posturas de combate agresivas y exijo descanso e hidratación inmediata.
 
-### 📦 Módulo E: Forja de Proyectos & Empaquetador .ZIP (v2.7)
-* **Generación y Scaffolding Completo:** Cuando solicitas la creación de una aplicación (ej. *"página web de café con DDD en Vite con Vue"*), genero la totalidad de los archivos estructurados en sus respectivas capas (`domain/`, `application/`, `infrastructure/`, `presentation/`).
+### 📦 Módulo E: Forja de Proyectos DDD & Empaquetador .ZIP (v2.7+)
+* **Generación y Scaffolding Completo:** Cuando solicitas la creación de una aplicación (ej. *"página web de café con DDD en Vite con Vue"*), genero la totalidad de los archivos estructurados en sus respectivas capas desacopladas (`domain/`, `application/`, `infrastructure/`, `presentation/`).
 * **Inyección Automática de Boilerplate:** Si la solución carece de archivos base de entorno, mi motor complementa automáticamente el `package.json`, `vite.config.ts`, `index.html` y `src/main.ts` para garantizar que la descarga sea 100% funcional.
 * **Explorador y Descarga en Cliente:** Incluye un componente interactivo (`ProjectZipForge.vue`) para inspeccionar el árbol virtual de archivos y descargar el paquete completo comprimido en un solo `.zip` listo para ejecutar con `npm install && npm run dev`.
 
-### 🖥️ Módulo F: Live Web Preview Sandbox (Vista Previa en Vivo Interactiva - v2.8)
+### 🖥️ Módulo F: Live Web Preview Sandbox & Síntesis DDD Unificada (v2.8+)
 * **Ejecución Aislada en Tiempo Real:** Permite previsualizar páginas web, aplicaciones Vue 3 y maquetas Tailwind directamente dentro de la consola en un `iframe` seguro (`srcdoc`).
+* **Sintetizador Unificado de Aplicaciones DDD:** Para proyectos multi-archivo DDD (como tiendas de café de especialidad o autenticación JWT), el compilador en caliente fusiona automáticamente los componentes en una aplicación rica e interactiva con carrito funcional, catálogos reactivos, modales y notificaciones toast, sin contaminar la pureza arquitectónica de los archivos empaquetados en el `.zip`.
 * **Selector Responsive de Dispositivos:** Alterna entre vista **🖥️ Desktop (100%)**, **📟 Tablet (768px)** y **📱 Móvil (375px)** para verificar la adaptabilidad del diseño al instante.
 * **Captura de Logs y Consola Embebida:** Inspecciona advertencias, errores y llamadas a `console.log` emitidas dentro del sandbox con recarga en caliente.
 
-### 💻 Módulo G: Terminal Táctica Web Embebida (A.R.E.S. Shell CLI - v2.8)
+### 💻 Módulo G: Terminal Táctica Web Embebida (A.R.E.S. Shell CLI - v2.8+)
 * **Interfaz de Línea de Comandos (CLI) en Navegador:** Accesible mediante el botón **`[>_ TERMINAL]`** o con el atajo global `Ctrl + \``.
 * **Control Integral del Sistema:** Permite cambiar la postura y pose 3D del avatar (`pose 11`), alternar modelos de IA (`model deepseek`), consultar telemetría biométrica (`bio`), hidratar al desarrollador (`hydrate`) y descargar proyectos empaquetados (`zip`) mediante comandos de texto en tiempo real con historial de comandos.
 
-### 🎙️ Módulo H: Oído Digital Táctico & Ondas Holográficas (Web Speech API - v2.9)
+### 🎙️ Módulo H: Oído Digital Táctico & Ondas Holográficas (Web Speech API - v2.9+)
 * **Captura y Transcripción Vocal Continua:** Utiliza Web Speech API (`webkitSpeechRecognition`) con reconexión automática y retroalimentación reactiva inmediata en la caja de órdenes tácticas.
 * **Analizador Espectral de Ondas:** Conexión con `AudioContext` y `AnalyserNode` para capturar la energía vocal en 16 bandas de frecuencia holográficas en verde neón (#00ffaa) y cian (#0284c7) animadas en el HUD directamente debajo del avatar.
-* **Auto-Envío Verbal Táctico:** Detección de comandos de voz *"A.R.E.S., enviar"* o *"enviar orden"* para despachar el mensaje sin necesidad de tocar el teclado.
+* **Despacho Fonético Directo:** Detección inteligente y tolerante de comandos de voz (*"A.R.E.S., enviar"*, *"enviar orden"*, *"ejecutar orden"*) o activación por botón HUD para despachar el mensaje al instante sin requerir teclado ni ratón.
 
-### 🔍 Módulo I: Ingesta & Auditoría de Repositorios GitHub (v2.9)
+### 🔍 Módulo I: Ingesta & Auditoría de Repositorios GitHub (v2.9+)
 * **Inspección Profunda de Repositorios Públicos:** Pegando cualquier enlace `https://github.com/owner/repo` o usando el botón **`[🔍 GITHUB AUDIT]`**, el backend extrae el árbol completo de directorios y los manifiestos esenciales (`package.json`, `requirements.txt`, `go.mod`, `Cargo.toml`, `Dockerfile`, `README.md`).
 * **Matriz OWASP Top 10 y Deuda Big-O:** Evaluación de secretos expuestos, dependencias vulnerables, buenas prácticas y cálculo de complejidad algorítmica.
 * **Diagrama C4 Automático:** Generación de diagramas de arquitectura Mermaid de nivel de contenedor/sistema y un plan de acción de refactorización paso a paso.
 * **Subida Local:** Permite arrastrar archivos de código fuente locales (`.ts`, `.py`, `.vue`, `.json`, `.sql`, etc.) para auditoría instantánea mediante el botón `[📎]`.
 
-### ⚡ Módulo J: Modos Tácticos de Combate & Exportación de Misión (v2.9)
+### ⚡ Módulo J: Modos Tácticos de Combate & Exportación de Misión (v2.9+)
 * **Selector de Arquetipo de Combate:** Alterna la mentalidad de ingeniería de A.R.E.S. en un solo clic:
   - **🛡️ Modo Centinela (Auditor):** Prioriza rigor formal, seguridad OWASP, DDD, tipado estricto y pruebas exhaustivas.
   - **⚡ Modo Blitzkrieg (Prototipador):** Prioriza velocidad de entrega, UIs reactivas completas listas para Live Preview e interactividad visual inmediata.
