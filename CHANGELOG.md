@@ -5,6 +5,41 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [3.5.0] - 2026-10-27
+
+### 📋 Nuevas Funcionalidades (Features)
+- **Autómata Git Soberano, Desofuscador de PDFs y Commits Atómicos por Bounded Context (Sovereign Git & Exercise Forge):**
+  - **Desofuscador y Sanitizador de Enunciados Crudos (`ExerciseParserService`):**
+    - Limpieza heurística de ruido académico (encabezados de exámenes universitarios, nombres de docentes, fechas, numeración de páginas *"Página X de Y"* y líneas divisorias).
+    - Reensamblado automático de palabras cortadas por guiones al final de línea (`desa- rrollo` ➔ `desarrollo`, `estudian- tes` ➔ `estudiantes`).
+    - Descomposición semántica de texto libre en especificación formal DDD: identificación de título, Bounded Contexts, entidades de dominio, Value Objects inmutables, invariantes de negocio y casos de uso.
+    - Generación automática del artefacto formal `SPECIFICATION.md`.
+  - **README.md Humanizado (Estilo "Hecho por Ti"):**
+    - Redacción en primera persona con estilo natural de estudiante o ingeniero desarrollador (sin lenguaje acartonado ni clichés de IA).
+    - Firma explícita del autor con nombre y correo de GitHub (`Kevin Commander <kevin.commander@gmail.com>`).
+    - Explicación de motivos de diseño para aplicar Domain-Driven Design y Arquitectura Hexagonal.
+    - Guía de ejecución local (`npm install`, `npm run build`, `npm start`) y suite de pruebas unitarias (`npm test`).
+  - **División Atómica de Commits por Bounded Context (`GitAutomatorService`):**
+    - Slicing automático y secuencial de archivos en commits atómicos:
+      - `chore(scaffold)`: Configuración base, TypeScript y especificación.
+      - `feat(shared-kernel)`: Abstracciones transversales, BaseEntity, ValueObject, DomainEvent y AggregateRoot.
+      - Para cada Bounded Context: `feat(<context>-domain)`, `feat(<context>-application)`, `feat(<context>-infrastructure)`, `test(<context>)`.
+      - `feat(core)`: Entrypoint `main.ts` y composition root.
+      - `docs`: README.md humanizado y documentación.
+    - Atribución auténtica en cada commit mediante el parámetro `--author="Nombre <correo@gmail.com>"` para registrar contribuciones legítimas en el perfil de GitHub del desarrollador.
+  - **Scripts de Automatización Táctica & Empaquetado Dual:**
+    - Generación de scripts listos para doble clic: `setup-git.bat` (Windows CMD) y `setup-git.sh` (Linux/macOS) dentro del `.zip`.
+    - Sandbox Git local en backend con ejecución en tiempo real de comandos `git init`, `git checkout -b`, `git commit --author` y `git push -u origin <branch>` autenticado con Personal Access Token.
+  - **Modal Interactivo `[ 📋 FORJA GIT ]` (`AssignmentForgeModal.vue`):**
+    - Asistente de 4 fases con presets de prueba rápida (Préstamos Bibliotecarios DDD, E-Commerce Microservicios, Citas Médicas).
+    - Editor de configuración de autor para Git, visor interactivo del cronograma de commits y consola de logs de ejecución Git en vivo.
+  - **Comandos en Terminal y CLI:**
+    - Terminal táctica web (`TacticalTerminal.vue`): comandos `forge`, `assign` y `git`.
+    - CLI Táctico de consola (`cli/src/index.ts`): comando `ares forge [archivo] -a <autor> -e <correo> -o <salida>`.
+  - **Sincronización Total de Versiones:** Monorepo actualizado a la versión `3.5.0` (`@ares-ecosystem/backend`, `@ares-ecosystem/frontend`, `@ares-ecosystem/cli`, `@ares-ecosystem/mcp`).
+
+---
+
 ## [3.4.0] - 2026-10-27
 
 ### 🌐 Nuevas Funcionalidades (Features)

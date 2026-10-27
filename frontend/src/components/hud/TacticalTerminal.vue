@@ -112,9 +112,10 @@ function ejecutarComando() {
     case 'ayuda':
       historialLineas.value.push({
         tipo: 'output',
-        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v3.4 (C4 RADAR CORE):
+        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v3.5 (SOVEREIGN GIT FORGE CORE):
   help / ayuda          Muestra este catálogo de órdenes
   status                Telemetría del núcleo A.R.E.S., modelo y modo táctico
+  forge / assign        Forja Soberana de Ejercicios DDD, Desofuscador de PDFs y Commits Atómicos Git
   radar [open|traffic]  Radar de Arquitectura C4, topología en vivo y caos
   memory [open|search]  Oráculo de Memoria Semántica Vectorial Local y RAG Arquitectónico
   cicd [open|run]       Motor de CI/CD, Workflows industriales y simulación de despliegues
@@ -140,7 +141,7 @@ function ejecutarComando() {
     case 'status':
       historialLineas.value.push({
         tipo: 'success',
-        texto: `ESTADO DEL NÚCLEO A.R.E.S. v3.1 (SOVEREIGN SWARM CORE):
+        texto: `ESTADO DEL NÚCLEO A.R.E.S. v3.5 (SOVEREIGN GIT FORGE CORE):
   - Estado: 🟢 ONLINE
   - Modo táctico: ${uiStore.modoTactico.toUpperCase()}
   - Oído digital: ${voiceService.estado.value.toUpperCase()}
@@ -148,7 +149,7 @@ function ejecutarComando() {
   - Postura actual: [${fsm.posturaActual}] // Pose #${fsm.poseActual.id} (${fsm.poseActual.name})
   - Proveedor LLM: ${chatStore.proveedorSeleccionado.toUpperCase()}
   - Modelo activo: ${chatStore.modeloSeleccionado}
-  - Memoria: SQLite nativo (node:sqlite)
+  - Memoria: SQLite nativo (node:sqlite) + Vector Memory (128D)
   - Mensajes en sesión: ${chatStore.mensajes.length}`,
         tiempo,
       });
@@ -565,6 +566,18 @@ function ejecutarComando() {
           tiempo,
         });
       }
+      break;
+
+    case 'forge':
+    case 'assign':
+    case 'ejercicio':
+    case 'git':
+      uiStore.modalForgeAbierto = true;
+      historialLineas.value.push({
+        tipo: 'success',
+        texto: '📋 Abriendo Forja Soberana de Ejercicios DDD, Desofuscador de PDFs y Autómata Git (v3.5)...',
+        tiempo,
+      });
       break;
 
     case 'clear':

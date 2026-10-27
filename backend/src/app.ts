@@ -52,6 +52,12 @@ import {
   restaurarTopologiaHandler,
   exportarC4Handler,
 } from './controllers/architecture.controller.js';
+import {
+  cleanTextHandler,
+  forgeAssignmentHandler,
+  executeGitHandler,
+  listStacksHandler,
+} from './controllers/assignment.controller.js';
 import { MemoryService } from './services/memory.service.js';
 import { CATALOGO_MODELOS } from './services/llm.service.js';
 import { ejecutarHerramienta, DECLARACIONES_HERRAMIENTAS } from './services/tools.service.js';
@@ -83,7 +89,7 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ONLINE',
-    agent: 'A.R.E.S. v3.4 C4 Radar Core',
+    agent: 'A.R.E.S. v3.5 Sovereign Git Forge Core',
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
   });
@@ -124,6 +130,12 @@ app.post('/api/architecture/simulate-traffic', simularTraficoHandler);
 app.post('/api/architecture/inject-chaos', inyectarCaosHandler);
 app.post('/api/architecture/restore', restaurarTopologiaHandler);
 app.get('/api/architecture/export/c4', exportarC4Handler);
+
+// 1.5 Forja Soberana de Ejercicios & Autómata Git DDD (v3.5)
+app.post('/api/assignment/clean-text', cleanTextHandler);
+app.post('/api/assignment/forge', forgeAssignmentHandler);
+app.post('/api/assignment/execute-git', executeGitHandler);
+app.get('/api/assignment/stacks', listStacksHandler);
 
 // 1.1 Persistencia y Sesiones de Chat (Memoria Total)
 app.get('/api/conversations', listarConversacionesHandler);
@@ -181,7 +193,7 @@ app.use(manejadorErrores);
 // ============================================================================
 async function iniciarServidor(): Promise<void> {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🛡️  INICIALIZANDO SISTEMA TÁCTICO A.R.E.S. v3.3 (VECTOR MEMORY CORE)...');
+  console.log('🛡️  INICIALIZANDO SISTEMA TÁCTICO A.R.E.S. v3.5 (SOVEREIGN GIT FORGE)...');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
   // Inicializar Oráculo de Memoria Semántica Vectorial Local

@@ -9,6 +9,7 @@ import SwarmMonitorModal from '../swarm/SwarmMonitorModal.vue';
 import PipelineMonitorModal from '../cicd/PipelineMonitorModal.vue';
 import MemoryOracleModal from '../memory/MemoryOracleModal.vue';
 import ArchitectureRadarModal from '../architecture/ArchitectureRadarModal.vue';
+import AssignmentForgeModal from '../forge/AssignmentForgeModal.vue';
 
 const chatStore = useChatStore();
 const uiStore = useUiStore();
@@ -168,6 +169,16 @@ function seleccionarMision(id: string) {
         >
           <span>🌐</span>
           <span>RADAR C4</span>
+        </button>
+
+        <!-- Botón Forja Soberana de Ejercicios & Git Autónomo (v3.5) -->
+        <button
+          @click="uiStore.toggleModalForge"
+          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#07241c] border border-emerald-400/70 hover:border-[#00ffaa] hover:bg-[#00ffaa]/20 text-[#00ffaa] text-[11px] font-bold cursor-pointer transition shadow-[0_0_10px_rgba(0,255,170,0.25)]"
+          title="Abrir Forja Soberana de Ejercicios DDD, Desofuscador de PDFs y Commits Atómicos por Bounded Context"
+        >
+          <span>📋</span>
+          <span>FORJA GIT</span>
         </button>
       </div>
 
@@ -342,6 +353,12 @@ function seleccionarMision(id: string) {
     <ArchitectureRadarModal
       v-if="uiStore.modalRadarAbierto"
       @cerrar="uiStore.modalRadarAbierto = false"
+    />
+
+    <!-- Modal Forja Soberana de Ejercicios & Git DDD (v3.5) -->
+    <AssignmentForgeModal
+      v-if="uiStore.modalForgeAbierto"
+      @cerrar="uiStore.modalForgeAbierto = false"
     />
   </div>
 </template>

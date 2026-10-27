@@ -38,8 +38,8 @@ function banner() {
   ██╔══██╗██╔══██╗██╔════╝██╔════╝
   ███████║██████╔╝█████╗  ███████╗
   ██╔══██║██╔══██╗██╔══╝  ╚════██║
-  ██║  ██║██║  ██║███████╗███████║ v2.6 TACTICAL CLI
-  ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝ [J.A.R.V.I.S. Core]
+  ██║  ██║██║  ██║███████╗███████║ v3.5 TACTICAL CLI
+  ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝ [Sovereign Git Forge Core]
 `));
   console.log(pc.dim('  Autonomous Resilient Engineering & Software-Documentation God\n'));
 }
@@ -58,7 +58,7 @@ const program = new Command();
 program
   .name('ares')
   .description('🛡️ A.R.E.S. CLI Táctico — Ingeniería de Software Full-Stack asistida por IA')
-  .version('2.6.0');
+  .version('3.5.0');
 
 // ============================================================================
 // 1. COMANDO: ares audit <file>
@@ -615,6 +615,101 @@ hookCmd
       execSync(`node "${hookScript}"`, { stdio: 'inherit', env: envs });
     } catch {
       // El script ya imprimió la alerta espartana y salió con código de error
+      process.exit(1);
+    }
+  });
+
+// ============================================================================
+// 10. COMANDO: ares forge <archivo_enunciado> (v3.5)
+// ============================================================================
+program
+  .command('forge [archivo]')
+  .description('📋 Forja Soberana de Ejercicios DDD, Desofuscador de PDFs y Commits Atómicos Git (v3.5)')
+  .option('-a, --author <nombre>', 'Nombre del autor para los commits de Git', 'Kevin Commander')
+  .option('-e, --email <correo>', 'Correo de GitHub para iluminar el gráfico de contribuciones', 'kevin.commander@gmail.com')
+  .option('-b, --branch <rama>', 'Rama de trabajo asignada (feature/...)')
+  .option('-s, --stack <stack>', 'Stack tecnológico objetivo', 'typescript-ddd')
+  .option('-o, --output <directorio>', 'Directorio de salida para los archivos forjados')
+  .action(async (archivo, opciones) => {
+    banner();
+    console.log(pc.cyan('📋 Inicializando Forja Soberana de Ejercicios & Commits Atómicos...\n'));
+
+    const online = await verificarServidor();
+    if (!online) {
+      console.error(pc.red(`❌ El servidor de A.R.E.S. en ${API_BASE} no está activo.`));
+      console.log(pc.cyan(`👉 Inicia el servidor con: cd D:\\ares-ecosystem\\backend && npm run dev`));
+      process.exit(1);
+    }
+
+    let textoEnunciado = '';
+    if (archivo && fs.existsSync(path.resolve(archivo))) {
+      textoEnunciado = fs.readFileSync(path.resolve(archivo), 'utf-8');
+      console.log(pc.gray(`📄 Enunciado cargado desde: ${archivo}`));
+    } else {
+      textoEnunciado = `ENUNCIADO: SISTEMA DE GESTIÓN DE PRÉSTAMOS BIBLIOTECARIOS (DDD)
+Requerimiento para el control de préstamos de libros, catálogo de ejemplares por ISBN y gestión de estudiantes con sanciones.
+Bounded Contexts:
+- Prestamos: Control de préstamos y vencimientos
+- Catalogo: Registro de libros y disponibilidad
+- Usuarios: Estudiantes y bloqueos`;
+      console.log(pc.yellow(`⚠️ No se especificó archivo. Usando enunciado canónico de prueba DDD...`));
+    }
+
+    try {
+      console.log(pc.yellow('✨ Desofuscando texto y analizando Bounded Contexts...'));
+      const resClean = await fetch(`${API_BASE}/api/assignment/clean-text`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textoEnunciado, stack: opciones.stack }),
+      });
+      const dataClean = await resClean.json();
+      if (!dataClean.success) throw new Error(dataClean.error || 'Falla al sanitizar');
+
+      console.log(pc.green(`✓ Título detectado: ${pc.bold(dataClean.analysis.titulo)}`));
+      console.log(pc.green(`✓ Bounded Contexts: ${dataClean.analysis.boundedContexts.map((c: any) => c.nombre).join(', ')}`));
+
+      console.log(pc.yellow('\n⚔️  Forjando proyecto DDD y planificando commits atómicos...'));
+      const resForge = await fetch(`${API_BASE}/api/assignment/forge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          analysis: dataClean.analysis,
+          author: {
+            name: opciones.author,
+            email: opciones.email,
+            branchName: opciones.branch,
+          },
+          stack: opciones.stack,
+        }),
+      });
+
+      const dataForge = await resForge.json();
+      if (!dataForge.success) throw new Error(dataForge.error || 'Falla al forjar');
+
+      const proj = dataForge.project;
+      console.log(pc.green(`✓ Archivos generados: ${proj.archivos.length}`));
+      console.log(pc.green(`✓ Commits atómicos planificados: ${proj.planGit.commits.length}`));
+      console.log(pc.green(`✓ Rama: ${proj.planGit.branchName} // Autor: ${proj.planGit.autor.name} <${proj.planGit.autor.email}>`));
+
+      if (opciones.output) {
+        const outDir = path.resolve(opciones.output);
+        console.log(pc.cyan(`\n💾 Escribiendo archivos en: ${outDir}...`));
+        for (const arch of proj.archivos) {
+          const dest = path.join(outDir, arch.ruta);
+          fs.mkdirSync(path.dirname(dest), { recursive: true });
+          fs.writeFileSync(dest, arch.contenido, 'utf-8');
+        }
+        console.log(pc.green(`✅ ${proj.archivos.length} archivos escritos con éxito.`));
+        console.log(pc.cyan(`👉 Ejecuta "setup-git.bat" o "./setup-git.sh" en esa carpeta para crear el repo y subirlo.`));
+      } else {
+        console.log(pc.cyan('\n📜 Cronograma de Commits:'));
+        for (const c of proj.planGit.commits) {
+          console.log(pc.dim(`  [${c.tipo.toUpperCase()}] `) + pc.white(c.mensaje));
+        }
+        console.log(pc.yellow('\n💡 Sugerencia: Pasa "-o ./mi-proyecto" para escribir los archivos en disco.'));
+      }
+    } catch (err: any) {
+      console.error(pc.red(`❌ Error en la forja: ${err.message}`));
       process.exit(1);
     }
   });
