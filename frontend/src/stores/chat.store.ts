@@ -10,6 +10,7 @@ import type { MensajeChat } from '../types/ares.types.js';
 import { apiService } from '../services/api.service.js';
 import { useFsmStore } from './fsm.store.js';
 import { useTacticalVoice } from '../composables/useTacticalVoice.js';
+import { useUiStore } from './ui.store.js';
 
 export interface SesionConversacion {
   id: string;
@@ -19,6 +20,7 @@ export interface SesionConversacion {
 
 export const useChatStore = defineStore('chat', () => {
   const fsm = useFsmStore();
+  const uiStore = useUiStore();
   const { hablar } = useTacticalVoice();
 
   const mensajes = ref<MensajeChat[]>([
@@ -165,6 +167,8 @@ export const useChatStore = defineStore('chat', () => {
 
   /**
    * Envía un mensaje con streaming SSE en tiempo real y persistencia en SQLite.
+   * Utiliza el elemento reactivo del array para garantizar que cada token
+   * renderice de forma instantánea en la interfaz.
    */
   async function enviarMensaje(texto: string, imagenBase64?: string) {
     if (!texto.trim() && !imagenBase64) return;
@@ -182,14 +186,16 @@ export const useChatStore = defineStore('chat', () => {
 
     // 2. Crear mensaje modelo en blanco para llenar con tokens del streaming
     const idModelo = `ares-${Date.now()}`;
-    const mensajeModelo: MensajeChat = {
+    mensajes.value.push({
       id: idModelo,
       role: 'model',
       content: '',
       poseNumber: fsm.poseActual.id,
       timestamp: new Date(),
-    };
-    mensajes.value.push(mensajeModelo);
+    });
+
+    // Referencia al mensaje reactivo recién insertado en la lista
+    const targetIdx = mensajes.value.length - 1;
 
     try {
       // 3. Ejecutar streaming en tiempo real vía SSE
@@ -203,23 +209,29 @@ export const useChatStore = defineStore('chat', () => {
         onInit(data) {
           conversacionIdActual.value = data.conversationId;
           localStorage.setItem('ares.active_conv', data.conversationId);
-          mensajeModelo.poseNumber = data.poseNumber;
+          if (mensajes.value[targetIdx]) {
+            mensajes.value[targetIdx].poseNumber = data.poseNumber;
+          }
           fsm.cambiarPostura(data.stance, data.poseNumber);
         },
 
         onChunk(chunk, poseDetected) {
-          mensajeModelo.content += chunk;
-          if (poseDetected) {
-            mensajeModelo.poseNumber = poseDetected;
-            fsm.fijarPoseDirecta(poseDetected);
+          if (mensajes.value[targetIdx]) {
+            mensajes.value[targetIdx].content += chunk;
+            if (poseDetected) {
+              mensajes.value[targetIdx].poseNumber = poseDetected;
+              fsm.fijarPoseDirecta(poseDetected);
+            }
           }
         },
 
         onDone(data) {
           conversacionIdActual.value = data.conversationId;
           localStorage.setItem('ares.active_conv', data.conversationId);
-          mensajeModelo.content = data.reply;
-          mensajeModelo.poseNumber = data.poseNumber;
+          if (mensajes.value[targetIdx]) {
+            mensajes.value[targetIdx].content = data.reply;
+            mensajes.value[targetIdx].poseNumber = data.poseNumber;
+          }
           fsm.cambiarPostura(data.stance, data.poseNumber);
 
           // Actualizar lista de sesiones en segundo plano
@@ -227,6 +239,9 @@ export const useChatStore = defineStore('chat', () => {
 
           // Lectura táctica en voz alta de A.R.E.S.
           hablar(data.reply);
+
+          // Auto-derivación táctica inmediata a su módulo correspondiente
+          ejecutarAutoDerivacion(texto, data.reply);
         },
 
         onError(err) {
@@ -248,22 +263,118 @@ export const useChatStore = defineStore('chat', () => {
 
         conversacionIdActual.value = data.conversationId;
         localStorage.setItem('ares.active_conv', data.conversationId);
-        mensajeModelo.content = data.reply;
-        mensajeModelo.poseNumber = data.poseNumber || 1;
+        if (mensajes.value[targetIdx]) {
+          mensajes.value[targetIdx].content = data.reply;
+          mensajes.value[targetIdx].poseNumber = data.poseNumber || 1;
+        }
         fsm.cambiarPostura(data.stance || 'IDLE', data.poseNumber || 1);
 
         cargarConversaciones();
         hablar(data.reply);
+        ejecutarAutoDerivacion(texto, data.reply);
       } catch (err: any) {
         console.error('💥 [ChatStore] Fallo en envío de orden táctica:', err);
         fsm.cambiarPostura('ERROR', 2);
         errorMensaje.value = err.message || 'Falla de comunicación con el Núcleo Táctico de A.R.E.S.';
 
-        mensajeModelo.content = `⚠️ **ALERTA DE EXCEPCIÓN:** ${errorMensaje.value}`;
-        mensajeModelo.poseNumber = 2;
+        if (mensajes.value[targetIdx]) {
+          mensajes.value[targetIdx].content = `⚠️ **ALERTA DE EXCEPCIÓN:** ${errorMensaje.value}`;
+          mensajes.value[targetIdx].poseNumber = 2;
+        }
       }
     } finally {
       cargando.value = false;
+    }
+  }
+
+  /**
+   * Analiza el requerimiento del usuario y la respuesta entregada para transportar
+   * automáticamente el artefacto forjado a su módulo dedicado (Escudo, Espada o Arquitecto).
+   */
+  function ejecutarAutoDerivacion(prompt: string, respuesta: string) {
+    const p = prompt.toLowerCase();
+    const r = respuesta.toLowerCase();
+
+    // 1. Detección de Documentación (RFC, README, ADR, OpenAPI, Especificaciones)
+    const pideDoc =
+      p.includes('rfc') ||
+      p.includes('readme') ||
+      p.includes('adr') ||
+      p.includes('openapi') ||
+      p.includes('documento') ||
+      p.includes('documentar') ||
+      p.includes('especificación') ||
+      p.includes('propuesta');
+
+    const contieneDoc =
+      r.includes('# rfc') ||
+      r.includes('# readme') ||
+      r.includes('## adr') ||
+      r.includes('openapi: 3') ||
+      r.includes('contexto y problema') ||
+      r.includes('solución propuesta');
+
+    // 2. Detección de Arquitectura / Diagramas Mermaid
+    const pideArq =
+      p.includes('arquitectura') ||
+      p.includes('diagrama') ||
+      p.includes('system design') ||
+      p.includes('diseño de sistema') ||
+      p.includes('c4') ||
+      p.includes('hexagonal');
+
+    const contieneMermaid = respuesta.includes('```mermaid');
+
+    // 3. Detección de Código / Auditoría / Refactorización
+    const pideCodigo =
+      p.includes('código') ||
+      p.includes('codigo') ||
+      p.includes('refactoriza') ||
+      p.includes('refactorizar') ||
+      p.includes('test') ||
+      p.includes('pruebas') ||
+      p.includes('función') ||
+      p.includes('algoritmo') ||
+      p.includes('audita');
+
+    const contieneCodigo = /```(typescript|javascript|python|go|rust|java|sql)\n/i.test(respuesta);
+
+    // Prioridad 1: Si se solicitó o generó Documentación (RFC, ADR, README)
+    if (pideDoc || contieneDoc) {
+      let tipo: any = 'RFC';
+      if (p.includes('readme') || r.includes('# readme')) tipo = 'README';
+      else if (p.includes('adr') || r.includes('## adr')) tipo = 'ADR';
+      else if (p.includes('openapi') || r.includes('openapi: 3')) tipo = 'OPENAPI';
+
+      const matchTitulo = respuesta.match(/^#\s+(.+)$/m);
+      const tituloSugerido = matchTitulo
+        ? matchTitulo[1].replace(/[*#]/g, '').trim()
+        : 'RFC / Propuesta Técnica';
+
+      // Transición automática tras breve pausa táctica (1.2s para asimilar la respuesta)
+      setTimeout(() => {
+        uiStore.derivarADocumentacion(respuesta, tituloSugerido, tipo);
+      }, 1200);
+      return;
+    }
+
+    // Prioridad 2: Si es un requerimiento arquitectónico o diagrama puro
+    if ((pideArq || contieneMermaid) && !pideCodigo) {
+      setTimeout(() => {
+        uiStore.derivarAArquitecto(respuesta);
+      }, 1200);
+      return;
+    }
+
+    // Prioridad 3: Si es código o suite de pruebas
+    if (pideCodigo || contieneCodigo) {
+      const matchCode = respuesta.match(/```([a-z0-9_-]*)\n([\s\S]*?)```/i);
+      const code = matchCode ? matchCode[2].trim() : respuesta;
+      const lang = matchCode ? matchCode[1] : 'typescript';
+      setTimeout(() => {
+        uiStore.derivarACodigo(code, lang);
+      }, 1200);
+      return;
     }
   }
 

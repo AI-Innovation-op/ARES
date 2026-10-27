@@ -11,7 +11,6 @@ defineProps<{
 
 const texto = ref('');
 const imagenBase64 = ref<string | undefined>(undefined);
-const escuchando = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 function handleKeydown(e: KeyboardEvent) {
@@ -53,49 +52,6 @@ function handleImagenSeleccionada(e: Event) {
 function removerImagen() {
   imagenBase64.value = undefined;
 }
-
-// Dictado por voz mediante Web Speech API
-function toggleDictado() {
-  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    alert('Tu navegador no soporta Web Speech API para dictado por voz.');
-    return;
-  }
-
-  if (escuchando.value) {
-    escuchando.value = false;
-    return;
-  }
-
-  const recognition = new SpeechRecognition();
-  recognition.lang = 'es-PE';
-  recognition.continuous = false;
-  recognition.interimResults = false;
-
-  recognition.onstart = () => {
-    escuchando.value = true;
-  };
-
-  recognition.onresult = (event: any) => {
-    const transcripcion = event.results[0][0].transcript;
-    texto.value = texto.value ? `${texto.value} ${transcripcion}` : transcripcion;
-    escuchando.value = false;
-    // Auto-envío táctico al terminar el dictado para experiencia manos libres fluida
-    if (texto.value.trim()) {
-      enviar();
-    }
-  };
-
-  recognition.onerror = () => {
-    escuchando.value = false;
-  };
-
-  recognition.onend = () => {
-    escuchando.value = false;
-  };
-
-  recognition.start();
-}
 </script>
 
 <template>
@@ -131,17 +87,12 @@ function toggleDictado() {
         📷
       </button>
 
-      <!-- Botón de Micrófono / Dictado -->
+      <!-- Botón de Micrófono / Dictado (Desactivado temporalmente para calibración v2.7) -->
       <button
         type="button"
-        @click="toggleDictado"
-        :class="[
-          'p-2.5 rounded-lg border transition-colors cursor-pointer shrink-0',
-          escuchando
-            ? 'bg-rose-950 border-rose-500 text-rose-300 animate-pulse'
-            : 'border-[#132a4a] bg-[#040914] hover:border-[#00ffaa] text-slate-300 hover:text-[#00ffaa]',
-        ]"
-        :title="escuchando ? 'Escuchando tu orden...' : 'Dictar orden táctica por voz'"
+        disabled
+        class="p-2.5 rounded-lg border border-[#132a4a]/40 bg-[#040914] text-slate-600 cursor-not-allowed shrink-0 transition-opacity opacity-40"
+        title="Módulo de voz desactivado temporalmente para calibración táctica v2.7"
       >
         🎤
       </button>

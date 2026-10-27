@@ -28,6 +28,14 @@ watch(
   }
 );
 
+// Auto-scroll táctico durante el streaming token a token
+watch(
+  () => chatStore.mensajes[chatStore.mensajes.length - 1]?.content,
+  () => {
+    scrollToBottom();
+  }
+);
+
 function handleEnviar(payload: { texto: string; imagenBase64?: string }) {
   chatStore.enviarMensaje(payload.texto, payload.imagenBase64);
 }
