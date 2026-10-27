@@ -5,6 +5,30 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [3.2.0] - 2026-10-27
+
+### 🚀 Nuevas Funcionalidades (Features)
+- **Motor de Pipelines CI/CD & Despliegues Autónomos (Autonomous CI/CD Engine):**
+  - Orquestación y simulación local en tiempo real de pipelines de despliegue industrial de 6 etapas:
+    1. 🔍 **Lint & Types:** Typecheck estricto con `vue-tsc` y `tsc` para frontend y backend.
+    2. 🧪 **Test Suite:** Verificación de invariantes DDD y Value Objects inmutables con suites Vitest/Jest.
+    3. 🛡️ **OWASP Security Audit:** Escaneo de CVEs en árbol de dependencias y auditoría de secretos.
+    4. 🐳 **Docker Multi-Stage Build:** Optimización de capas OCI con usuario no-root (`node:24-bookworm-slim` + `dumb-init`) con reducción del 68% en huella de imagen.
+    5. 🚀 **Cloud Deploy:** Disparo de webhooks seguros hacia Render Cloud, GitHub Pages y VPS Linux.
+    6. ❤️ **Zero-Downtime Healthcheck:** Sondeo activo contra el endpoint `/health` (espera de 200 OK) previo a conmutación final de tráfico.
+  - **PipelineMonitorModal.vue (`[ 🚀 CI/CD ]`):**
+    - **Grafo Visual de Nodos en Tiempo Real:** Visualización horizontal de etapas con animación de pulso neón, badges de estado (`PENDING`, `RUNNING`, `SUCCESS`, `FAILED`), cronometraje por etapa y consola de logs integrada.
+    - **Protocolo de Rollback Táctico Inmediato:** Botón `[ 🚨 Rollback Táctico ]` para simular y ejecutar la reversión instantánea al commit previo estable.
+    - **Forja de Workflows & Plantillas Multi-Nube:** Selector interactivo de plantillas maestras (Render Monorepo Full-Stack, GitHub Pages SPA, Docker VPS Traefik) con generación y descarga de `deploy.yml`, `Dockerfile`, `docker-compose.prod.yml` y `.dockerignore`.
+    - **Auditor de Seguridad de CI/CD:** Análisis estático de workflows YAML para detectar Supply Chain Attacks (tags mutables `@master`), permisos excesivos (`write-all`), ausencia de timeouts y falta de sondas healthcheck.
+  - **Comandos en la Terminal Táctica Shell (`TacticalTerminal.vue`):**
+    - `cicd open`: Apertura inmediata del orquestador y monitor visual.
+    - `cicd run`: Disparo de la simulación de pipeline en caliente.
+    - `docker`: Acceso a la forja de Dockerfiles multi-stage.
+  - **Sincronización Total de Versiones:** Nivelación a `3.2.0` en todos los módulos (`@ares-ecosystem/frontend`, `@ares-ecosystem/backend`, `@ares-ecosystem/cli`, `@ares-ecosystem/mcp`).
+
+---
+
 ## [3.1.0] - 2026-10-27
 
 ### 🐝 Nuevas Funcionalidades (Features)

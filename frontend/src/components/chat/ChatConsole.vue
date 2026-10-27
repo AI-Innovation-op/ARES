@@ -6,6 +6,7 @@ import ChatMessage from './ChatMessage.vue';
 import ChatInput from './ChatInput.vue';
 import GithubAuditModal from '../audit/GithubAuditModal.vue';
 import SwarmMonitorModal from '../swarm/SwarmMonitorModal.vue';
+import PipelineMonitorModal from '../cicd/PipelineMonitorModal.vue';
 
 const chatStore = useChatStore();
 const uiStore = useUiStore();
@@ -135,6 +136,16 @@ function seleccionarMision(id: string) {
         >
           <span>🐝</span>
           <span>ENJAMBRE</span>
+        </button>
+
+        <!-- Botón Monitor de CI/CD & Despliegues Autónomos (v3.2) -->
+        <button
+          @click="uiStore.toggleModalCicd"
+          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#071d2b] border border-cyan-500/60 hover:border-cyan-400 hover:bg-cyan-900/30 text-cyan-300 text-[11px] font-bold cursor-pointer transition shadow-[0_0_10px_rgba(0,229,255,0.25)]"
+          title="Abrir orquestador de CI/CD, pipelines industriales y despliegues autónomos con zero-downtime"
+        >
+          <span>🚀</span>
+          <span>CI/CD</span>
         </button>
       </div>
 
@@ -291,6 +302,12 @@ function seleccionarMision(id: string) {
     <SwarmMonitorModal
       v-if="uiStore.modalSwarmAbierto"
       @cerrar="uiStore.modalSwarmAbierto = false"
+    />
+
+    <!-- Modal Táctico de CI/CD & Despliegues Autónomos (v3.2) -->
+    <PipelineMonitorModal
+      v-if="uiStore.modalCicdAbierto"
+      @cerrar="uiStore.modalCicdAbierto = false"
     />
   </div>
 </template>

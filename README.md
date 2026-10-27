@@ -1,8 +1,8 @@
-# 🛡️ A.R.E.S. Ecosystem (v3.1 Sovereign Swarm & Live Preview Synth // Sovereign Autonomous Architecture)
+# 🛡️ A.R.E.S. Ecosystem (v3.2 Industrial CI/CD & Autonomous Deployments // Sovereign Architecture)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
-> 🏷️ **Versión Actual:** [Release Oficial v3.1 en GitHub](https://github.com/AI-Innovation-op/ARES/releases/tag/v3.1.0) — *Enjambre Multi-Agente Soberano, Síntesis Interactiva de Dominio y Presets Instantáneos.*
+> 🏷️ **Versión Actual:** [Release Oficial v3.2 en GitHub](https://github.com/AI-Innovation-op/ARES/releases/tag/v3.2.0) — *Pipelines de CI/CD Industriales, Despliegues Autónomos, Grafo en Vivo y Rollback Táctico.*
 
 [![Node.js](https://img.shields.io/badge/Node.js-24+-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -144,6 +144,13 @@ Heredado de **Cori**, no permito que mi Comandante destruya su salud física o m
 * **Monitor Táctico del Enjambre (`[ 🐝 ENJAMBRE ]`):** Modal interactivo (`SwarmMonitorModal.vue`) con telemetría visual de agentes, estado de ejecución en streaming y visor de logs unificado.
 * **Lanzador de Misiones Instantáneo (Preset One-Click):** Misiones preconfiguradas con opciones duales: `[ ✏️ Modificar ]` para ajustar requerimientos y `[ ▶ Lanzar Ahora ]` para despacho inmediato sin fricción.
 * **Sintetizador Universal de Aplicaciones Live Preview:** Capacidad de sintetizar aplicaciones de cualquier dominio (ej. Salad Bar Saludable con selección de ingredientes, cálculo en vivo de kcal, carrito de compras y boleta electrónica SUNAT) garantizando que el `iframe` cargue al 100% en Desktop, Tablet y Móvil.
+
+### 🚀 Módulo L: Pipeline de CI/CD & Despliegues Autónomos (v3.2+)
+* **Grafo Visual de Pipeline en Vivo:** Monitor visual interactivo de 6 etapas orquestadas (`Lint & Types` $\rightarrow$ `Test Suite` $\rightarrow$ `OWASP Audit` $\rightarrow$ `Docker Multi-Stage` $\rightarrow$ `Cloud Deploy` $\rightarrow$ `Healthcheck`) con pulsos lumínicos, telemetría por etapa y porcentaje de avance reactivo.
+* **Forja de Workflows Industriales:** Generador de especificaciones completas para GitHub Actions, Dockerfiles multi-stage con usuario no-root (`node:24-bookworm-slim`), `docker-compose.prod.yml` con reverse proxy Traefik SSL y `.dockerignore`.
+* **Auditor de Seguridad de CI/CD:** Análisis estático de archivos YAML para prevenir Supply Chain Attacks mediante detección de tags mutables (`@master`), permisos de token excesivos (`write-all`), timeouts ausentes y omisión de verificaciones de salud post-despliegue.
+* **Protocolo de Rollback Táctico Inmediato:** Botón de reversión de emergencia ante incidentes de producción que re-enruta el tráfico hacia la última versión estable validada.
+* **Comandos en la Terminal Táctica:** Soporte de `cicd open`, `cicd run` y `docker` dentro de la shell interactiva.
 
 ---
 

@@ -29,6 +29,14 @@ import {
   ejecutarSwarmHandler,
   ejecutarSwarmStreamHandler,
 } from './controllers/swarm.controller.js';
+import {
+  listarTemplatesHandler,
+  obtenerTemplateHandler,
+  auditarWorkflowHandler,
+  obtenerEstadoPipelineHandler,
+  ejecutarPipelineSimulacionHandler,
+  ejecutarPipelineStreamHandler,
+} from './controllers/cicd.controller.js';
 import { CATALOGO_MODELOS } from './services/llm.service.js';
 import { ejecutarHerramienta, DECLARACIONES_HERRAMIENTAS } from './services/tools.service.js';
 import { manejadorErrores } from './middleware/error.middleware.js';
@@ -59,7 +67,7 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ONLINE',
-    agent: 'A.R.E.S. v3.1 Sovereign Swarm Core',
+    agent: 'A.R.E.S. v3.2 CI/CD Core',
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
   });
@@ -76,6 +84,14 @@ app.get('/api/models', (_req, res) => {
 app.get('/api/swarm/agents', listarAgentesSwarmHandler);
 app.post('/api/swarm/execute', ejecutarSwarmHandler);
 app.post('/api/swarm/stream', ejecutarSwarmStreamHandler);
+
+// 1.2 Motor de CI/CD & Despliegues Autónomos (v3.2)
+app.get('/api/cicd/templates', listarTemplatesHandler);
+app.get('/api/cicd/templates/:id', obtenerTemplateHandler);
+app.post('/api/cicd/audit', auditarWorkflowHandler);
+app.get('/api/cicd/status', obtenerEstadoPipelineHandler);
+app.post('/api/cicd/simulate', ejecutarPipelineSimulacionHandler);
+app.get('/api/cicd/simulate/stream', ejecutarPipelineStreamHandler);
 
 // 1.1 Persistencia y Sesiones de Chat (Memoria Total)
 app.get('/api/conversations', listarConversacionesHandler);

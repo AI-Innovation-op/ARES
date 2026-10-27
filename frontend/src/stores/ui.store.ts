@@ -14,6 +14,7 @@ export const useUiStore = defineStore('ui', () => {
   const terminalAbierta = ref(false);
   const modalGithubAuditAbierto = ref(false);
   const modalSwarmAbierto = ref(false);
+  const modalCicdAbierto = ref(false);
   const modoTactico = ref<TacticalMode>('centinela');
 
   // Buffer de transferencia para cada módulo
@@ -31,6 +32,10 @@ export const useUiStore = defineStore('ui', () => {
 
   function toggleModalSwarm() {
     modalSwarmAbierto.value = !modalSwarmAbierto.value;
+  }
+
+  function toggleModalCicd() {
+    modalCicdAbierto.value = !modalCicdAbierto.value;
   }
 
   function setModoTactico(modo: TacticalMode) {
@@ -61,6 +66,7 @@ export const useUiStore = defineStore('ui', () => {
     terminalAbierta,
     modalGithubAuditAbierto,
     modalSwarmAbierto,
+    modalCicdAbierto,
     modoTactico,
     docBuffer,
     codeBuffer,
@@ -68,6 +74,7 @@ export const useUiStore = defineStore('ui', () => {
     toggleTerminal,
     toggleModalGithubAudit,
     toggleModalSwarm,
+    toggleModalCicd,
     setModoTactico,
     navegarTab,
     derivarADocumentacion,

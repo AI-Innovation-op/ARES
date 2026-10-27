@@ -112,9 +112,10 @@ function ejecutarComando() {
     case 'ayuda':
       historialLineas.value.push({
         tipo: 'output',
-        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v3.1 (SOVEREIGN SWARM):
+        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v3.2 (CI/CD INDUSTRIAL CORE):
   help / ayuda          Muestra este catálogo de órdenes
   status                Telemetría del núcleo A.R.E.S., modelo y modo táctico
+  cicd [open|run]       Motor de CI/CD, Workflows industriales y simulación de despliegues
   swarm [monitor|run]   Control y monitor del Enjambre Multi-Agente (Atenea, Vulcano, Mercurio, Némesis)
   agents                Lista los 4 subagentes operativos de la legión
   voice [on|off|toggle] Activa o desactiva la entrada de voz táctica
@@ -482,6 +483,45 @@ function ejecutarComando() {
           tiempo,
         });
       }
+      break;
+
+    case 'cicd':
+    case 'pipeline':
+      if (args[0] === 'open' || args[0] === 'ui' || !args[0]) {
+        uiStore.modalCicdAbierto = true;
+        historialLineas.value.push({
+          tipo: 'success',
+          texto: '🚀 Abriendo Orquestador Táctico de CI/CD & Despliegues Autónomos...',
+          tiempo,
+        });
+      } else if (args[0] === 'run' || args[0] === 'simulate') {
+        uiStore.modalCicdAbierto = true;
+        historialLineas.value.push({
+          tipo: 'success',
+          texto: '🚀 Disparando ejecución de simulación de pipeline en vivo...',
+          tiempo,
+        });
+      } else {
+        historialLineas.value.push({
+          tipo: 'output',
+          texto: `🚀 A.R.E.S. CI/CD ENGINE (v3.2):
+  - Comandos:
+    • cicd open         : Abre el monitor visual de pipelines y workflows
+    • cicd run          : Simula la ejecución completa de las 6 etapas
+    • cicd status       : Consulta estado de telemetría y despliegues`,
+          tiempo,
+        });
+      }
+      break;
+
+    case 'docker':
+    case 'dockerfile':
+      uiStore.modalCicdAbierto = true;
+      historialLineas.value.push({
+        tipo: 'output',
+        texto: '🐳 Abriendo Forja de Dockerfiles multi-stage y Compose en CI/CD...',
+        tiempo,
+      });
       break;
 
     case 'clear':
