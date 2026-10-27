@@ -1,4 +1,4 @@
-# 🛡️ A.R.E.S. Ecosystem (v2.6 J.A.R.V.I.S. Core)
+# 🛡️ A.R.E.S. Ecosystem (v2.6)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*
