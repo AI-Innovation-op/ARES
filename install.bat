@@ -2,7 +2,7 @@
 setlocal EnableDelayedExpansion
 
 echo ============================================================================
-echo   A.R.E.S. - INSTALADOR TACTICO GLOBAL PARA WINDOWS (v3.8)
+echo   A.R.E.S. - INSTALADOR TACTICO GLOBAL PARA WINDOWS (v4.0 RELEASE)
 echo ============================================================================
 echo.
 

@@ -1,9 +1,9 @@
 # ============================================================================
-# A.R.E.S. - Instalador Táctico Global para Windows PowerShell (v3.8)
+# A.R.E.S. - Instalador Táctico Global para Windows PowerShell (v4.0)
 # ============================================================================
 
 Write-Host "============================================================================" -ForegroundColor Cyan
-Write-Host "  A.R.E.S. - INSTALADOR TÁCTICO GLOBAL (PowerShell v3.8)" -ForegroundColor Cyan
+Write-Host "  A.R.E.S. - INSTALADOR TÁCTICO GLOBAL (PowerShell v4.0 RELEASE)" -ForegroundColor Cyan
 Write-Host "============================================================================" -ForegroundColor Cyan
 
 # 1. Verificar Node.js
@@ -27,6 +27,11 @@ Set-Location $cliPath
 # 3. Enlazar globalmente
 Write-Host "[3/3] Registrando comando global 'ares' en Windows..." -ForegroundColor Yellow
 & npm.cmd link
+
+# 4. Habilitar ejecución en PowerShell si estaba restringida
+try {
+    Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force -ErrorAction SilentlyContinue
+} catch {}
 
 Write-Host "`n============================================================================" -ForegroundColor Cyan
 Write-Host "  ✅ INSTALACIÓN COMPLETADA CON ÉXITO" -ForegroundColor Green

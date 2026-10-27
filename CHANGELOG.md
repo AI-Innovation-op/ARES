@@ -5,6 +5,29 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [4.0.0] - 2026-10-27
+
+### 🚀 Lanzamiento Oficial (Official Release)
+- **Banner Cibernético ASCII Rediseñado (Tipografía Simétrica de Bloques):**
+  - Corrección milimétrica de las siglas `A R E S`: rediseño de la letra 'R' (eliminando la confusión visual con 'A') y alineación perfecta de las letras 'E' y 'S'.
+  - Atribución de autoría oficial: `Created by AI Innovation`.
+  - Estética minimalista y sobria de terminal: eliminación de corchetes `[]` y referencias residuales.
+- **Asistente Interactivo de Forja DDD (`ares forge` / `ares new` / `wizard.ts`):**
+  - Detección y lectura instantánea de texto en el portapapeles de Windows (`Ctrl+C` desde PDFs de enunciados).
+  - Asistente guiado paso a paso: Enunciado ➔ Bounded Contexts ➔ Stack Tecnológico ➔ Matriz de Equipo ➔ Destino & ZIP ➔ Commits Atómicos Git ➔ Push a GitHub.
+  - Distribución de contextos entre compañeros del Squad firmando cada commit con el `--author` del integrante para iluminar sus cuadros verdes en GitHub.
+- **Empaquetado y Descarga Directa en .ZIP en Disco C: o D: (`ares zip`):**
+  - Comando standalone `ares zip <directorio> [archivo.zip]` que genera paquetes comprimidos en cualquier ruta local indicada por el usuario en segundos.
+  - Generación de `.zip` dual automática durante la forja de proyectos.
+- **Preparación para Despliegue en GitHub Pages:**
+  - Configuración de rutas relativas `base: './'` en `vite.config.ts` para servir la interfaz web en cualquier subdominio o carpeta.
+  - Workflow de CI/CD automatizado en `.github/workflows/deploy-pages.yml` para publicar la consola táctica en vivo en GitHub Pages.
+- **Sincronización Total Monorepo v4.0.0:**
+  - Actualización a versión `4.0.0` en `@ares-ecosystem/backend`, `@ares-ecosystem/frontend`, `@ares-ecosystem/cli` y `@ares-ecosystem/mcp`.
+  - Instaladores de Windows `install.bat` y `install.ps1` sincronizados con el release 4.0.
+
+---
+
 ## [3.9.0] - 2026-10-27
 
 ### 🤖 Nuevas Funcionalidades (Features)

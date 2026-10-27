@@ -13,8 +13,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import dotenv from 'dotenv';
+import JSZip from 'jszip';
 import { imprimirBannerCircuito } from './banner.js';
 import { TacticalRepl, iniciarRepl } from './repl.js';
+import { ejecutarAsistenteForja } from './wizard.js';
 
 // Intentar cargar variables desde .env en el directorio actual o en backend
 const posiblesEnv = [
@@ -35,7 +37,7 @@ for (const envPath of posiblesEnv) {
 const API_BASE = process.env.ARES_API_URL || 'http://localhost:3000';
 
 function banner() {
-  imprimirBannerCircuito('v3.9', '[Auto-Router AI & Regression Core]');
+  imprimirBannerCircuito('v4.0 RELEASE', 'Created by AI Innovation');
 }
 
 async function verificarServidor(): Promise<boolean> {
@@ -52,7 +54,7 @@ const program = new Command();
 program
   .name('ares')
   .description('🛡️ A.R.E.S. CLI Táctico — Terminal Standalone de Ingeniería de Software asistida por IA')
-  .version('3.9.0');
+  .version('4.0.0');
 
 // ============================================================================
 // 1. COMANDO: ares audit <file>
@@ -655,19 +657,19 @@ hookCmd
   });
 
 // ============================================================================
-// 10. COMANDO: ares forge <archivo_enunciado> (v3.5)
+// 10. COMANDO: ares forge <archivo_enunciado> (v4.0 Asistente Interactivo)
 // ============================================================================
 program
   .command('forge [archivo]')
-  .description('📋 Forja Soberana de Ejercicios DDD, Desofuscador de PDFs y Commits Atómicos Git (v3.5)')
-  .option('-a, --author <nombre>', 'Nombre del autor para los commits de Git', 'Kevin Commander')
-  .option('-e, --email <correo>', 'Correo de GitHub para iluminar el gráfico de contribuciones', 'kevin.commander@gmail.com')
+  .alias('new')
+  .description('📋 Asistente de Forja DDD, Desofuscador de PDFs, Empaquetado .ZIP y Commits Atómicos Git (v4.0)')
+  .option('-a, --author <nombre>', 'Nombre del autor para los commits de Git')
+  .option('-e, --email <correo>', 'Correo de GitHub para iluminar el gráfico de contribuciones')
   .option('-b, --branch <rama>', 'Rama de trabajo asignada (feature/...)')
-  .option('-s, --stack <stack>', 'Stack tecnológico objetivo', 'typescript-ddd')
+  .option('-s, --stack <stack>', 'Stack tecnológico objetivo')
   .option('-o, --output <directorio>', 'Directorio de salida para los archivos forjados')
   .action(async (archivo, opciones) => {
     banner();
-    console.log(pc.cyan('📋 Inicializando Forja Soberana de Ejercicios & Commits Atómicos...\n'));
 
     const online = await verificarServidor();
     if (!online) {
@@ -679,8 +681,20 @@ program
     let textoEnunciado = '';
     if (archivo && fs.existsSync(path.resolve(archivo))) {
       textoEnunciado = fs.readFileSync(path.resolve(archivo), 'utf-8');
-      console.log(pc.gray(`📄 Enunciado cargado desde: ${archivo}`));
-    } else {
+    }
+
+    // Si se invoca sin banderas no-interactivas, iniciar el Asistente Interactivo Paso a Paso
+    if (!opciones.output && !opciones.branch) {
+      await ejecutarAsistenteForja({
+        apiBase: API_BASE,
+        enunciadoInicial: textoEnunciado,
+      });
+      return;
+    }
+
+    console.log(pc.cyan('📋 Inicializando Forja Soberana de Ejercicios & Commits Atómicos...\n'));
+
+    if (!textoEnunciado) {
       textoEnunciado = `ENUNCIADO: SISTEMA DE GESTIÓN DE PRÉSTAMOS BIBLIOTECARIOS (DDD)
 Requerimiento para el control de préstamos de libros, catálogo de ejemplares por ISBN y gestión de estudiantes con sanciones.
 Bounded Contexts:
@@ -710,11 +724,11 @@ Bounded Contexts:
         body: JSON.stringify({
           analysis: dataClean.analysis,
           author: {
-            name: opciones.author,
-            email: opciones.email,
+            name: opciones.author || 'Kevin Commander',
+            email: opciones.email || 'kevin.commander@gmail.com',
             branchName: opciones.branch,
           },
-          stack: opciones.stack,
+          stack: opciones.stack || 'typescript-ddd',
         }),
       });
 
@@ -747,6 +761,53 @@ Bounded Contexts:
       console.error(pc.red(`❌ Error en la forja: ${err.message}`));
       process.exit(1);
     }
+  });
+
+// ============================================================================
+// 10.1 COMANDO: ares zip <directorio> [archivo_salida.zip] (v4.0)
+// ============================================================================
+program
+  .command('zip <directorio> [archivoSalida]')
+  .description('📦 Empaqueta cualquier directorio de proyecto en un archivo .ZIP listo para descargar en C: o D:')
+  .action(async (directorio, archivoSalida) => {
+    banner();
+    const dirAbs = path.resolve(directorio);
+    if (!fs.existsSync(dirAbs)) {
+      console.error(pc.red(`❌ El directorio "${directorio}" no existe.`));
+      process.exit(1);
+    }
+    const defaultZip = path.join(path.dirname(dirAbs), `${path.basename(dirAbs)}.zip`);
+    const targetZip = path.resolve(archivoSalida || defaultZip);
+
+    console.log(pc.cyan(`📦 Empaquetando "${dirAbs}" en archivo .ZIP...`));
+    const zip = new JSZip();
+
+    function agregarArchivos(actualDir: string, baseDir: string) {
+      const items = fs.readdirSync(actualDir);
+      for (const item of items) {
+        if (item === 'node_modules' || item === '.git' || item === 'dist') continue;
+        const full = path.join(actualDir, item);
+        const rel = path.relative(baseDir, full).replace(/\\/g, '/');
+        const stat = fs.statSync(full);
+        if (stat.isDirectory()) {
+          agregarArchivos(full, baseDir);
+        } else {
+          zip.file(rel, fs.readFileSync(full));
+        }
+      }
+    }
+
+    agregarArchivos(dirAbs, dirAbs);
+    const buffer = await zip.generateAsync({
+      type: 'nodebuffer',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 9 },
+    });
+    fs.mkdirSync(path.dirname(targetZip), { recursive: true });
+    fs.writeFileSync(targetZip, buffer);
+
+    console.log(pc.green(`✅ Archivo .ZIP generado exitosamente:`));
+    console.log(pc.bold(pc.white(`   ${targetZip}`)) + pc.dim(` (${(buffer.length / 1024).toFixed(1)} KB)\n`));
   });
 
 // ============================================================================

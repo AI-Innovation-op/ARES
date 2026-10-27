@@ -11,6 +11,7 @@ import pc from 'picocolors';
 import fs from 'node:fs';
 import path from 'node:path';
 import { imprimirBannerCircuito, imprimirLineaDivisoria, imprimirTarjetaEstado } from './banner.js';
+import { ejecutarAsistenteForja } from './wizard.js';
 
 export class TacticalRepl {
   private rl: readline.Interface | null = null;
@@ -33,7 +34,7 @@ export class TacticalRepl {
 
   async iniciar(): Promise<void> {
     console.clear();
-    imprimirBannerCircuito('v3.9', '[Auto-Router AI & Regression Core]');
+    imprimirBannerCircuito('v4.0 RELEASE', 'Created by AI Innovation');
 
     this.online = await this.verificarServidor();
 
@@ -103,7 +104,7 @@ export class TacticalRepl {
 
         if (cmd === 'clear' || cmd === 'cls') {
           console.clear();
-          imprimirBannerCircuito('v3.7', '[J.A.R.V.I.S. Standalone Core]');
+          imprimirBannerCircuito('v4.0 RELEASE', 'Created by AI Innovation');
           continue;
         }
 
@@ -142,8 +143,12 @@ export class TacticalRepl {
           continue;
         }
 
-        if (cmd === 'forge' || cmd === 'assign') {
-          await this.ejecutarForge(args[0]);
+        if (cmd === 'forge' || cmd === 'assign' || cmd === 'new') {
+          if (this.rl) {
+            await ejecutarAsistenteForja({ rl: this.rl, apiBase: this.apiBase });
+          } else {
+            await this.ejecutarForge(args[0]);
+          }
           continue;
         }
 

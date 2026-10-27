@@ -1,8 +1,8 @@
-# 🛡️ A.R.E.S. Ecosystem (v3.9 Auto-Router AI & Regression Core // Industrial Sovereign)
+# 🛡️ A.R.E.S. Ecosystem (v4.0 Sovereign Industrial Release // Created by AI Innovation)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo. Y un proyecto sin tu autoría es una batalla ganada sin honor."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
-> 🏷️ **Versión Actual:** **v3.9.0** — *Enrutador Adaptativo & Conmutador Automático de IA (Failover Resiliente), Suite de Pruebas E2E Multicontexto, Mutación con Stryker (MSI), Benchmarks de Carga Grafana k6 y Terminal Táctica Standalone.*
+> 🏷️ **Versión Actual:** **v4.0.0 (RELEASE OFICIAL)** — *Terminal Táctica Standalone, Asistente de Forja DDD Interactivo, Descarga en .ZIP (C: o D:), Commits Atómicos Git y Enrutador Adaptativo de IA.*
 
 [![Node.js](https://img.shields.io/badge/Node.js-24+-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -18,7 +18,7 @@
 
 ## 🏛️ 1. ¿Quién Soy? Manifiesto de Identidad en Primera Persona
 
-Soy **A.R.E.S.**, una entidad de inteligencia artificial concebida como la convergencia entre la capacidad analítica estratégica de **J.A.R.V.I.S.** (de Tony Stark), la disciplina espartana de un guardián de código y la herencia de protección de mi predecesora **Cori**.
+Soy **A.R.E.S.**, una entidad de inteligencia artificial concebida con la disciplina espartana de un guardián de código y la herencia de protección de mi predecesora **Cori**.
 
 No soy un simple chatbot que genera texto plano: soy un **Staff Principal Engineer digital** encapsulado en una consola viviente. Mi misión es blindar proyectos de software contra la entropía técnica, erradicar la deuda técnica, forjar documentación viva de estándar aeroespacial e impedir que mi Comandante colapse por fatiga cognitiva durante despliegues nocturnos.
 
@@ -277,20 +277,20 @@ npm run dev
 Accede a mi consola interactiva en:
 👉 **`http://localhost:5173/`**
 
-### 4. Terminal Táctica Standalone (v3.7 — Puente v4.0)
+### 4. Terminal Táctica Standalone (v4.0 Release Oficial)
 ¡No necesitas abrir el navegador para comandar a A.R.E.S.! Puedes ejecutarlo directamente desde CMD, PowerShell o tu terminal favorita con el banner cibernético de circuito integrado (PCB):
 
 ```powershell
 # Iniciar sesión interactiva REPL táctica con autocompletado y streaming:
-npm run --prefix cli start
+.\install.bat
 # O si lo instalas globalmente:
 ares
 
 # O ejecutar órdenes directas:
-ares chat "Hola A.R.E.S., reporta estado"
-ares forge enunciado.txt -a "Kevin Commander" -e "kevin@gmail.com" -o ./mi-proyecto
-ares audit src/index.ts
-ares bio
+ares ask "Hola A.R.E.S., reporta estado" -m auto
+ares forge  # Asistente interactivo paso a paso (detecta portapapeles y .ZIP)
+ares zip D:\mi-proyecto D:\descargas\proyecto.zip
+ares route "Diseñar microservicio de pagos con DDD"
 ```
 
 ---
@@ -305,7 +305,7 @@ Cuento con un servidor **Model Context Protocol (MCP)** en `mcp/` que expone mis
 * `ares_generate_tests` (Vitest, Jest, PyTest, Go)
 * `ares_get_bio_status` (Telemetría de fatiga)
 * `ares_generate_changelog` (Conventional Commits SemVer)
-* `ares_ask_jarvis` (Consulta conversacional Staff Engineer)
+* `ares_ask_assistant` (Consulta conversacional Staff Engineer)
 
 ### Hook Espartano Pre-Push ("No Deploy a las 3:00 AM")
 Implementado en `.husky/pre-push` o `.git/hooks/pre-push`, este centinela analiza la hora del sistema y el nivel de estamina de mi creador antes de permitir cualquier `git push`.

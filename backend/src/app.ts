@@ -95,7 +95,7 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ONLINE',
-    agent: 'A.R.E.S. v3.9 Auto-Router AI & Regression Core',
+    agent: 'A.R.E.S. v4.0 Sovereign Industrial Release',
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
   });
