@@ -29,7 +29,7 @@
 > 🚀 **¿Cómo instalar y usar el comando `ares` en tu PC en 1 minuto?**  
 > 1. Haz clic en el botón azul de arriba: **[⬇️ Descargar ARES v4.0.0 .ZIP](https://github.com/AI-Innovation-op/ARES/archive/refs/tags/v4.0.0.zip)**.  
 > 2. Descomprime el archivo `.zip` en cualquier carpeta de tu disco (ej. `C:\ARES` o `D:\ARES`).  
-> 3. Entra a la carpeta y dale **doble clic** al archivo `install.bat`.  
+> 3. Entra a la carpeta y dale **doble clic** a `install.bat` o `INSTALAR_ARES.bat` *(asegúrate de que en Tipo diga **"Archivo por lotes"**, no al script de PowerShell)*.  
 > 4. Abre cualquier terminal (CMD o PowerShell) y escribe: **`ares`**.  
 > *(Requisito único previo: tener instalado [Node.js v20+](https://nodejs.org/))*.  
 > 📖 Para ver la guía ilustrada completa con todos los comandos y resolución de dudas, consulta la [Sección 6.4: Guía Maestra de la Terminal Táctica CLI](#-64-guía-maestra-de-la-terminal-táctica-cli-v40-release-oficial).
@@ -304,7 +304,7 @@ Accede a mi consola interactiva en:
 #### 📂 ¿Dónde se encuentra la CLI dentro del proyecto?
 * **Código fuente del CLI:** Ubicado en la subcarpeta [`cli/`](cli/) (código TypeScript en `cli/src/` y ejecutable compilado en `cli/dist/index.js`).
 * **Instaladores automáticos para Windows:** Ubicados directamente en la raíz del proyecto:
-  * [`install.bat`](install.bat) — Script por lotes para instalación con **1 solo clic** (doble clic desde el explorador de archivos).
+  * [`install.bat`](install.bat) y [`INSTALAR_ARES.bat`](INSTALAR_ARES.bat) — Scripts por lotes para instalación con **1 solo clic** (doble clic desde el explorador de Windows, tipo "Archivo por lotes").
   * [`install.ps1`](install.ps1) — Script de PowerShell que además auto-habilita la política de ejecución local `RemoteSigned`.
 
 ---
@@ -316,7 +316,7 @@ Elige la opción que mejor se adapte a tu entorno:
 ##### 🟢 Opción 1: Instalación Rápida con 1 Clic (Recomendada para todo el equipo)
 1. **Descarga el paquete:** Haz clic en **[⬇️ Descargar ARES v4.0.0 .ZIP](https://github.com/AI-Innovation-op/ARES/archive/refs/tags/v4.0.0.zip)** o ve a la sección de [Releases oficiales en GitHub](https://github.com/AI-Innovation-op/ARES/releases/tag/v4.0.0).
 2. **Descomprime el archivo:** Extrae el contenido en tu disco (por ejemplo en `C:\ARES` o `D:\ARES`).
-3. **Ejecuta el instalador:** Abre la carpeta descomprimida y dale **doble clic** al archivo `install.bat`.
+3. **Ejecuta el instalador:** Abre la carpeta descomprimida y dale **doble clic** al archivo `install.bat` o `INSTALAR_ARES.bat` *(en la columna Tipo dice **"Archivo por lotes"**; no des doble clic al script de PowerShell)*.
    * El instalador verificará que tengas [Node.js](https://nodejs.org/) instalado.
    * Compilará automáticamente el CLI en TypeScript.
    * Registrará el comando global `ares` en tu sistema Windows mediante `npm link`.
