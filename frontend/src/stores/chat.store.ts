@@ -28,7 +28,7 @@ export const useChatStore = defineStore('chat', () => {
       id: 'bienvenida',
       role: 'model',
       content:
-        '🛡️ **A.R.E.S. Core v2.7 en línea (Forja de Proyectos & Empaquetador .ZIP Activo).**\n\nSaludos, Comandante. Consola táctica, avatar voxel y empaquetador multi-archivo listos:\n- **Mano derecha:** Espada Binaria de Refactorización (Big-O, SOLID, OWASP).\n- **Mano izquierda:** Escudo Aegis Documental (README, ADR, OpenAPI 3.1, RFC).\n- **Forja de Proyectos:** Generación completa de código y descarga en un solo archivo `.zip`.\n- **Memoria de Batalla:** Historial persistido en SQLite embebido local.\n- **Protocolo Bio-Armadura:** Monitoreo activo de estamina e hidratación.\n\n¿Cuál es la primera orden táctica?',
+        '🛡️ **A.R.E.S. Core v2.8 en línea (Live Sandbox Preview & Terminal Táctica Shell Activos).**\n\nSaludos, Comandante. Consola táctica, avatar voxel y empaquetador multi-archivo listos:\n- **Mano derecha:** Espada Binaria de Refactorización (Big-O, SOLID, OWASP).\n- **Mano izquierda:** Escudo Aegis Documental (README, ADR, OpenAPI 3.1, RFC).\n- **Forja de Proyectos:** Generación completa de código y descarga en un solo archivo `.zip`.\n- **Memoria de Batalla:** Historial persistido en SQLite embebido local.\n- **Protocolo Bio-Armadura:** Monitoreo activo de estamina e hidratación.\n\n¿Cuál es la primera orden táctica?',
       poseNumber: 1,
       timestamp: new Date(),
     },

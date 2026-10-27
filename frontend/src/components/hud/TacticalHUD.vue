@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onMounted, onUnmounted, computed } from 'vue';
 import { useFsmStore } from '../../stores/fsm.store.js';
 import { useChatStore } from '../../stores/chat.store.js';
+import { useUiStore } from '../../stores/ui.store.js';
 import { useAudio } from '../../composables/useAudio.js';
 import { useTacticalVoice } from '../../composables/useTacticalVoice.js';
 
 const fsm = useFsmStore();
 const chatStore = useChatStore();
+const uiStore = useUiStore();
 const { audioSilenciado, toggleSilencio } = useAudio();
 const { vozHabilitada, toggleVoz } = useTacticalVoice();
 
@@ -22,8 +24,21 @@ const listaModelos = computed(() => {
   return chatStore.modelosDisponibles.length > 0 ? chatStore.modelosDisponibles : modelosFallback;
 });
 
+function handleKeydown(e: KeyboardEvent) {
+  // Atajo Ctrl + ` o Ctrl + ~ para alternar la terminal táctica
+  if (e.ctrlKey && (e.key === '`' || e.key === '~' || e.code === 'Backquote')) {
+    e.preventDefault();
+    uiStore.toggleTerminal();
+  }
+}
+
 onMounted(() => {
   chatStore.cargarModelos();
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
 });
 
 function onSelectModelo(id: string) {
@@ -43,7 +58,7 @@ function onSelectModelo(id: string) {
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-orbitron font-bold text-sm tracking-widest text-slate-100">
-            A.R.E.S. <span class="text-[#00ffaa] text-xs font-normal">v2.6 CORE</span>
+            A.R.E.S. <span class="text-[#00ffaa] text-xs font-normal">v2.8 CORE</span>
           </h1>
           <span class="px-1.5 py-0.2 rounded text-[10px] font-mono bg-cyan-950/60 border border-cyan-800 text-cyan-300">
             MULTI-MODEL
@@ -88,6 +103,18 @@ function onSelectModelo(id: string) {
 
     <!-- Controles Rápidos -->
     <div class="flex items-center gap-2 shrink-0">
+      <!-- Terminal Táctica Shell Trigger (v2.8) -->
+      <button
+        type="button"
+        @click="uiStore.toggleTerminal"
+        class="px-2.5 py-1.5 rounded border transition cursor-pointer flex items-center gap-1.5 text-xs font-mono"
+        :class="uiStore.terminalAbierta ? 'border-[#00ffaa] bg-[#00ffaa]/20 text-[#00ffaa] font-bold shadow-[0_0_10px_rgba(0,255,170,0.4)]' : 'border-[#132a4a] bg-[#040914] text-slate-300 hover:border-cyan-400 hover:text-cyan-300'"
+        title="Abrir/Cerrar Terminal Táctica Shell (Atajo: Ctrl + \`)"
+      >
+        <span class="text-[#00ffaa] font-bold">>_</span>
+        <span class="hidden sm:inline">TERMINAL</span>
+      </button>
+
       <!-- Voz Táctica TTS Toggle -->
       <button
         @click="toggleVoz"

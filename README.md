@@ -1,4 +1,4 @@
-# 🛡️ A.R.E.S. Ecosystem (v2.7 J.A.R.V.I.S. Core // Zip Forge)
+# 🛡️ A.R.E.S. Ecosystem (v2.8 J.A.R.V.I.S. Core // Live Sandbox & Shell)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
@@ -106,6 +106,15 @@ Heredado de **Cori**, no permito que mi Comandante destruya su salud física o m
 * **Generación y Scaffolding Completo:** Cuando solicitas la creación de una aplicación (ej. *"página web de café con DDD en Vite con Vue"*), genero la totalidad de los archivos estructurados en sus respectivas capas (`domain/`, `application/`, `infrastructure/`, `presentation/`).
 * **Inyección Automática de Boilerplate:** Si la solución carece de archivos base de entorno, mi motor complementa automáticamente el `package.json`, `vite.config.ts`, `index.html` y `src/main.ts` para garantizar que la descarga sea 100% funcional.
 * **Explorador y Descarga en Cliente:** Incluye un componente interactivo (`ProjectZipForge.vue`) para inspeccionar el árbol virtual de archivos y descargar el paquete completo comprimido en un solo `.zip` listo para ejecutar con `npm install && npm run dev`.
+
+### 🖥️ Módulo F: Live Web Preview Sandbox (Vista Previa en Vivo Interactiva - v2.8)
+* **Ejecución Aislada en Tiempo Real:** Permite previsualizar páginas web, aplicaciones Vue 3 y maquetas Tailwind directamente dentro de la consola en un `iframe` seguro (`srcdoc`).
+* **Selector Responsive de Dispositivos:** Alterna entre vista **🖥️ Desktop (100%)**, **📟 Tablet (768px)** y **📱 Móvil (375px)** para verificar la adaptabilidad del diseño al instante.
+* **Captura de Logs y Consola Embebida:** Inspecciona advertencias, errores y llamadas a `console.log` emitidas dentro del sandbox con recarga en caliente.
+
+### 💻 Módulo G: Terminal Táctica Web Embebida (A.R.E.S. Shell CLI - v2.8)
+* **Interfaz de Línea de Comandos (CLI) en Navegador:** Accesible mediante el botón **`[>_ TERMINAL]`** o con el atajo global `Ctrl + \``.
+* **Control Integral del Sistema:** Permite cambiar la postura y pose 3D del avatar (`pose 11`), alternar modelos de IA (`model deepseek`), consultar telemetría biométrica (`bio`), hidratar al desarrollador (`hydrate`) y descargar proyectos empaquetados (`zip`) mediante comandos de texto en tiempo real con historial de comandos.
 
 ---
 

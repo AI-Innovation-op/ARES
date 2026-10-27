@@ -1,12 +1,16 @@
 <script setup lang="ts">
+import { useUiStore } from '../../stores/ui.store.js';
 import TacticalHUD from '../hud/TacticalHUD.vue';
 import BioPanel from '../hud/BioPanel.vue';
 import AvatarManager from '../avatar/AvatarManager.vue';
 import ChatConsole from '../chat/ChatConsole.vue';
+import TacticalTerminal from '../hud/TacticalTerminal.vue';
+
+const uiStore = useUiStore();
 </script>
 
 <template>
-  <div class="h-screen w-screen flex flex-col bg-[#040914] overflow-hidden text-slate-100">
+  <div class="h-screen w-screen flex flex-col bg-[#040914] overflow-hidden text-slate-100 relative">
     <!-- 1. Barra Superior HUD -->
     <TacticalHUD />
 
@@ -25,5 +29,11 @@ import ChatConsole from '../chat/ChatConsole.vue';
         <ChatConsole />
       </section>
     </main>
+
+    <!-- 4. Terminal Táctica Shell Embebida (v2.8) -->
+    <TacticalTerminal
+      v-if="uiStore.terminalAbierta"
+      @cerrar="uiStore.terminalAbierta = false"
+    />
   </div>
 </template>

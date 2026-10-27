@@ -9,11 +9,16 @@ import { ref } from 'vue';
 
 export const useUiStore = defineStore('ui', () => {
   const tabActiva = ref(1);
+  const terminalAbierta = ref(false);
 
   // Buffer de transferencia para cada módulo
   const docBuffer = ref<{ titulo?: string; tipo?: string; contenido: string } | null>(null);
   const codeBuffer = ref<{ codigo: string; lenguaje?: string } | null>(null);
   const architectBuffer = ref<{ diagrama: string } | null>(null);
+
+  function toggleTerminal() {
+    terminalAbierta.value = !terminalAbierta.value;
+  }
 
   function navegarTab(tab: number) {
     tabActiva.value = tab;
@@ -36,9 +41,11 @@ export const useUiStore = defineStore('ui', () => {
 
   return {
     tabActiva,
+    terminalAbierta,
     docBuffer,
     codeBuffer,
     architectBuffer,
+    toggleTerminal,
     navegarTab,
     derivarADocumentacion,
     derivarACodigo,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { zipService, type ArchivoProyecto } from '../../services/zip.service.js';
+import LivePreviewModal from './LivePreviewModal.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -13,6 +14,7 @@ const props = withDefaults(
 );
 
 const expandido = ref(false);
+const modalPreviewAbierto = ref(false);
 const archivoSeleccionadoIdx = ref(0);
 const empaquetando = ref(false);
 const descargado = ref(false);
@@ -148,5 +150,12 @@ function copiarCodigo() {
         <pre class="p-2.5 overflow-auto text-[11px] font-mono text-emerald-300 flex-1 leading-relaxed select-text"><code>{{ archivoActual.contenido }}</code></pre>
       </div>
     </div>
+    <!-- Modal de Vista Previa Interactiva en Vivo (Sandbox) -->
+    <LivePreviewModal
+      v-if="modalPreviewAbierto"
+      :archivos="archivos"
+      :nombreProyecto="nombreProyecto"
+      @cerrar="modalPreviewAbierto = false"
+    />
   </div>
 </template>
