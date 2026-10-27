@@ -28,7 +28,7 @@ export const useChatStore = defineStore('chat', () => {
       id: 'bienvenida',
       role: 'model',
       content:
-        '🛡️ **A.R.E.S. Core v2.6 en línea (Persistencia Total SQLite Activa).**\n\nSaludos, Comandante. Consola táctica y avatar voxel inicializados. Mis armas y memoria persistente están listas:\n- **Mano derecha:** Espada Binaria de Refactorización (Big-O, SOLID, OWASP).\n- **Mano izquierda:** Escudo Aegis Documental (README, ADR, OpenAPI 3.1).\n- **Memoria de Batalla:** Historial persistido en SQLite embebido local.\n- **Protocolo Bio-Armadura:** Monitoreo activo de estamina e hidratación.\n\n¿Cuál es la primera orden táctica?',
+        '🛡️ **A.R.E.S. Core v2.7 en línea (Forja de Proyectos & Empaquetador .ZIP Activo).**\n\nSaludos, Comandante. Consola táctica, avatar voxel y empaquetador multi-archivo listos:\n- **Mano derecha:** Espada Binaria de Refactorización (Big-O, SOLID, OWASP).\n- **Mano izquierda:** Escudo Aegis Documental (README, ADR, OpenAPI 3.1, RFC).\n- **Forja de Proyectos:** Generación completa de código y descarga en un solo archivo `.zip`.\n- **Memoria de Batalla:** Historial persistido en SQLite embebido local.\n- **Protocolo Bio-Armadura:** Monitoreo activo de estamina e hidratación.\n\n¿Cuál es la primera orden táctica?',
       poseNumber: 1,
       timestamp: new Date(),
     },
@@ -338,6 +338,25 @@ export const useChatStore = defineStore('chat', () => {
       p.includes('audita');
 
     const contieneCodigo = /```(typescript|javascript|python|go|rust|java|sql)\n/i.test(respuesta);
+
+    // 4. Detección de Proyecto Completo / Scaffolding Multi-Archivo (v2.7)
+    const pideProyecto =
+      p.includes('página web') ||
+      p.includes('pagina web') ||
+      p.includes('proyecto') ||
+      p.includes('web de') ||
+      p.includes('aplicación') ||
+      p.includes('aplicacion') ||
+      p.includes('scaffold') ||
+      p.includes('zip');
+
+    const tieneMultiplesArchivos = (respuesta.match(/(?:###|##|\*\*)\s*(?:File|Archivo):/gi) || []).length >= 2;
+
+    // Si es un proyecto multi-archivo solicitado (ej: café con DDD), permanecemos en el chat
+    // para interactuar directamente con la caja de Forja de Proyecto y el botón .ZIP
+    if (pideProyecto && tieneMultiplesArchivos) {
+      return;
+    }
 
     // Prioridad 1: Si se solicitó o generó Documentación (RFC, ADR, README)
     if (pideDoc || contieneDoc) {

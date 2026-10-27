@@ -2,7 +2,9 @@
 import { computed } from 'vue';
 import type { MensajeChat } from '../../types/ares.types.js';
 import MermaidViewer from '../common/MermaidViewer.vue';
+import ProjectZipForge from '../common/ProjectZipForge.vue';
 import { useUiStore } from '../../stores/ui.store.js';
+import { zipService, type ArchivoProyecto } from '../../services/zip.service.js';
 
 const uiStore = useUiStore();
 
@@ -11,6 +13,33 @@ const props = defineProps<{
 }>();
 
 const esUsuario = computed(() => props.message.role === 'user');
+
+// Detección de archivos estructurados para la Forja de Proyectos .ZIP
+const archivosProyecto = computed<ArchivoProyecto[]>(() => {
+  if (esUsuario.value || !props.message.content) return [];
+  return zipService.extraerArchivosDeTexto(props.message.content);
+});
+
+const nombreSugeridoProyecto = computed(() => {
+  const c = props.message.content.toLowerCase();
+  if (c.includes('café') || c.includes('cafe')) return 'cafe-shop-ddd';
+  const matchTitulo = props.message.content.match(/^#+\s*(.+)$/m);
+  if (matchTitulo) {
+    return (
+      matchTitulo[1]
+        .toLowerCase()
+        .replace(/[^a-z0-9-_]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '') || 'proyecto-ares'
+    );
+  }
+  return 'proyecto-ares';
+});
+
+function descargarProyectoZipDirecto() {
+  if (archivosProyecto.value.length === 0) return;
+  zipService.descargarProyectoZip(archivosProyecto.value, `${nombreSugeridoProyecto.value}.zip`, true);
+}
 
 // Detección automática de artefactos para derivación táctica
 const esDocumentacion = computed(() => {
@@ -174,11 +203,29 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
         </div>
       </div>
 
+      <!-- Forja de Proyecto .ZIP Interactivo (v2.7) -->
+      <ProjectZipForge
+        v-if="!esUsuario && archivosProyecto.length > 0"
+        :archivos="archivosProyecto"
+        :nombreProyecto="nombreSugeridoProyecto"
+      />
+
       <!-- Derivación Táctica Automática de Artefactos -->
-      <div v-if="!esUsuario && message.content && (esDocumentacion || esCodigo || esMermaid)" class="mt-3 pt-2.5 border-t border-[#132a4a] flex flex-wrap items-center gap-2">
+      <div v-if="!esUsuario && message.content && (esDocumentacion || esCodigo || esMermaid || archivosProyecto.length > 0)" class="mt-3 pt-2.5 border-t border-[#132a4a] flex flex-wrap items-center gap-2">
         <span class="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1">
-          <span>⚡</span> Derivación:
+          <span>⚡</span> Acciones:
         </span>
+
+        <!-- Botón de Descarga .ZIP Rápida -->
+        <button
+          v-if="archivosProyecto.length > 0"
+          @click="descargarProyectoZipDirecto"
+          class="px-2.5 py-1 rounded bg-[#0b1b36] border border-[#00ffaa]/60 hover:border-[#00ffaa] hover:bg-[#00ffaa]/15 text-[#00ffaa] text-xs font-mono flex items-center gap-1.5 transition cursor-pointer shadow-[0_0_8px_rgba(0,255,170,0.25)]"
+          title="Descargar todos los archivos generados en un archivo .ZIP listo para correr"
+        >
+          <span>📦</span>
+          <span>Descargar .ZIP ({{ archivosProyecto.length }})</span>
+        </button>
 
         <button
           v-if="esDocumentacion"
