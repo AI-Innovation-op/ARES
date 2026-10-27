@@ -5,6 +5,7 @@ import { useUiStore } from '../../stores/ui.store.js';
 import ChatMessage from './ChatMessage.vue';
 import ChatInput from './ChatInput.vue';
 import GithubAuditModal from '../audit/GithubAuditModal.vue';
+import SwarmMonitorModal from '../swarm/SwarmMonitorModal.vue';
 
 const chatStore = useChatStore();
 const uiStore = useUiStore();
@@ -125,9 +126,19 @@ function seleccionarMision(id: string) {
           <span>🔍</span>
           <span>GITHUB AUDIT</span>
         </button>
+
+        <!-- Botón Monitor de Enjambre Multi-Agente (v3.1) -->
+        <button
+          @click="uiStore.toggleModalSwarm"
+          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#150d2a] border border-purple-500/60 hover:border-purple-400 hover:bg-purple-900/30 text-purple-300 text-[11px] font-bold cursor-pointer transition shadow-[0_0_10px_rgba(168,85,247,0.25)]"
+          title="Abrir monitor del Enjambre Táctico Multi-Agente (Atenea, Vulcano, Mercurio, Némesis)"
+        >
+          <span>🐝</span>
+          <span>ENJAMBRE</span>
+        </button>
       </div>
 
-      <!-- Selector de Modo Táctico (v2.9) -->
+      <!-- Selector de Modo Táctico (v2.9 / v3.1 Swarm) -->
       <div class="hidden md:flex items-center gap-1 bg-[#040914] p-0.5 rounded border border-[#132a4a] text-[11px]">
         <button
           type="button"
@@ -155,6 +166,15 @@ function seleccionarMision(id: string) {
           title="Modo Arquitecto: RFCs profundos, diagramas C4 y ADRs"
         >
           🏛️ Arquitecto
+        </button>
+        <button
+          type="button"
+          @click="uiStore.setModoTactico('enjambre')"
+          class="px-2 py-0.5 rounded transition cursor-pointer"
+          :class="uiStore.modoTactico === 'enjambre' ? 'bg-amber-500/25 border border-amber-400/60 text-amber-300 font-bold shadow-[0_0_8px_rgba(245,158,11,0.3)]' : 'text-slate-400 hover:text-slate-200'"
+          title="Modo Enjambre: Coordinación de 4 subagentes especializados con protocolo de consenso"
+        >
+          🐝 Enjambre
         </button>
       </div>
 
@@ -265,6 +285,12 @@ function seleccionarMision(id: string) {
       v-if="uiStore.modalGithubAuditAbierto"
       @cerrar="uiStore.modalGithubAuditAbierto = false"
       @insertarEnChat="handleInsertarEnChat"
+    />
+
+    <!-- Modal Táctico de Enjambre Multi-Agente (v3.1) -->
+    <SwarmMonitorModal
+      v-if="uiStore.modalSwarmAbierto"
+      @cerrar="uiStore.modalSwarmAbierto = false"
     />
   </div>
 </template>

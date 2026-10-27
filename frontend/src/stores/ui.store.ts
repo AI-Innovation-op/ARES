@@ -7,12 +7,13 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
-export type TacticalMode = 'centinela' | 'blitzkrieg' | 'arquitecto';
+export type TacticalMode = 'centinela' | 'blitzkrieg' | 'arquitecto' | 'enjambre';
 
 export const useUiStore = defineStore('ui', () => {
   const tabActiva = ref(1);
   const terminalAbierta = ref(false);
   const modalGithubAuditAbierto = ref(false);
+  const modalSwarmAbierto = ref(false);
   const modoTactico = ref<TacticalMode>('centinela');
 
   // Buffer de transferencia para cada módulo
@@ -26,6 +27,10 @@ export const useUiStore = defineStore('ui', () => {
 
   function toggleModalGithubAudit() {
     modalGithubAuditAbierto.value = !modalGithubAuditAbierto.value;
+  }
+
+  function toggleModalSwarm() {
+    modalSwarmAbierto.value = !modalSwarmAbierto.value;
   }
 
   function setModoTactico(modo: TacticalMode) {
@@ -55,12 +60,14 @@ export const useUiStore = defineStore('ui', () => {
     tabActiva,
     terminalAbierta,
     modalGithubAuditAbierto,
+    modalSwarmAbierto,
     modoTactico,
     docBuffer,
     codeBuffer,
     architectBuffer,
     toggleTerminal,
     toggleModalGithubAudit,
+    toggleModalSwarm,
     setModoTactico,
     navegarTab,
     derivarADocumentacion,

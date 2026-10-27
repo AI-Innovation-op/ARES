@@ -1,8 +1,8 @@
-# 🛡️ A.R.E.S. Ecosystem (v3.0 Heavy Industrial Core // Sovereign Autonomous Architecture)
+# 🛡️ A.R.E.S. Ecosystem (v3.1 Sovereign Swarm & Live Preview Synth // Sovereign Autonomous Architecture)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
-> 🏷️ **Hito Mayor:** [Release Oficial v3.0 en GitHub](https://github.com/AI-Innovation-op/ARES/releases/tag/v3.0.0) — *Consolidación de la era Sovereign Engineering.*
+> 🏷️ **Versión Actual:** [Release Oficial v3.1 en GitHub](https://github.com/AI-Innovation-op/ARES/releases/tag/v3.1.0) — *Enjambre Multi-Agente Soberano, Síntesis Interactiva de Dominio y Presets Instantáneos.*
 
 [![Node.js](https://img.shields.io/badge/Node.js-24+-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -134,6 +134,16 @@ Heredado de **Cori**, no permito que mi Comandante destruya su salud física o m
   - **⚡ Modo Blitzkrieg (Prototipador):** Prioriza velocidad de entrega, UIs reactivas completas listas para Live Preview e interactividad visual inmediata.
   - **🏛️ Modo Arquitecto (Estratega):** Prioriza RFCs detallados, diagramas C4 Mermaid, modelos de datos y decisiones arquitectónicas (ADRs).
 * **Exportación de Misión:** Botón **`[📥 Exportar Misión]`** para compilar la totalidad del historial de combate en un archivo Markdown (`Mision_ARES_<id>.md`) listo para presentar o archivar.
+
+### 🐝 Módulo K: Enjambre de Subagentes Especializados (Multi-Agent Sovereign Swarm - v3.1+)
+* **Orquestación Descentralizada de 4 Agentes Soberanos:** Permite delegar misiones de ingeniería complejas a un enjambre jerárquico coordinado en tiempo real:
+  - **🏛️ Atenea (Orquestador & Auditor DDD):** Descompone la misión táctica, define bounded contexts, contratos arquitectónicos y audita la adherencia a Clean Architecture.
+  - **⚒️ Vulcano (Arquitecto de Dominio & Casos de Uso):** Genera entidades puras, value objects inmutables, repositorios abstractos y servicios de dominio.
+  - **⚡ Mercurio (Ingeniero de Interfaz & Live Preview):** Construye la capa de presentación interactiva con Tailwind CSS, componentes reactivos y vistas multi-dispositivo sin dependencias relativas rotas.
+  - **⚔️ Némesis (Auditor de Calidad & Generador de Tests):** Desarrolla suites de pruebas completas con Vitest y Jest, verificando invariantes y escenarios límite.
+* **Monitor Táctico del Enjambre (`[ 🐝 ENJAMBRE ]`):** Modal interactivo (`SwarmMonitorModal.vue`) con telemetría visual de agentes, estado de ejecución en streaming y visor de logs unificado.
+* **Lanzador de Misiones Instantáneo (Preset One-Click):** Misiones preconfiguradas con opciones duales: `[ ✏️ Modificar ]` para ajustar requerimientos y `[ ▶ Lanzar Ahora ]` para despacho inmediato sin fricción.
+* **Sintetizador Universal de Aplicaciones Live Preview:** Capacidad de sintetizar aplicaciones de cualquier dominio (ej. Salad Bar Saludable con selección de ingredientes, cálculo en vivo de kcal, carrito de compras y boleta electrónica SUNAT) garantizando que el `iframe` cargue al 100% en Desktop, Tablet y Móvil.
 
 ---
 

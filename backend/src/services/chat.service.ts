@@ -5,6 +5,7 @@
  */
 
 import { invocarLLM, invocarLLMStream } from './llm.service.js';
+import { PROMPT_CONSEJO_ENJAMBRE } from './swarm.service.js';
 import {
   crearConversacion,
   obtenerConversacionPorId,
@@ -145,9 +146,10 @@ export async function procesarMensajeChat(request: ChatRequest): Promise<ChatRes
     console.warn('⚠️ [ChatService] No se pudo leer historial previo:', err);
   }
 
-  // Directivas de Modos Tácticos y Detección de GitHub (v2.9)
+  // Directivas de Modos Tácticos y Detección de GitHub (v2.9 / v3.1 Swarm)
   let textoFinalMensaje = message;
   let directivaTactico = '';
+  let instruccionSistemaPersonalizada: string | undefined = undefined;
 
   if (tacticalMode === 'centinela') {
     directivaTactico += '[MODO TÁCTICO ACTIVO: 🛡️ CENTINELA (AUDITOR Y SEGURIDAD MÁXIMA) - Exige rigor extremo, OWASP, DDD, SOLID y tipado estricto]\n';
@@ -155,6 +157,9 @@ export async function procesarMensajeChat(request: ChatRequest): Promise<ChatRes
     directivaTactico += '[MODO TÁCTICO ACTIVO: ⚡ BLITZKRIEG (PROTOTIPADO RÁPIDO) - Prioriza interfaces visuales completas, código funcional para Live Preview inmediato y agilidad]\n';
   } else if (tacticalMode === 'arquitecto') {
     directivaTactico += '[MODO TÁCTICO ACTIVO: 🏛️ ARQUITECTO (ESTRATEGIA & RFC) - Estructura decisiones en RFCs maestros, diagramas C4 Mermaid y arquitectura de sistemas]\n';
+  } else if (tacticalMode === 'enjambre') {
+    directivaTactico += '[MODO TÁCTICO ACTIVO: 🐝 ENJAMBRE MULTI-AGENTE SOBERANO (ATENEA, VULCANO, MERCURIO, NÉMESIS) - Despliega el protocolo del Consejo de Enjambre]\n';
+    instruccionSistemaPersonalizada = PROMPT_CONSEJO_ENJAMBRE;
   }
 
   const matchGithub = message.match(/https:\/\/github\.com\/[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+/i);
@@ -188,6 +193,7 @@ export async function procesarMensajeChat(request: ChatRequest): Promise<ChatRes
     enableSearch: !imageBase64,
     provider,
     model,
+    systemInstruction: instruccionSistemaPersonalizada,
   });
 
   // Guardar mensajes en la base de datos si está disponible
@@ -297,9 +303,10 @@ export async function* procesarMensajeChatStream(
     // Modo tolerante
   }
 
-  // Directivas de Modos Tácticos y Detección de GitHub (v2.9)
+  // Directivas de Modos Tácticos y Detección de GitHub (v2.9 / v3.1 Swarm)
   let textoFinalMensaje = message;
   let directivaTactico = '';
+  let instruccionSistemaPersonalizada: string | undefined = undefined;
 
   if (tacticalMode === 'centinela') {
     directivaTactico += '[MODO TÁCTICO ACTIVO: 🛡️ CENTINELA (AUDITOR Y SEGURIDAD MÁXIMA) - Exige rigor extremo, OWASP, DDD, SOLID y tipado estricto]\n';
@@ -307,6 +314,9 @@ export async function* procesarMensajeChatStream(
     directivaTactico += '[MODO TÁCTICO ACTIVO: ⚡ BLITZKRIEG (PROTOTIPADO RÁPIDO) - Prioriza interfaces visuales completas, código funcional para Live Preview inmediato y agilidad]\n';
   } else if (tacticalMode === 'arquitecto') {
     directivaTactico += '[MODO TÁCTICO ACTIVO: 🏛️ ARQUITECTO (ESTRATEGIA & RFC) - Estructura decisiones en RFCs maestros, diagramas C4 Mermaid y arquitectura de sistemas]\n';
+  } else if (tacticalMode === 'enjambre') {
+    directivaTactico += '[MODO TÁCTICO ACTIVO: 🐝 ENJAMBRE MULTI-AGENTE SOBERANO (ATENEA, VULCANO, MERCURIO, NÉMESIS) - Despliega el protocolo del Consejo de Enjambre]\n';
+    instruccionSistemaPersonalizada = PROMPT_CONSEJO_ENJAMBRE;
   }
 
   const matchGithub = message.match(/https:\/\/github\.com\/[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+/i);
@@ -337,6 +347,7 @@ export async function* procesarMensajeChatStream(
     contents: historialTurnos,
     provider,
     model,
+    systemInstruction: instruccionSistemaPersonalizada,
     enableSearch: !imageBase64,
   });
 

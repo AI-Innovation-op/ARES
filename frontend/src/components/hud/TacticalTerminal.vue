@@ -112,12 +112,14 @@ function ejecutarComando() {
     case 'ayuda':
       historialLineas.value.push({
         tipo: 'output',
-        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v2.9:
+        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v3.1 (SOVEREIGN SWARM):
   help / ayuda          Muestra este catálogo de órdenes
   status                Telemetría del núcleo A.R.E.S., modelo y modo táctico
+  swarm [monitor|run]   Control y monitor del Enjambre Multi-Agente (Atenea, Vulcano, Mercurio, Némesis)
+  agents                Lista los 4 subagentes operativos de la legión
   voice [on|off|toggle] Activa o desactiva la entrada de voz táctica
   audit [github-url]    Ejecuta auditoría profunda de repositorio GitHub (OWASP + C4)
-  tactical <modo>       Cambia modo de combate (centinela | blitzkrieg | arquitecto)
+  tactical <modo>       Cambia modo de combate (centinela | blitzkrieg | arquitecto | enjambre)
   export                Descarga la misión actual en archivo Markdown (.md)
   pose <1-16>           Fija la pose del avatar 3D directamente
   posture <postura>     Cambia postura FSM (IDLE, SLASH, SHIELD, SPRINT, VICTORY)
@@ -135,7 +137,7 @@ function ejecutarComando() {
     case 'status':
       historialLineas.value.push({
         tipo: 'success',
-        texto: `ESTADO DEL NÚCLEO A.R.E.S. v2.9 (J.A.R.V.I.S. CORE):
+        texto: `ESTADO DEL NÚCLEO A.R.E.S. v3.1 (SOVEREIGN SWARM CORE):
   - Estado: 🟢 ONLINE
   - Modo táctico: ${uiStore.modoTactico.toUpperCase()}
   - Oído digital: ${voiceService.estado.value.toUpperCase()}
@@ -343,12 +345,12 @@ function ejecutarComando() {
       if (!args[0]) {
         historialLineas.value.push({
           tipo: 'output',
-          texto: `Modo táctico activo: ${uiStore.modoTactico.toUpperCase()}\nUsa "tactical centinela", "tactical blitzkrieg" o "tactical arquitecto" para cambiar.`,
+          texto: `Modo táctico activo: ${uiStore.modoTactico.toUpperCase()}\nUsa "tactical centinela", "tactical blitzkrieg", "tactical arquitecto" o "tactical enjambre" para cambiar.`,
           tiempo,
         });
       } else {
         const modo = args[0].toLowerCase();
-        if (modo === 'centinela' || modo === 'blitzkrieg' || modo === 'arquitecto') {
+        if (modo === 'centinela' || modo === 'blitzkrieg' || modo === 'arquitecto' || modo === 'enjambre') {
           uiStore.setModoTactico(modo as any);
           historialLineas.value.push({
             tipo: 'success',
@@ -358,11 +360,64 @@ function ejecutarComando() {
         } else {
           historialLineas.value.push({
             tipo: 'error',
-            texto: `Modo "${args[0]}" inválido. Opciones válidas: centinela, blitzkrieg, arquitecto.`,
+            texto: `Modo "${args[0]}" inválido. Opciones válidas: centinela, blitzkrieg, arquitecto, enjambre.`,
             tiempo,
           });
         }
       }
+      break;
+
+    case 'swarm':
+    case 'enjambre':
+      if (args[0] === 'run') {
+        const mision = args.slice(1).join(' ');
+        if (!mision) {
+          historialLineas.value.push({
+            tipo: 'error',
+            texto: 'Error: Especifica la misión para el enjambre. Ej: "swarm run Diseñar plataforma de subastas con DDD"',
+            tiempo,
+          });
+        } else {
+          uiStore.setModoTactico('enjambre');
+          chatStore.enviarMensaje(mision);
+          emit('cerrar');
+        }
+      } else if (args[0] === 'monitor' || args[0] === 'open' || args[0] === 'ui') {
+        uiStore.modalSwarmAbierto = true;
+        historialLineas.value.push({
+          tipo: 'success',
+          texto: '🐝 Abriendo Monitor de Enjambre Multi-Agente...',
+          tiempo,
+        });
+      } else {
+        historialLineas.value.push({
+          tipo: 'output',
+          texto: `🐝 A.R.E.S. SWARM MULTI-AGENTE SOBERANO (v3.1)
+  - Modo Enjambre: ${uiStore.modoTactico === 'enjambre' ? '🟢 ACTIVO' : '⚪ INACTIVO'}
+  - Subagentes en la Legión (4):
+    • 🏛️ Atenea: Arquitecto de Sistemas & Modelado DDD
+    • ⚔️ Vulcano: Forjador Backend & Clean Architecture
+    • 🎨 Mercurio: Ingeniero UI/UX Frontend & Live Preview
+    • 🧪 Némesis: Centinela QA, Seguridad OWASP & Consenso
+  - Comandos:
+    • swarm monitor       : Abre el monitor visual del enjambre
+    • swarm run <misión>  : Despacha una misión directa a los 4 agentes
+    • tactical enjambre   : Activa el modo enjambre en la consola`,
+          tiempo,
+        });
+      }
+      break;
+
+    case 'agents':
+      historialLineas.value.push({
+        tipo: 'output',
+        texto: `👥 LEGIÓN DE SUBAGENTES TÁCTICOS DISPONIBLES:
+  1. 🏛️ ATENEA   -> Arquitectura, Contextos DDD, Mermaid C4, RFCs
+  2. ⚔️ VULCANO  -> TypeScript, Repositorios, Use Cases, Capas Hexagonales
+  3. 🎨 MERCURIO -> Vue 3, Tailwind CSS, Live Preview Sandbox
+  4. 🧪 NÉMESIS  -> Vitest/Jest, OWASP Top 10, Big-O, Veredicto Consenso`,
+        tiempo,
+      });
       break;
 
     case 'audit':

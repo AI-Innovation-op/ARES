@@ -1,6 +1,6 @@
 {
   "name": "@ares-ecosystem/cli",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "CLI Táctico para el ecosistema A.R.E.S. — Refactorización, Documentación y Bienestar desde la Terminal",
   "type": "module",
   "bin": {

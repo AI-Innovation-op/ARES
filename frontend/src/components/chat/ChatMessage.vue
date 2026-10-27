@@ -23,6 +23,7 @@ const archivosProyecto = computed<ArchivoProyecto[]>(() => {
 const nombreSugeridoProyecto = computed(() => {
   const c = props.message.content.toLowerCase();
   if (c.includes('café') || c.includes('cafe')) return 'cafe-shop-ddd';
+  if (c.includes('ensalada') || c.includes('salad')) return 'salad-bar-ddd';
   const matchTitulo = props.message.content.match(/^#+\s*(.+)$/m);
   if (matchTitulo) {
     return (
@@ -64,6 +65,20 @@ const archivosParaPreview = computed<ArchivoProyecto[]>(() => {
 
 const tieneVistaPreviaVisual = computed(() => {
   if (esUsuario.value || !props.message.content) return false;
+  const c = props.message.content.toLowerCase();
+  const esAppVisual =
+    c.includes('ensalada') ||
+    c.includes('salad') ||
+    c.includes('café') ||
+    c.includes('cafe') ||
+    c.includes('tienda') ||
+    c.includes('app web') ||
+    c.includes('página web') ||
+    c.includes('vue') ||
+    c.includes('html');
+
+  if (esAppVisual) return true;
+
   return (
     archivosParaPreview.value.length > 0 &&
     archivosParaPreview.value.some(
@@ -80,7 +95,11 @@ const tieneVistaPreviaVisual = computed(() => {
 const modalPreviewAbierto = ref(false);
 const mostrarPreviewInline = ref(
   props.message.content.toLowerCase().includes('vista previa') ||
-  props.message.content.toLowerCase().includes('tienda de café')
+  props.message.content.toLowerCase().includes('tienda de café') ||
+  props.message.content.toLowerCase().includes('café') ||
+  props.message.content.toLowerCase().includes('ensalada') ||
+  props.message.content.toLowerCase().includes('salad') ||
+  props.message.content.toLowerCase().includes('live preview')
 );
 const versionMiniRender = ref(0);
 
@@ -118,6 +137,17 @@ const esCodigo = computed(() => {
 
 const esMermaid = computed(() => {
   return /```mermaid/i.test(props.message.content);
+});
+
+// Detección de Misión Multi-Agente del Enjambre (v3.1)
+const esMisionEnjambre = computed(() => {
+  if (esUsuario.value || !props.message.content) return false;
+  const c = props.message.content;
+  return (
+    c.includes('ENJAMBRE TÁCTICO') ||
+    c.includes('PROTOCOLO MULTI-AGENTE') ||
+    (c.includes('Atenea') && c.includes('Vulcano') && c.includes('Mercurio'))
+  );
 });
 
 const docCopiado = ref(false);
@@ -263,6 +293,54 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
         <span v-if="message.poseNumber" class="text-cyan-400">
           [POSE-{{ message.poseNumber }}]
         </span>
+      </div>
+
+      <!-- Banner Visual de Misión del Enjambre (v3.1) -->
+      <div
+        v-if="esMisionEnjambre"
+        class="mb-3 p-3 rounded-lg border border-purple-500/50 bg-[#0c081c]/90 shadow-[0_0_15px_rgba(168,85,247,0.2)] font-mono text-xs"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2 font-bold font-orbitron text-purple-300">
+            <span class="animate-bounce">🐝</span>
+            <span>ENJAMBRE TÁCTICO MULTI-AGENTE SOBERANO (v3.1)</span>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-bold">
+            CONSENSO 100% ALCANZADO
+          </span>
+        </div>
+
+        <!-- Píldoras de los 4 Subagentes -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[10px]">
+          <div class="p-1.5 rounded bg-[#130d29] border border-purple-500/30 flex items-center gap-1.5 text-purple-300">
+            <span>🏛️</span>
+            <div>
+              <div class="font-bold">Atenea</div>
+              <div class="text-[9px] text-slate-400">Arquitectura & DDD</div>
+            </div>
+          </div>
+          <div class="p-1.5 rounded bg-[#09152b] border border-cyan-500/30 flex items-center gap-1.5 text-cyan-300">
+            <span>⚔️</span>
+            <div>
+              <div class="font-bold">Vulcano</div>
+              <div class="text-[9px] text-slate-400">Backend Clean</div>
+            </div>
+          </div>
+          <div class="p-1.5 rounded bg-[#041d14] border border-[#00ffaa]/30 flex items-center gap-1.5 text-[#00ffaa]">
+            <span>🎨</span>
+            <div>
+              <div class="font-bold">Mercurio</div>
+              <div class="text-[9px] text-slate-400">Vue 3 / Live UI</div>
+            </div>
+          </div>
+          <div class="p-1.5 rounded bg-[#1e1405] border border-amber-500/30 flex items-center gap-1.5 text-amber-300">
+            <span>🧪</span>
+            <div>
+              <div class="font-bold">Némesis</div>
+              <div class="text-[9px] text-slate-400">QA & Auditoría</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Segmentos de Contenido: HTML y Diagramas Mermaid Interactivos -->

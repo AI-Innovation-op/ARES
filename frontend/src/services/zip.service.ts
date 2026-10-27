@@ -54,40 +54,67 @@ export class ZipService {
       }
     }
 
-    // Patrón 3: Comentario de primera línea dentro de cualquier bloque de código:
-    // ```typescript\n// File: src/domain/coffee.ts\n...```
-    const regexPatron3 = /```([a-zA-Z0-9_-]*)\n(?:(?:\/\/|\/\*|<!--|#)\s*(?:File|Archivo):\s*([a-zA-Z0-9_\-\./\\]+)(?:\s*\*\/|-->)?)\n([\s\S]*?)```/gi;
-    while ((match = regexPatron3.exec(texto)) !== null) {
-      const lenguaje = match[1]?.trim() || 'text';
-      const ruta = this.limpiarRuta(match[2]);
-      const contenido = match[3]?.trim();
+    // Patrón 3 Avanzado: Bloques de código con una o múltiples directivas de archivo
+    // Soporta bloques con múltiples archivos: // FILE: ruta1 \n ... \n // FILE: ruta2 \n ...
+    const regexBloqueCodigo = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/gi;
+    let matchBloque: RegExpExecArray | null;
 
-      if (ruta && contenido && !rutasDetectadas.has(ruta)) {
-        rutasDetectadas.add(ruta);
-        archivos.push({ ruta, contenido, lenguaje });
-      }
-    }
+    while ((matchBloque = regexBloqueCodigo.exec(texto)) !== null) {
+      const lenguajeBloque = matchBloque[1]?.trim() || 'text';
+      const cuerpo = matchBloque[2];
 
-    // Patrón 4 (Fallback para UIs y Live Previews): Si no se detectaron archivos con rutas explícitas,
-    // detectar bloques completos de HTML (<!DOCTYPE, <html, <head, <body) o componentes Vue (<template>)
-    if (archivos.length === 0) {
-      // 4a. Bloque HTML completo
-      const regexHtml = /```(?:html|xml)?\s*\n([\s\S]*?(?:<!DOCTYPE|<html|<head|<body)[\s\S]*?)```/gi;
-      let matchHtml: RegExpExecArray | null;
-      let htmlIdx = 1;
-      while ((matchHtml = regexHtml.exec(texto)) !== null) {
-        const contenido = matchHtml[1]?.trim();
-        if (contenido) {
-          const ruta = htmlIdx === 1 ? 'index.html' : `preview-${htmlIdx}.html`;
-          if (!rutasDetectadas.has(ruta)) {
+      // Buscar separadores de archivo: // FILE: ruta, <!-- FILE: ruta -->, /* FILE: ruta */
+      const partes = cuerpo.split(/(?:^|\n)(?=(?:\/\/|\/\*|<!--|#)\s*(?:File|Archivo):\s*[a-zA-Z0-9_\-\./\\]+)/i);
+
+      if (partes.length > 1) {
+        for (const parte of partes) {
+          const matchSub = parte.match(/^(?:(?:\/\/|\/\*|<!--|#)\s*(?:File|Archivo):\s*([a-zA-Z0-9_\-\./\\]+)(?:\s*\*\/|-->)?)\r?\n([\s\S]*)$/i);
+          if (matchSub) {
+            const ruta = this.limpiarRuta(matchSub[1]);
+            const contenido = matchSub[2]?.trim();
+            if (ruta && contenido && !rutasDetectadas.has(ruta)) {
+              rutasDetectadas.add(ruta);
+              archivos.push({ ruta, contenido, lenguaje: this.deducirLenguajePorExtension(ruta, lenguajeBloque) });
+            }
+          }
+        }
+      } else {
+        // Bloque con un solo archivo al inicio
+        const matchSingle = cuerpo.match(/^(?:(?:\/\/|\/\*|<!--|#)\s*(?:File|Archivo):\s*([a-zA-Z0-9_\-\./\\]+)(?:\s*\*\/|-->)?)\r?\n([\s\S]*)$/i);
+        if (matchSingle) {
+          const ruta = this.limpiarRuta(matchSingle[1]);
+          const contenido = matchSingle[2]?.trim();
+          if (ruta && contenido && !rutasDetectadas.has(ruta)) {
             rutasDetectadas.add(ruta);
-            archivos.push({ ruta, contenido, lenguaje: 'html' });
-            htmlIdx++;
+            archivos.push({ ruta, contenido, lenguaje: this.deducirLenguajePorExtension(ruta, lenguajeBloque) });
           }
         }
       }
+    }
 
-      // 4b. Bloque Vue SFC
+    // Patrón 4: SIEMPRE extraer bloques completos de HTML (<!DOCTYPE o <html o <head o <body)
+    // Estos bloques son vitales para el Live Preview Sandbox en tiempo real.
+    const regexHtml = /```(?:html|xml)?\s*\n([\s\S]*?(?:<!DOCTYPE|<html|<head|<body)[\s\S]*?)```/gi;
+    let matchHtml: RegExpExecArray | null;
+    let htmlIdx = 1;
+    while ((matchHtml = regexHtml.exec(texto)) !== null) {
+      const contenido = matchHtml[1]?.trim();
+      if (contenido) {
+        const ruta = htmlIdx === 1 ? 'index.html' : `preview-${htmlIdx}.html`;
+        const existente = archivos.find((a) => a.ruta === ruta);
+        if (!existente) {
+          rutasDetectadas.add(ruta);
+          archivos.push({ ruta, contenido, lenguaje: 'html' });
+        } else if (contenido.length > existente.contenido.length && (contenido.includes('<script') || contenido.includes('Vue'))) {
+          // Si encontramos una versión más rica o interactiva del HTML, actualizar index.html
+          existente.contenido = contenido;
+        }
+        htmlIdx++;
+      }
+    }
+
+    // Patrón 5: Si no hay archivos .vue explícitos, extraer bloques <template>
+    if (!archivos.some((a) => a.ruta.endsWith('.vue'))) {
       const regexVue = /```(?:vue)?\s*\n([\s\S]*?<template[\s\S]*?)```/gi;
       let matchVue: RegExpExecArray | null;
       let vueIdx = 1;
@@ -115,6 +142,37 @@ export class ZipService {
       .replace(/^[\\\/]+/, '')
       .replace(/[*`"']/g, '')
       .trim();
+  }
+
+  /**
+   * Deduce el lenguaje adecuado según la extensión del archivo.
+   */
+  private deducirLenguajePorExtension(ruta: string, defaultLang: string): string {
+    const ext = ruta.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'ts':
+        return 'typescript';
+      case 'js':
+        return 'javascript';
+      case 'vue':
+        return 'vue';
+      case 'html':
+        return 'html';
+      case 'css':
+        return 'css';
+      case 'json':
+        return 'json';
+      case 'md':
+        return 'markdown';
+      case 'py':
+        return 'python';
+      case 'go':
+        return 'go';
+      case 'sql':
+        return 'sql';
+      default:
+        return defaultLang || 'text';
+    }
   }
 
   /**

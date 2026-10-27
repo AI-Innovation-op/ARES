@@ -24,6 +24,11 @@ import {
   listarRepositoriosHandler,
   obtenerRepositorioActivoHandler,
 } from './controllers/repositories.controller.js';
+import {
+  listarAgentesSwarmHandler,
+  ejecutarSwarmHandler,
+  ejecutarSwarmStreamHandler,
+} from './controllers/swarm.controller.js';
 import { CATALOGO_MODELOS } from './services/llm.service.js';
 import { ejecutarHerramienta, DECLARACIONES_HERRAMIENTAS } from './services/tools.service.js';
 import { manejadorErrores } from './middleware/error.middleware.js';
@@ -54,7 +59,7 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ONLINE',
-    agent: 'A.R.E.S. v2.9 J.A.R.V.I.S. Core',
+    agent: 'A.R.E.S. v3.1 Sovereign Swarm Core',
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
   });
@@ -66,6 +71,11 @@ app.post('/api/chat/stream', chatStreamHandler);
 app.get('/api/models', (_req, res) => {
   res.status(200).json({ models: CATALOGO_MODELOS });
 });
+
+// 1.1 Enjambre de Subagentes Especializados (Multi-Agent Swarm v3.1)
+app.get('/api/swarm/agents', listarAgentesSwarmHandler);
+app.post('/api/swarm/execute', ejecutarSwarmHandler);
+app.post('/api/swarm/stream', ejecutarSwarmStreamHandler);
 
 // 1.1 Persistencia y Sesiones de Chat (Memoria Total)
 app.get('/api/conversations', listarConversacionesHandler);
@@ -123,7 +133,7 @@ app.use(manejadorErrores);
 // ============================================================================
 async function iniciarServidor(): Promise<void> {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🛡️  INICIALIZANDO SISTEMA TÁCTICO A.R.E.S. v2.6 (CORE)...');
+  console.log('🛡️  INICIALIZANDO SISTEMA TÁCTICO A.R.E.S. v3.1 (SOVEREIGN SWARM)...');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
   // Intentar conectar a PostgreSQL

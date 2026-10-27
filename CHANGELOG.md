@@ -5,6 +5,33 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [3.1.0] - 2026-10-27
+
+### 🐝 Nuevas Funcionalidades (Features)
+- **Enjambre de Subagentes Especializados (Multi-Agent Sovereign Swarm):**
+  - Orquestación jerárquica de 4 subagentes técnicos especializados con prompts de rol y contratos estrictos:
+    - **Atenea (Orquestador & Auditor DDD):** Descompone la misión, define bounded contexts y audita el cumplimiento de DDD y Clean Architecture.
+    - **Vulcano (Arquitecto de Dominio & Casos de Uso):** Forja entidades puras, value objects inmutables, repositorios y puertos.
+    - **Mercurio (Ingeniero de Interfaz & Live Preview):** Genera interfaces interactivas con Tailwind CSS, componentes reactivos y vistas responsive sin dependencias relativas rotas.
+    - **Némesis (Auditor de Calidad & Generador de Tests):** Genera suites de pruebas con Vitest/Jest, verifica invariants y edge cases.
+  - **SwarmMonitorModal.vue:** Monitor táctico del enjambre con telemetría en tiempo real, selector de misiones predefinidas (*E-Commerce DDD*, *Microservicio Auth*, *Dashboard Realtime*) y logs en streaming de agentes.
+  - **Lanzador de Misiones Instantáneo (Preset One-Click):** Botones `[ ▶ Lanzar Ahora ]` y `[ ✏️ Modificar ]` para ejecución inmediata en consola o personalización previa.
+  - **Selector de Modo Táctico en ChatConsole:** Pestañas `[ 🛡️ A.R.E.S. Prime ]` y `[ 🐝 Enjambre Multi-Agente ]` para alternar entre el copiloto central y el enjambre distribuido.
+
+### 🛠️ Correcciones y Refactorizaciones (Fixes)
+- **Extracción Multi-Archivo desde Bloques Únicos (`zip.service.ts`):** Parser heurístico mejorado que detecta y separa múltiples archivos concatenados por LLMs dentro de un único bloque de código (mediante delimitadores `// File: ruta` o `<!-- Archivo: ruta -->`), garantizando la preservación completa del árbol DDD en el archivo `.zip`.
+- **Extracción Incondicional de Sandboxes HTML:** Se eliminó la restricción que omitía bloques `<!DOCTYPE html>` cuando ya existían archivos de dominio, permitiendo que las vistas web completas siempre se sincronicen en `index.html`.
+- **Universal Live Preview Synthesizer (`preview-compiler.service.ts`):** 
+  - Síntesis interactiva completa para dominios de alimentación/ensaladas saludables (`sintetizarEnsaladaApp`):
+    - Catálogo visual interactivo con 8 ingredientes clasificados por categorías (Vegetales, Proteínas, Toppings, Aderezos).
+    - Creador de Bowls en Vivo con cálculo dinámico de calorías (kcal) y precio en tiempo real.
+    - Drawer de Carrito de Compras con ajuste reactivo de cantidades y umbral de envío gratuito.
+    - Modal de Boleta Electrónica Oficial (B001-000492) con desglose de ítems, subtotal, IGV (18%) y despacho de eventos de dominio (`OrderPlacedEvent`).
+    - Modos de inspección multi-dispositivo (Desktop, Tablet 768px, Móvil 375px) 100% operativos.
+- **Instrucciones Estrictas para Agentes LLM (`swarm.service.ts` & `gemini.service.ts`):** Directiva reforzada que prohíbe terminantemente el uso de scripts relativos (`<script src="app.js"></script>`) en sandboxes `iframe srcdoc`, forzando JavaScript/Vue inline autónomo.
+
+---
+
 ## [3.0.0] - 2026-10-27
 
 ### 🌟 Hito Mayor (Major Release - Sovereign Autonomous Engineering)

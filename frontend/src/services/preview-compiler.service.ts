@@ -64,6 +64,22 @@ export class PreviewCompilerService {
       return this.sintetizarAuthJwtApp(titulo);
     }
 
+    // 3.1 Caso E: Proyecto de Ensaladas / Comida Saludable / Food DDD
+    const esProyectoEnsalada = archivos.some(
+      (a) =>
+        a.ruta.toLowerCase().includes('ensalada') ||
+        a.ruta.toLowerCase().includes('salad') ||
+        a.contenido.toLowerCase().includes('ensalada') ||
+        a.contenido.toLowerCase().includes('ingrediente') ||
+        a.contenido.toLowerCase().includes('lechuga') ||
+        titulo.toLowerCase().includes('ensalada') ||
+        titulo.toLowerCase().includes('salad')
+    );
+
+    if (esProyectoEnsalada) {
+      return this.sintetizarEnsaladaApp(titulo);
+    }
+
     // 4. Caso D: Síntesis General de Componentes Vue
     return this.sintetizarVueGeneral(archivos, titulo);
   }
@@ -664,6 +680,630 @@ export class PreviewCompilerService {
       document.getElementById('panelToken').classList.remove('hidden');
       console.log('✅ Token JWT generado e inspeccionado con éxito.');
     }
+  </script>
+</body>
+</html>`;
+  }
+
+  /**
+   * Sintetiza una aplicación completa, interactiva y responsiva de Barra Gourmet de Ensaladas (GreenBowl)
+   * bajo arquitectura DDD limpia (catálogo con cards/grids, bowl builder en tiempo real, carrito y boleta electrónica).
+   */
+  private sintetizarEnsaladaApp(titulo: string): string {
+    const scriptLog = this.obtenerScriptIntercepcionLogs();
+
+    return `<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${titulo} // GreenBowl Healthy FoodTech</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            salad: {
+              50: '#F0FDF4',
+              100: '#DCFCE7',
+              200: '#BBF7D0',
+              300: '#86EFAC',
+              400: '#4ADE80',
+              500: '#22C55E',
+              600: '#16A34A',
+              700: '#15803D',
+              800: '#166534',
+              900: '#14532D',
+              950: '#052E16',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #86EFAC; border-radius: 4px; }
+  </style>
+  ${scriptLog}
+</head>
+<body class="bg-salad-50 text-slate-800 antialiased min-h-full flex flex-col selection:bg-salad-300 selection:text-salad-900">
+
+  <!-- 1. Barra de Navegación Superior -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-salad-200 px-4 sm:px-8 py-3.5 shadow-sm flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-salad-600 text-white flex items-center justify-center text-xl shadow-md">
+        🥗
+      </div>
+      <div>
+        <h1 class="text-base sm:text-lg font-extrabold text-salad-950 tracking-tight leading-none flex items-center gap-2">
+          <span>GreenBowl Lab</span>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
+            DDD PATTERN
+          </span>
+        </h1>
+        <p class="text-[11px] text-salad-700 font-medium mt-0.5">Barra Artesanal de Ensaladas & Nutrición Inteligente</p>
+      </div>
+    </div>
+
+    <!-- Acciones de Cabecera: Carrito con Contador Reactivo -->
+    <div class="flex items-center gap-3">
+      <button
+        id="btnAbrirCarrito"
+        type="button"
+        onclick="toggleModalCarrito()"
+        class="px-3.5 py-2 rounded-xl bg-salad-600 hover:bg-salad-700 text-white font-semibold text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer transform active:scale-95"
+      >
+        <span>🛒</span>
+        <span class="hidden sm:inline">Tu Carrito</span>
+        <span id="badgeContadorCarrito" class="px-2 py-0.5 rounded-full bg-white text-salad-900 text-[11px] font-extrabold shadow-sm">
+          0
+        </span>
+        <span id="badgeTotalCabecera" class="hidden sm:inline font-mono font-bold text-salad-100">
+          $0.00
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 2. Hero Banner & Constructor de Bowl en Vivo -->
+  <section class="bg-gradient-to-br from-salad-900 via-salad-800 to-salad-950 text-white px-4 sm:px-8 py-8 sm:py-12 border-b border-salad-950 relative overflow-hidden">
+    <div class="max-w-5xl mx-auto relative z-10 space-y-6">
+      <div class="text-center space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-salad-700/50 border border-salad-400/40 text-salad-200 text-xs font-mono">
+          <span>⚡</span> <span>AGREGADOS DE DOMINIO // ENSALADA & CARRITO REACTIVO</span>
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Crea tu Ensalada a la Medida
+        </h2>
+        <p class="text-xs sm:text-sm text-salad-200 max-w-xl mx-auto">
+          Selecciona tus bases frescas, proteínas magras y aderezos con cálculo dinámico de calorías y emisión de boleta electrónica.
+        </p>
+      </div>
+
+      <!-- Live Bowl Builder Card (Estado Reactivo del Bowl) -->
+      <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 shadow-xl max-w-3xl mx-auto">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pb-3 border-b border-white/15">
+          <div class="flex items-center gap-2 text-salad-300 font-bold text-xs uppercase tracking-wider">
+            <span>🥗</span>
+            <span>BOWL EN PREPARACIÓN (LIVE AGGREGATE):</span>
+          </div>
+          <div class="flex items-center gap-3 text-xs font-mono">
+            <span class="px-2 py-0.5 rounded bg-black/30 border border-salad-400/30 text-salad-300">
+              🔥 <span id="bowlKcal">0</span> kcal
+            </span>
+            <span class="px-2 py-0.5 rounded bg-salad-500 text-white font-extrabold">
+              💰 $<span id="bowlPrecio">0.00</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Lista de Ingredientes Agregados al Bowl -->
+        <div id="bowlIngredientesList" class="py-3 flex flex-wrap gap-1.5 min-h-[46px] items-center">
+          <span class="text-xs text-salad-300/80 italic">
+            Elige ingredientes del catálogo inferior para armar tu bowl personalizado...
+          </span>
+        </div>
+
+        <div class="flex items-center justify-between pt-3 border-t border-white/15 gap-2">
+          <button
+            type="button"
+            onclick="vaciarBowl()"
+            class="text-[11px] text-rose-300 hover:text-rose-100 hover:underline cursor-pointer"
+          >
+            ✕ Vaciar Bowl
+          </button>
+          <button
+            id="btnGuardarBowl"
+            type="button"
+            onclick="guardarBowlEnCarrito()"
+            class="px-4 py-2 rounded-xl bg-salad-400 hover:bg-salad-300 text-salad-950 font-extrabold text-xs transition cursor-pointer shadow-lg flex items-center gap-1.5 transform active:scale-95"
+          >
+            <span>🛒</span>
+            <span>Guardar Bowl en Carrito</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Catálogo de Ingredientes con Filtros -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-8 py-8 flex-1 w-full space-y-6">
+    <!-- Filtros de Categoría -->
+    <div class="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-salad-200">
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          onclick="filtrar('todos')"
+          class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-salad-700 text-white cursor-pointer shadow-sm"
+        >
+          Todos (8)
+        </button>
+        <button
+          onclick="filtrar('Vegetal')"
+          class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-slate-700 hover:bg-salad-100 cursor-pointer border border-salad-200"
+        >
+          🥬 Vegetales & Bases
+        </button>
+        <button
+          onclick="filtrar('Proteína')"
+          class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-slate-700 hover:bg-salad-100 cursor-pointer border border-salad-200"
+        >
+          🍗 Proteínas Magras
+        </button>
+        <button
+          onclick="filtrar('Topping')"
+          class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-slate-700 hover:bg-salad-100 cursor-pointer border border-salad-200"
+        >
+          🥑 Toppings & Frutos
+        </button>
+        <button
+          onclick="filtrar('Aderezo')"
+          class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-slate-700 hover:bg-salad-100 cursor-pointer border border-salad-200"
+        >
+          🥣 Aderezos Artesanales
+        </button>
+      </div>
+
+      <div class="text-[11px] font-mono text-salad-800 hidden sm:block">
+        Entidad: <span class="text-salad-600 font-bold">Ingrediente(ValueObject)</span>
+      </div>
+    </div>
+
+    <!-- Grid de Tarjetas de Ingredientes -->
+    <div id="gridIngredientes" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Inyectado dinámicamente por JavaScript -->
+    </div>
+  </main>
+
+  <!-- 4. Drawer Modal del Carrito de Compras -->
+  <div id="modalCarrito" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex justify-end">
+    <div class="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden">
+      <!-- Encabezado del Carrito -->
+      <div class="p-4 sm:p-5 border-b border-salad-200 bg-salad-50 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🛒</span>
+          <div>
+            <h3 class="text-sm font-extrabold text-salad-950 font-mono">TU PEDIDO DE ENSALADAS</h3>
+            <p class="text-[11px] text-salad-700">Agregado Carrito // Clean Architecture</p>
+          </div>
+        </div>
+        <button onclick="toggleModalCarrito()" class="w-8 h-8 rounded-lg bg-salad-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 font-bold transition flex items-center justify-center cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Lista de Ítems del Carrito -->
+      <div id="itemsCarrito" class="p-4 sm:p-5 flex-1 overflow-y-auto space-y-3 custom-scroll">
+        <!-- Renderizado dinámico -->
+      </div>
+
+      <!-- Resumen y Checkout -->
+      <div class="p-4 sm:p-5 border-t border-salad-200 bg-salad-50/70 space-y-3">
+        <div class="space-y-1.5 text-xs text-slate-600 font-mono">
+          <div class="flex justify-between">
+            <span>Subtotal:</span>
+            <span id="subtotalCarrito" class="font-bold text-slate-800">$0.00</span>
+          </div>
+          <div class="flex justify-between text-salad-700">
+            <span>Envío Eco-Friendly:</span>
+            <span class="font-bold">GRATIS</span>
+          </div>
+          <div class="flex justify-between text-sm font-extrabold text-salad-950 pt-2 border-t border-salad-200">
+            <span>TOTAL:</span>
+            <span id="totalFinalCarrito" class="text-base text-salad-700">$0.00</span>
+          </div>
+        </div>
+
+        <button
+          onclick="abrirBoletaModal()"
+          class="w-full py-3 rounded-xl bg-salad-600 hover:bg-salad-700 text-white font-extrabold text-xs transition cursor-pointer shadow-lg flex items-center justify-center gap-2 uppercase tracking-wider transform active:scale-95"
+        >
+          <span>🧾</span>
+          <span>GENERAR BOLETA ELECTRÓNICA</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Modal de Boleta Electrónica Oficial -->
+  <div id="modalBoleta" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-salad-300 font-mono text-xs">
+      <!-- Cabecera de la Boleta -->
+      <div class="bg-salad-900 text-white p-4 text-center border-b border-salad-950">
+        <h4 class="font-extrabold text-sm tracking-widest text-salad-300 uppercase">GREENBOWL FOODTECH S.A.C.</h4>
+        <p class="text-[10px] text-salad-200 mt-0.5">R.U.C. 20608945123 // LIMA, PERÚ</p>
+        <div class="mt-2 py-1 px-3 inline-block rounded bg-salad-800 border border-salad-600 font-bold text-white text-[11px]">
+          BOLETA DE VENTA ELECTRÓNICA: <span id="boletaId">B001-000492</span>
+        </div>
+      </div>
+
+      <!-- Datos del Cliente y Fecha -->
+      <div class="p-4 border-b border-salad-100 bg-salad-50/50 space-y-1 text-[11px]">
+        <div class="flex justify-between">
+          <span class="text-slate-500">FECHA Y HORA:</span>
+          <span id="boletaFecha" class="font-bold text-slate-800"></span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">CLIENTE:</span>
+          <span class="font-bold text-salad-800">COMANDANTE A.R.E.S.</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">MONEDA:</span>
+          <span class="font-bold text-slate-800">USD / DÓLARES</span>
+        </div>
+      </div>
+
+      <!-- Tabla de Ítems en la Boleta -->
+      <div class="p-4 max-h-48 overflow-y-auto custom-scroll border-b border-salad-100">
+        <table class="w-full text-left text-[11px]">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-400">
+              <th class="pb-1">CANT.</th>
+              <th class="pb-1">DESCRIPCIÓN</th>
+              <th class="pb-1 text-right">P.UNIT</th>
+              <th class="pb-1 text-right">TOTAL</th>
+            </tr>
+          </thead>
+          <tbody id="boletaDetalleBody" class="divide-y divide-slate-100 text-slate-700">
+            <!-- Rellenado dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totales e Impuestos -->
+      <div class="p-4 bg-salad-50/80 space-y-1 text-[11px] text-slate-700">
+        <div class="flex justify-between">
+          <span>OP. GRAVADA:</span>
+          <span id="boletaSubtotal" class="font-mono font-bold">$0.00</span>
+        </div>
+        <div class="flex justify-between">
+          <span>I.G.V. (18%):</span>
+          <span id="boletaIgv" class="font-mono font-bold">$0.00</span>
+        </div>
+        <div class="flex justify-between text-sm font-extrabold text-salad-950 pt-2 border-t border-salad-200">
+          <span>TOTAL A PAGAR:</span>
+          <span id="boletaTotalFinal" class="font-mono text-salad-700">$0.00</span>
+        </div>
+
+        <div class="pt-3 text-center">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300">
+            <span>✓</span> AUTORIZADA POR SUNAT // EVENTO DOMINIO EMITIDO
+          </span>
+        </div>
+      </div>
+
+      <!-- Pie de Cierre -->
+      <div class="p-3 bg-white border-t border-salad-200 flex items-center justify-between">
+        <span class="text-[10px] text-slate-400 italic">¡Gracias por nutrirte con código limpio!</span>
+        <button
+          onclick="cerrarBoleta()"
+          class="px-4 py-1.5 rounded-lg bg-salad-600 hover:bg-salad-700 text-white font-bold text-xs cursor-pointer shadow transition"
+        >
+          Cerrar Boleta
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Notificación Toast -->
+  <div
+    id="toastNotification"
+    class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-salad-400 flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none"
+  >
+    <span id="toastIcon" class="text-xl">🥗</span>
+    <span id="toastMensaje" class="text-xs font-mono font-semibold">Notificación táctica</span>
+  </div>
+
+  <!-- 7. JavaScript Reactivo & Lógica de Dominio -->
+  <script>
+    // Catálogo de Ingredientes del Dominio DDD
+    const INGREDIENTES = [
+      { id: 'ing-1', nombre: 'Lechuga Romana & Espinaca', categoria: 'Vegetal', precio: 2.50, kcal: 45, icono: '🥬', badge: 'Base Fresca' },
+      { id: 'ing-2', nombre: 'Tomates Cherry & Pepino', categoria: 'Vegetal', precio: 1.80, kcal: 30, icono: '🍅', badge: 'Antioxidantes' },
+      { id: 'ing-3', nombre: 'Pechuga de Pollo Parrilla', categoria: 'Proteína', precio: 4.50, kcal: 165, icono: '🍗', badge: 'Proteína Magra' },
+      { id: 'ing-4', nombre: 'Tofu Salteado al Sésamo', categoria: 'Proteína', precio: 3.80, kcal: 120, icono: '🧀', badge: 'Vegano' },
+      { id: 'ing-5', nombre: 'Palta Hass Fresca', categoria: 'Topping', precio: 2.90, kcal: 160, icono: '🥑', badge: 'Grasas Buenas' },
+      { id: 'ing-6', nombre: 'Nueces Caramelizadas & Chía', categoria: 'Topping', precio: 1.50, kcal: 95, icono: '🌰', badge: 'Superfood' },
+      { id: 'ing-7', nombre: 'Vinagreta Balsámica Romero', categoria: 'Aderezo', precio: 1.00, kcal: 50, icono: '🫒', badge: 'Sin Gluten' },
+      { id: 'ing-8', nombre: 'Mostaza Dijon con Miel', categoria: 'Aderezo', precio: 1.20, kcal: 60, icono: '🍋', badge: 'Artesanal' }
+    ];
+
+    // Estado en Memoria
+    let filtroActivo = 'todos';
+    let bowlActual = []; // Ingredientes del bowl en construcción
+    let carrito = []; // Ítems guardados para la orden final
+
+    function renderizarCatalogo() {
+      const grid = document.getElementById('gridIngredientes');
+      grid.innerHTML = '';
+
+      const filtrados = filtroActivo === 'todos'
+        ? INGREDIENTES
+        : INGREDIENTES.filter(i => i.categoria === filtroActivo);
+
+      filtrados.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl border border-salad-200 p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between';
+        card.innerHTML = \`
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-3xl">\${item.icono}</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-salad-100 text-salad-800 font-bold border border-salad-300">
+                \${item.badge}
+              </span>
+            </div>
+            <h3 class="font-extrabold text-sm text-slate-800 tracking-tight leading-snug">\${item.nombre}</h3>
+            <p class="text-[11px] text-slate-400 font-mono mt-0.5">\${item.categoria} // \${item.kcal} kcal</p>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="font-extrabold font-mono text-salad-700 text-sm">$\${item.precio.toFixed(2)}</span>
+            <button
+              onclick="agregarAlBowl('\${item.id}')"
+              class="px-3 py-1.5 rounded-xl bg-salad-600 hover:bg-salad-700 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1 shadow-sm active:scale-95"
+            >
+              <span>+</span>
+              <span>Añadir</span>
+            </button>
+          </div>
+        \`;
+        grid.appendChild(card);
+      });
+    }
+
+    function agregarAlBowl(idIngrediente) {
+      const ing = INGREDIENTES.find(i => i.id === idIngrediente);
+      if (!ing) return;
+
+      bowlActual.push(ing);
+      actualizarBowlUI();
+      mostrarToast(\`Añadido: \${ing.nombre} al bowl.\`, ing.icono);
+    }
+
+    function removerDelBowl(index) {
+      bowlActual.splice(index, 1);
+      actualizarBowlUI();
+    }
+
+    function vaciarBowl() {
+      bowlActual = [];
+      actualizarBowlUI();
+      mostrarToast('Bowl reiniciado.', '🔄');
+    }
+
+    function actualizarBowlUI() {
+      const container = document.getElementById('bowlIngredientesList');
+      const kcalEl = document.getElementById('bowlKcal');
+      const precioEl = document.getElementById('bowlPrecio');
+
+      if (bowlActual.length === 0) {
+        container.innerHTML = '<span class="text-xs text-salad-300/80 italic">Elige ingredientes del catálogo inferior para armar tu bowl personalizado...</span>';
+        kcalEl.textContent = '0';
+        precioEl.textContent = '0.00';
+        return;
+      }
+
+      container.innerHTML = '';
+      let totalKcal = 0;
+      let totalPrecio = 0;
+
+      bowlActual.forEach((item, idx) => {
+        totalKcal += item.kcal;
+        totalPrecio += item.precio;
+
+        const tag = document.createElement('span');
+        tag.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/20 border border-white/30 text-white text-xs font-bold shadow-sm';
+        tag.innerHTML = \`
+          <span>\${item.icono}</span>
+          <span>\${item.nombre}</span>
+          <button onclick="removerDelBowl(\${idx})" class="ml-1 text-rose-300 hover:text-rose-100 font-extrabold cursor-pointer">✕</button>
+        \`;
+        container.appendChild(tag);
+      });
+
+      kcalEl.textContent = totalKcal;
+      precioEl.textContent = totalPrecio.toFixed(2);
+    }
+
+    function guardarBowlEnCarrito() {
+      if (bowlActual.length === 0) {
+        mostrarToast('⚠️ Agrega al menos un ingrediente para armar tu ensalada.', '⚠️');
+        return;
+      }
+
+      const totalPrecio = bowlActual.reduce((acc, i) => acc + i.precio, 0);
+      const totalKcal = bowlActual.reduce((acc, i) => acc + i.kcal, 0);
+
+      carrito.push({
+        id: 'bowl-' + Date.now(),
+        nombre: 'Bowl Personalizado (' + bowlActual.length + ' ingredientes)',
+        descripcion: bowlActual.map(i => i.nombre).join(', '),
+        precio: totalPrecio,
+        kcal: totalKcal,
+        cantidad: 1,
+        icono: '🥗'
+      });
+
+      bowlActual = [];
+      actualizarBowlUI();
+      actualizarCarritoUI();
+      mostrarToast('🎉 ¡Ensalada agregada al carrito con éxito!', '🛒');
+      console.log('[DDD Agregado]: Ensalada construida y agregada al Carrito.');
+    }
+
+    function actualizarCarritoUI() {
+      const countEl = document.getElementById('badgeContadorCarrito');
+      const totalHeader = document.getElementById('badgeTotalCabecera');
+      const itemsContainer = document.getElementById('itemsCarrito');
+      const subtotalEl = document.getElementById('subtotalCarrito');
+      const totalFinalEl = document.getElementById('totalFinalCarrito');
+
+      const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+      const totalMonto = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+
+      countEl.textContent = totalItems;
+      totalHeader.textContent = '$' + totalMonto.toFixed(2);
+      subtotalEl.textContent = '$' + totalMonto.toFixed(2);
+      totalFinalEl.textContent = '$' + totalMonto.toFixed(2);
+
+      itemsContainer.innerHTML = '';
+      if (carrito.length === 0) {
+        itemsContainer.innerHTML = \`
+          <div class="py-12 text-center text-slate-400 space-y-2">
+            <span class="text-4xl block">🥗</span>
+            <p class="text-xs font-mono">El carrito se encuentra vacío.</p>
+          </div>
+        \`;
+        return;
+      }
+
+      carrito.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'p-3 rounded-xl bg-salad-50/80 border border-salad-200 flex items-center justify-between gap-3';
+        row.innerHTML = \`
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="text-2xl">\${item.icono}</span>
+            <div class="min-w-0">
+              <div class="font-extrabold text-xs text-slate-800 truncate">\${item.nombre}</div>
+              <div class="text-[10px] text-slate-400 font-mono truncate max-w-[180px]">\${item.descripcion}</div>
+              <div class="text-[11px] font-mono font-bold text-salad-700">$\${item.precio.toFixed(2)}</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="cambiarCantidad('\${item.id}', -1)" class="w-6 h-6 rounded bg-white border border-salad-300 font-bold text-slate-700 hover:bg-salad-100 cursor-pointer flex items-center justify-center">-</button>
+            <span class="font-mono font-extrabold text-xs text-slate-900 w-4 text-center">\${item.cantidad}</span>
+            <button onclick="cambiarCantidad('\${item.id}', 1)" class="w-6 h-6 rounded bg-white border border-salad-300 font-bold text-slate-700 hover:bg-salad-100 cursor-pointer flex items-center justify-center">+</button>
+          </div>
+        \`;
+        itemsContainer.appendChild(row);
+      });
+    }
+
+    function cambiarCantidad(idItem, delta) {
+      const idx = carrito.findIndex(i => i.id === idItem);
+      if (idx === -1) return;
+
+      carrito[idx].cantidad += delta;
+      if (carrito[idx].cantidad <= 0) {
+        carrito.splice(idx, 1);
+      }
+      actualizarCarritoUI();
+    }
+
+    function toggleModalCarrito() {
+      const modal = document.getElementById('modalCarrito');
+      modal.classList.toggle('hidden');
+    }
+
+    function abrirBoletaModal() {
+      if (carrito.length === 0) {
+        mostrarToast('⚠️ Agrega al menos un ítem al carrito.', '⚠️');
+        return;
+      }
+
+      toggleModalCarrito();
+
+      const modalBoleta = document.getElementById('modalBoleta');
+      const fechaEl = document.getElementById('boletaFecha');
+      const bodyEl = document.getElementById('boletaDetalleBody');
+      const subtotalEl = document.getElementById('boletaSubtotal');
+      const igvEl = document.getElementById('boletaIgv');
+      const totalEl = document.getElementById('boletaTotalFinal');
+
+      const fecha = new Date().toLocaleString();
+      fechaEl.textContent = fecha;
+
+      bodyEl.innerHTML = '';
+      let totalMonto = 0;
+
+      carrito.forEach(item => {
+        const itemTotal = item.precio * item.cantidad;
+        totalMonto += itemTotal;
+
+        const tr = document.createElement('tr');
+        tr.className = 'py-1';
+        tr.innerHTML = \`
+          <td class="font-bold">\${item.cantidad}</td>
+          <td class="pr-2">\${item.nombre}</td>
+          <td class="text-right">$\${item.precio.toFixed(2)}</td>
+          <td class="text-right font-bold">$\${itemTotal.toFixed(2)}</td>
+        \`;
+        bodyEl.appendChild(tr);
+      });
+
+      const subtotal = totalMonto / 1.18;
+      const igv = totalMonto - subtotal;
+
+      subtotalEl.textContent = '$' + subtotal.toFixed(2);
+      igvEl.textContent = '$' + igv.toFixed(2);
+      totalEl.textContent = '$' + totalMonto.toFixed(2);
+
+      modalBoleta.classList.remove('hidden');
+      mostrarToast('🧾 Boleta Electrónica generada exitosamente.', '🧾');
+      console.log('[DDD Domain Event]: OrderPlacedEvent -> Boleta emitada: B001-000492');
+    }
+
+    function cerrarBoleta() {
+      document.getElementById('modalBoleta').classList.add('hidden');
+      carrito = [];
+      actualizarCarritoUI();
+      mostrarToast('✨ ¡Compra finalizada! Gracias por tu pedido.', '🎉');
+    }
+
+    function filtrar(categoria) {
+      filtroActivo = categoria;
+      document.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.classList.remove('bg-salad-700', 'text-white', 'shadow-sm');
+        btn.classList.add('bg-white', 'text-slate-700', 'border', 'border-salad-200');
+      });
+      event.target.classList.remove('bg-white', 'text-slate-700', 'border', 'border-salad-200');
+      event.target.classList.add('bg-salad-700', 'text-white', 'shadow-sm');
+      renderizarCatalogo();
+    }
+
+    function mostrarToast(mensaje, icono = '🥗') {
+      const toast = document.getElementById('toastNotification');
+      const msg = document.getElementById('toastMensaje');
+      const ic = document.getElementById('toastIcon');
+
+      msg.textContent = mensaje;
+      ic.textContent = icono;
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    // Inicializar UI al montar
+    renderizarCatalogo();
+    actualizarBowlUI();
+    actualizarCarritoUI();
+    console.log('✅ A.R.E.S. GreenBowl Healthy Food Sandbox montado exitosamente.');
   </script>
 </body>
 </html>`;

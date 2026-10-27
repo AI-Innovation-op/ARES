@@ -28,7 +28,7 @@ export const useChatStore = defineStore('chat', () => {
       id: 'bienvenida',
       role: 'model',
       content:
-        '🛡️ **A.R.E.S. Core v3.0 en línea (Heavy Engineering Sovereign Release).**\n\nSaludos, Comandante. Bienvenido a la era v3.0. Capacidades sensoriales y forja de alta ingeniería activas:\n- **🎙️ Oído Digital & Espectro Holográfico:** Entrada por voz en tiempo real con despacho fonético directo.\n- **🖥️ Live Sandbox & Forja .ZIP:** Previsualizaciones interactivas reactivas (Desktop/Tablet/Móvil) y empaquetado modular DDD.\n- **🔍 Ingesta & Auditoría GitHub:** Escaneo profundo de repositorios con diagramas C4 y blindaje OWASP.\n- **⚡ Modos de Combate:** Centinela (Auditor), Blitzkrieg (Prototipado) y Arquitecto (Estratega).\n\n¿Cuál es la primera orden táctica?',
+        '🛡️ **A.R.E.S. Core v3.1 en línea (Multi-Agent Swarm // Legión Soberana Activa).**\n\nSaludos, Comandante. Enjambre táctico de subagentes y protocolo de consenso operacional:\n- **🐝 Enjambre Multi-Agente:** Coordinación de Atenea (Arquitectura), Vulcano (Backend), Mercurio (Frontend) y Némesis (QA & Consenso).\n- **⚖️ Veredicto de Consenso Táctico:** Revisión cruzada obligatoria y validación estricta antes de consolidar el despliegue.\n- **🖥️ Live Sandbox & Forja .ZIP:** Previsualizaciones reactivas e interactividad en vivo listas para descarga modular DDD.\n- **🎙️ Oído Digital & Espectro:** Despacho verbal por comando de voz en caliente.\n\n¿Cuál es la primera orden táctica para la Legión?',
       poseNumber: 1,
       timestamp: new Date(),
     },
@@ -405,7 +405,7 @@ export const useChatStore = defineStore('chat', () => {
         id: 'bienvenida',
         role: 'model',
         content:
-          '🛡️ **A.R.E.S. Core v3.0 en línea (Heavy Engineering Sovereign Release).**\n\nConsola reiniciada. Todos los sistemas tácticos en orden. ¿Cuál es tu siguiente orden táctica, Comandante?',
+          '🛡️ **A.R.E.S. Core v3.1 en línea (Multi-Agent Swarm // Legión Soberana Activa).**\n\nConsola reiniciada. Los 4 subagentes tácticos se encuentran listos para el combate. ¿Cuál es tu siguiente orden táctica, Comandante?',
         poseNumber: 1,
         timestamp: new Date(),
       },

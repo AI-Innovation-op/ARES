@@ -178,6 +178,8 @@ export async function* invocarLLMStream(
   try {
     yield* invocarGeminiStream({
       contents: opciones.contents,
+      systemInstruction: opciones.systemInstruction,
+      model: opciones.model,
     });
   } catch (error: any) {
     // Failover a OpenRouter en streaming
