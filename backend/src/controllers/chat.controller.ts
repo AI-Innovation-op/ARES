@@ -14,7 +14,7 @@ export async function chatHandler(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { message, conversationId, imageBase64, commanderId } = req.body;
+    const { message, conversationId, imageBase64, commanderId, provider, model } = req.body;
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       throw new ValidationError('El campo "message" es obligatorio y no puede estar vacío.');
@@ -25,6 +25,8 @@ export async function chatHandler(
       conversationId,
       imageBase64,
       commanderId,
+      provider,
+      model,
     });
 
     res.status(200).json(respuesta);
@@ -43,7 +45,7 @@ export async function chatStreamHandler(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { message, conversationId, imageBase64, commanderId } = req.body;
+    const { message, conversationId, imageBase64, commanderId, provider, model } = req.body;
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       throw new ValidationError('El campo "message" es obligatorio y no puede estar vacío.');
@@ -60,6 +62,8 @@ export async function chatStreamHandler(
       conversationId,
       imageBase64,
       commanderId,
+      provider,
+      model,
     });
 
     for await (const evento of stream) {

@@ -2,12 +2,53 @@
 import { computed } from 'vue';
 import type { MensajeChat } from '../../types/ares.types.js';
 import MermaidViewer from '../common/MermaidViewer.vue';
+import { useUiStore } from '../../stores/ui.store.js';
+
+const uiStore = useUiStore();
 
 const props = defineProps<{
   message: MensajeChat;
 }>();
 
 const esUsuario = computed(() => props.message.role === 'user');
+
+// Detección automática de artefactos para derivación táctica
+const esDocumentacion = computed(() => {
+  const c = props.message.content.toLowerCase();
+  return (
+    c.includes('# rfc') ||
+    c.includes('# readme') ||
+    c.includes('## adr') ||
+    c.includes('openapi: 3') ||
+    c.includes('arquitectura') ||
+    c.includes('domain-driven') ||
+    (c.includes('contexto') && c.includes('decisión'))
+  );
+});
+
+const esCodigo = computed(() => {
+  const c = props.message.content;
+  return /```(typescript|javascript|python|go|rust|java|sql)\n/i.test(c) || c.includes('Big-O') || c.includes('SOLID');
+});
+
+const esMermaid = computed(() => {
+  return /```mermaid/i.test(props.message.content);
+});
+
+function derivarADoc() {
+  uiStore.derivarADocumentacion(props.message.content, 'Propuesta Técnica Generada', 'RFC');
+}
+
+function derivarACode() {
+  const match = props.message.content.match(/```([a-z0-9_-]*)\n([\s\S]*?)```/i);
+  const code = match ? match[2].trim() : props.message.content;
+  const lang = match ? match[1] : 'typescript';
+  uiStore.derivarACodigo(code, lang);
+}
+
+function derivarAArq() {
+  uiStore.derivarAArquitecto(props.message.content);
+}
 
 interface SegmentoMensaje {
   tipo: 'html' | 'mermaid';
@@ -131,6 +172,43 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
           <span class="w-2 h-2 rounded-full bg-[#00ffaa] animate-ping"></span>
           <span>A.R.E.S. procesando respuesta táctica...</span>
         </div>
+      </div>
+
+      <!-- Derivación Táctica Automática de Artefactos -->
+      <div v-if="!esUsuario && message.content && (esDocumentacion || esCodigo || esMermaid)" class="mt-3 pt-2.5 border-t border-[#132a4a] flex flex-wrap items-center gap-2">
+        <span class="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1">
+          <span>⚡</span> Derivación:
+        </span>
+
+        <button
+          v-if="esDocumentacion"
+          @click="derivarADoc"
+          class="px-2.5 py-1 rounded bg-[#0b1b36] border border-cyan-500/60 hover:border-cyan-400 hover:bg-cyan-950/40 text-cyan-300 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer shadow"
+          title="Abrir este documento en el Escudo Documental para guardarlo o exportarlo"
+        >
+          <span>🛡️</span>
+          <span>Escudo Documental</span>
+        </button>
+
+        <button
+          v-if="esCodigo"
+          @click="derivarACode"
+          class="px-2.5 py-1 rounded bg-[#0b1b36] border border-emerald-500/60 hover:border-emerald-400 hover:bg-emerald-950/40 text-emerald-300 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer shadow"
+          title="Abrir este código en la Espada Full-Stack para auditar SOLID, Big-O y generar tests"
+        >
+          <span>⚔️</span>
+          <span>Espada Full-Stack</span>
+        </button>
+
+        <button
+          v-if="esMermaid"
+          @click="derivarAArq"
+          class="px-2.5 py-1 rounded bg-[#0b1b36] border border-purple-500/60 hover:border-purple-400 hover:bg-purple-950/40 text-purple-300 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer shadow"
+          title="Ver este diagrama en el módulo de Arquitectura de Sistemas"
+        >
+          <span>🏛️</span>
+          <span>Arquitecto</span>
+        </button>
       </div>
 
       <!-- Fuentes de Grounding (Google Search) -->

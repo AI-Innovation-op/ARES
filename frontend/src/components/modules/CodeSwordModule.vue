@@ -1,15 +1,29 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { apiService } from '../../services/api.service.js';
 import { useFsmStore } from '../../stores/fsm.store.js';
+import { useUiStore } from '../../stores/ui.store.js';
 import MetricsCards from '../hud/MetricsCards.vue';
 import DiffViewer from '../common/DiffViewer.vue';
 import type { Metricas } from '../../types/ares.types.js';
 
 const fsm = useFsmStore();
+const uiStore = useUiStore();
 
 // Sub-pestañas: Auditoría & Refactor vs Test Forge
 const subPestana = ref<'audit' | 'testforge'>('audit');
+
+// Sincronizar derivación automática desde el chat
+watch(
+  () => uiStore.codeBuffer,
+  (nuevo) => {
+    if (nuevo) {
+      codigo.value = nuevo.codigo;
+      if (nuevo.lenguaje) lenguaje.value = nuevo.lenguaje;
+    }
+  },
+  { immediate: true }
+);
 
 // Historial persistente SQLite
 const auditoriasPrevias = ref<any[]>([]);

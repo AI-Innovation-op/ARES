@@ -27,6 +27,15 @@ export interface RespuestaOpenRouter {
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
 /**
+ * Normaliza identificadores de modelos de OpenRouter para compatibilidad de versiones.
+ */
+function normalizarModelo(modelo?: string): string {
+  if (!modelo) return env.OPENROUTER_DEFAULT_MODEL || 'deepseek/deepseek-chat';
+  if (modelo.includes('deepseek-r1')) return 'deepseek/deepseek-r1';
+  return modelo;
+}
+
+/**
  * Invoca OpenRouter en modo completado síncrono.
  */
 export async function invocarOpenRouter(
@@ -37,7 +46,7 @@ export async function invocarOpenRouter(
     throw new Error('OPENROUTER_API_KEY no está configurada en el entorno.');
   }
 
-  const model = solicitud.model || env.OPENROUTER_DEFAULT_MODEL || 'deepseek/deepseek-chat';
+  const model = normalizarModelo(solicitud.model);
 
   const response = await fetch(OPENROUTER_ENDPOINT, {
     method: 'POST',
@@ -61,7 +70,7 @@ export async function invocarOpenRouter(
   }
 
   const data = (await response.json()) as any;
-  const reply = data.choices?.[0]?.message?.content ?? '';
+  const reply = data.choices?.[0]?.message?.content ?? data.choices?.[0]?.message?.reasoning ?? '';
 
   return {
     texto: reply,
@@ -80,7 +89,7 @@ export async function* invocarOpenRouterStream(
     throw new Error('OPENROUTER_API_KEY no está configurada en el entorno.');
   }
 
-  const model = solicitud.model || env.OPENROUTER_DEFAULT_MODEL || 'deepseek/deepseek-chat';
+  const model = normalizarModelo(solicitud.model);
 
   const response = await fetch(OPENROUTER_ENDPOINT, {
     method: 'POST',
@@ -125,7 +134,7 @@ export async function* invocarOpenRouterStream(
 
       try {
         const parsed = JSON.parse(dataStr);
-        const delta = parsed.choices?.[0]?.delta?.content;
+        const delta = parsed.choices?.[0]?.delta?.content || parsed.choices?.[0]?.delta?.reasoning;
         if (delta) {
           yield delta;
         }

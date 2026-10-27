@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { apiService } from '../../services/api.service.js';
 import { useFsmStore } from '../../stores/fsm.store.js';
+import { useUiStore } from '../../stores/ui.store.js';
 import type { TipoDocumento } from '../../types/ares.types.js';
 
 const fsm = useFsmStore();
+const uiStore = useUiStore();
 
 const tipoDoc = ref<TipoDocumento>('README');
 const titulo = ref('');
@@ -12,6 +14,21 @@ const contexto = ref('');
 const resultadoMarkdown = ref('');
 const cargando = ref(false);
 const copiado = ref(false);
+
+// Sincronizar derivación automática desde el chat
+watch(
+  () => uiStore.docBuffer,
+  (nuevo) => {
+    if (nuevo) {
+      resultadoMarkdown.value = nuevo.contenido;
+      if (nuevo.titulo) titulo.value = nuevo.titulo;
+      if (nuevo.tipo && tipos.some(t => t.valor === nuevo.tipo)) {
+        tipoDoc.value = nuevo.tipo as TipoDocumento;
+      }
+    }
+  },
+  { immediate: true }
+);
 
 // Bóveda persistente SQLite
 const documentosGuardados = ref<any[]>([]);

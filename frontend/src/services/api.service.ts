@@ -74,12 +74,13 @@ export const apiService = {
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
+        const lines = buffer.split('\n');
         buffer = lines.pop() ?? '';
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const jsonStr = line.slice(6).trim();
+        for (let line of lines) {
+          line = line.trim();
+          if (line.startsWith('data:')) {
+            const jsonStr = line.replace(/^data:\s*/, '').trim();
             if (!jsonStr) continue;
 
             try {
@@ -98,6 +99,17 @@ export const apiService = {
             }
           }
         }
+      }
+
+      if (buffer.trim().startsWith('data:')) {
+        try {
+          const data = JSON.parse(buffer.trim().replace(/^data:\s*/, '').trim());
+          if (data.type === 'chunk' && params.onChunk) {
+            params.onChunk(data.text, data.poseDetected);
+          } else if (data.type === 'done' && params.onDone) {
+            params.onDone(data);
+          }
+        } catch {}
       }
     } catch (err: any) {
       if (params.onError) {

@@ -1,14 +1,27 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { apiService } from '../../services/api.service.js';
 import { useFsmStore } from '../../stores/fsm.store.js';
+import { useUiStore } from '../../stores/ui.store.js';
 
 const fsm = useFsmStore();
+const uiStore = useUiStore();
 
 const patron = ref('Clean + Hexagonal (Ports & Adapters)');
 const descripcion = ref('');
 const resultadoArquitectura = ref('');
 const cargando = ref(false);
+
+// Sincronizar derivación automática desde el chat
+watch(
+  () => uiStore.architectBuffer,
+  (nuevo) => {
+    if (nuevo) {
+      resultadoArquitectura.value = nuevo.diagrama;
+    }
+  },
+  { immediate: true }
+);
 
 const patrones = [
   'Clean + Hexagonal (Ports & Adapters)',

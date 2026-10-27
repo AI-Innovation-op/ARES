@@ -39,7 +39,7 @@ export const CATALOGO_MODELOS: ModeloDisponible[] = [
     icono: '⚡',
   },
   {
-    id: 'deepseek/deepseek-r1-0528',
+    id: 'deepseek/deepseek-r1',
     nombre: 'DeepSeek R1 Reasoning (OpenRouter)',
     proveedor: 'openrouter',
     descripcion: 'Modelo de razonamiento lógico profundo paso a paso para auditorías complejas y arquitectura.',

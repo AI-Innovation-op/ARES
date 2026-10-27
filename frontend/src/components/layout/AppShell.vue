@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
+import { useUiStore } from '../../stores/ui.store.js';
 import TacticalHUD from '../hud/TacticalHUD.vue';
 import BioPanel from '../hud/BioPanel.vue';
 import AvatarManager from '../avatar/AvatarManager.vue';
@@ -12,17 +13,13 @@ import ArchitectModule from '../modules/ArchitectModule.vue';
 import PoseMatrixModule from '../modules/PoseMatrixModule.vue';
 import TechSpecModule from '../modules/TechSpecModule.vue';
 
-const tabActiva = ref(1);
-
-function cambiarTab(tab: number) {
-  tabActiva.value = tab;
-}
+const uiStore = useUiStore();
 
 // Atajos de teclado: Alt+1 a Alt+6
 function handleKeydown(e: KeyboardEvent) {
   if (e.altKey && e.key >= '1' && e.key <= '6') {
     e.preventDefault();
-    tabActiva.value = parseInt(e.key, 10);
+    uiStore.navegarTab(parseInt(e.key, 10));
   }
 }
 
@@ -53,16 +50,16 @@ onUnmounted(() => {
       <!-- Columna Derecha: Contenido Táctico / Módulos (65%) -->
       <section class="flex-1 flex flex-col h-full overflow-hidden bg-[#040914]">
         <!-- Barra de Navegación de Pestañas -->
-        <TabBar :tab-activa="tabActiva" @cambiar-tab="cambiarTab" />
+        <TabBar :tab-activa="uiStore.tabActiva" @cambiar-tab="uiStore.navegarTab" />
 
         <!-- Vistas de los Módulos -->
         <div class="flex-1 overflow-hidden relative">
-          <ChatConsole v-show="tabActiva === 1" />
-          <DocShieldModule v-show="tabActiva === 2" />
-          <CodeSwordModule v-show="tabActiva === 3" />
-          <ArchitectModule v-show="tabActiva === 4" />
-          <PoseMatrixModule v-show="tabActiva === 5" />
-          <TechSpecModule v-show="tabActiva === 6" />
+          <ChatConsole v-show="uiStore.tabActiva === 1" />
+          <DocShieldModule v-show="uiStore.tabActiva === 2" />
+          <CodeSwordModule v-show="uiStore.tabActiva === 3" />
+          <ArchitectModule v-show="uiStore.tabActiva === 4" />
+          <PoseMatrixModule v-show="uiStore.tabActiva === 5" />
+          <TechSpecModule v-show="uiStore.tabActiva === 6" />
         </div>
       </section>
     </main>
