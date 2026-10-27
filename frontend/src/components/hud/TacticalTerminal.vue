@@ -112,10 +112,10 @@ function ejecutarComando() {
     case 'ayuda':
       historialLineas.value.push({
         tipo: 'output',
-        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v3.5 (SOVEREIGN GIT FORGE CORE):
+        texto: `COMANDOS DISPONIBLES EN A.R.E.S. v3.6 (TEAM MATRIX & MULTI-CONTRIBUTOR CORE):
   help / ayuda          Muestra este catálogo de órdenes
   status                Telemetría del núcleo A.R.E.S., modelo y modo táctico
-  forge / assign        Forja Soberana de Ejercicios DDD, Desofuscador de PDFs y Commits Atómicos Git
+  forge / assign        Forja de Ejercicios DDD, Squad Multi-Contributor y Commits Atómicos Git
   radar [open|traffic]  Radar de Arquitectura C4, topología en vivo y caos
   memory [open|search]  Oráculo de Memoria Semántica Vectorial Local y RAG Arquitectónico
   cicd [open|run]       Motor de CI/CD, Workflows industriales y simulación de despliegues
@@ -141,7 +141,7 @@ function ejecutarComando() {
     case 'status':
       historialLineas.value.push({
         tipo: 'success',
-        texto: `ESTADO DEL NÚCLEO A.R.E.S. v3.5 (SOVEREIGN GIT FORGE CORE):
+        texto: `ESTADO DEL NÚCLEO A.R.E.S. v3.6 (TEAM MATRIX & MULTI-CONTRIBUTOR CORE):
   - Estado: 🟢 ONLINE
   - Modo táctico: ${uiStore.modoTactico.toUpperCase()}
   - Oído digital: ${voiceService.estado.value.toUpperCase()}

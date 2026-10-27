@@ -58,7 +58,7 @@ function onSelectModelo(id: string) {
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-orbitron font-bold text-sm tracking-widest text-slate-100">
-            A.R.E.S. <span class="text-[#00ffaa] text-xs font-normal">v3.5 S-GIT FORGE</span>
+            A.R.E.S. <span class="text-[#00ffaa] text-xs font-normal">v3.6 SQUAD FORGE</span>
           </h1>
           <span class="px-1.5 py-0.2 rounded text-[10px] font-mono bg-cyan-950/60 border border-cyan-800 text-cyan-300">
             MULTI-MODEL

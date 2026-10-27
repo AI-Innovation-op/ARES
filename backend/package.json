@@ -1,6 +1,6 @@
 {
   "name": "@ares-ecosystem/backend",
-  "version": "3.5.0",
+  "version": "3.6.0",
   "description": "Backend del ecosistema A.R.E.S. — Agente Autónomo de Ingeniería de Software y Documentación Técnica",
   "type": "module",
   "main": "dist/app.js",

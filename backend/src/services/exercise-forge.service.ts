@@ -109,12 +109,37 @@ export class ExerciseForgeService {
   ): string {
     const anio = new Date().getFullYear();
     const branch = autor.branchName || `feature/${analisis.slug}`;
+    const esSquad = autor.teamMembers && autor.teamMembers.length > 1;
+
+    let encabezadoAutor = `> **Autor:** ${autor.name}  \n> **Contacto:** [${autor.email}](mailto:${autor.email})  \n`;
+    if (esSquad) {
+      encabezadoAutor = `> **Equipo de Desarrollo:** Squad DDD (${autor.teamMembers!.length} Integrantes)  \n` +
+        autor.teamMembers!.map((m) => `> - **${m.name}** [${m.role}] — [${m.email}](mailto:${m.email})`).join('\n') + '\n';
+    }
+
+    let seccionEquipo = '';
+    if (esSquad) {
+      seccionEquipo = `\n---\n\n## 👥 2. Matriz de Integrantes y Reparto de Responsabilidades\n\n` +
+        `Para garantizar una división modular y una arquitectura limpia, el sistema fue desarrollado en equipo distribuyendo los Bounded Contexts:\n\n` +
+        `| Integrante | Rol | Correo de GitHub | Bounded Context(s) Asignados |\n` +
+        `|---|---|---|---|\n` +
+        autor.teamMembers!.map((m) => `| **${m.name}** | ${m.role} | \`${m.email}\` | ${m.assignedContexts?.length ? m.assignedContexts.map(c => `\`${c}\``).join(', ') : '`Transversal / Scaffolding`'} |`).join('\n') +
+        `\n\n`;
+    }
+
+    const numSeccionCtx = esSquad ? '3' : '2';
+    const numSeccionCapas = esSquad ? '4' : '3';
+    const numSeccionInvariantes = esSquad ? '5' : '4';
+    const numSeccionEjecucion = esSquad ? '6' : '5';
+    const numSeccionCommits = esSquad ? '7' : '6';
+
+    const despedida = esSquad
+      ? `> Desarrollado en colaboración por el equipo: ${autor.teamMembers!.map((m) => `**${m.name}**`).join(', ')}. Si tienes preguntas o sugerencias sobre la arquitectura, siéntete libre de abrir un issue o escribirnos.`
+      : `> Hecho con esmero por **${autor.name}**. Si tienes preguntas o sugerencias sobre el diseño, siéntete libre de abrir un issue o escribirme.`;
 
     return `# ${analisis.titulo}
 
-> **Autor:** ${autor.name}  
-> **Contacto:** [${autor.email}](mailto:${autor.email})  
-> **Rama de Trabajo:** \`${branch}\`  
+${encabezadoAutor}> **Rama de Trabajo:** \`${branch}\`  
 > **Stack Base:** TypeScript (Node.js) con Arquitectura Hexagonal y Domain-Driven Design (DDD)  
 > **Año:** ${anio}  
 
@@ -122,22 +147,21 @@ export class ExerciseForgeService {
 
 ## 📌 1. Sobre este Proyecto y Contexto
 
-Hola, este repositorio contiene mi implementación para el requerimiento: **${analisis.titulo}**.
+Hola, este repositorio contiene ${esSquad ? 'nuestra' : 'mi'} implementación para el requerimiento: **${analisis.titulo}**.
 
-Para resolver este ejercicio decidí aplicar **Domain-Driven Design (DDD)** táctico combinado con **Arquitectura Hexagonal (Puertos y Adaptadores)**. Mi objetivo principal fue garantizar que las reglas e invariantes del negocio queden totalmente protegidas en la capa de dominio, desacopladas de frameworks de persistencia o controladores HTTP.
+Para resolver este ejercicio ${esSquad ? 'decidimos' : 'decidí'} aplicar **Domain-Driven Design (DDD)** táctico combinado con **Arquitectura Hexagonal (Puertos y Adaptadores)**. El objetivo principal fue garantizar que las reglas e invariantes del negocio queden totalmente protegidas en la capa de dominio, desacopladas de frameworks de persistencia o controladores HTTP.
 
 ### Visión Rápida del Negocio
 ${analisis.resumenNegocio}
+${seccionEquipo}---
 
----
-
-## 🏛️ 2. Bounded Contexts y Arquitectura
+## 🏛️ ${numSeccionCtx}. Bounded Contexts y Arquitectura
 
 Estructuré la solución en **${analisis.boundedContexts.length} Contextos Delimitados (Bounded Contexts)** independientes:
 
 ${analisis.boundedContexts
   .map(
-    (c, i) => `### 2.${i + 1}. Contexto: \`${c.nombre}\`
+    (c, i) => `### ${numSeccionCtx}.${i + 1}. Contexto: \`${c.nombre}\`
 - **Responsabilidad:** ${c.descripcion}.
 - **Entidades Principales:** ${c.entidades.map((e) => `\`${e}\``).join(', ')}.
 - **Casos de Uso Implementados:** ${c.casosUso.map((u) => `\`${u}\``).join(', ')}.
@@ -147,7 +171,7 @@ ${analisis.boundedContexts
 
 ---
 
-## 📂 3. Estructura de Capas (Clean Architecture)
+## 📂 ${numSeccionCapas}. Estructura de Capas (Clean Architecture)
 
 Cada contexto delimitado dentro de \`src/\` sigue la división estricta de 3 capas:
 
@@ -168,7 +192,7 @@ ${analisis.boundedContexts
 
 ---
 
-## ⚖️ 4. Invariantes y Reglas del Negocio Validadas
+## ⚖️ ${numSeccionInvariantes}. Invariantes y Reglas del Negocio Validadas
 
 Durante la implementación puse especial énfasis en que el dominio sea auto-validante (entidades ricas, no modelos anémicos):
 
@@ -176,7 +200,7 @@ ${analisis.reglasNegocio.map((r, i) => `- **RBN-${(i + 1).toString().padStart(2,
 
 ---
 
-## 🚀 5. Cómo Ejecutar el Proyecto en Local
+## 🚀 ${numSeccionEjecucion}. Cómo Ejecutar el Proyecto en Local
 
 ### Requisitos Previos
 - Node.js (v18.0 o superior)
@@ -207,7 +231,7 @@ npm test
 
 ---
 
-## 📜 6. Historial de Commits Atómicos
+## 📜 ${numSeccionCommits}. Historial de Commits Atómicos
 
 Para mantener un historial limpio y legible en GitHub, los commits fueron organizados de manera atómica por Bounded Context y capa, siguiendo la convención Conventional Commits:
 
@@ -225,7 +249,7 @@ ${analisis.boundedContexts
 
 ---
 
-> Hecho con esmero por **${autor.name}**. Si tienes preguntas o sugerencias sobre el diseño, siéntete libre de abrir un issue o escribirme.
+${despedida}
 `;
   }
 

@@ -1,8 +1,8 @@
-# 🛡️ A.R.E.S. Ecosystem (v3.5 Sovereign Git & Exercise Forge // Sovereign Core)
+# 🛡️ A.R.E.S. Ecosystem (v3.6 Team Matrix & Multi-Contributor Forge // Sovereign Core)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo. Y un proyecto sin tu autoría es una batalla ganada sin honor."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
-> 🏷️ **Versión Actual:** **v3.5.0** — *Autómata Git Soberano, Desofuscador de PDFs de Enunciados, Commits Atómicos por Bounded Context y README Humanizado.*
+> 🏷️ **Versión Actual:** **v3.6.0** — *Matriz de Equipo DDD, Multi-Contributor Git Dispatcher, Desofuscador de PDFs, Commits Atómicos y README Grupal Humanizado.*
 
 [![Node.js](https://img.shields.io/badge/Node.js-24+-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -176,8 +176,9 @@ Heredado de **Cori**, no permito que mi Comandante destruya su salud física o m
 * **Desofuscador y Sanitizador de PDFs / Enunciados Crudos:** Permite copiar y pegar (Ctrl+C / Ctrl+V) textos caóticos de asignaciones o exámenes universitarios. El limpiador heurístico repara palabras cortadas por guiones (`desa- rrollo` ➔ `desarrollo`), remueve encabezados de página/docentes y estructura automáticamente una especificación táctica formal (`SPECIFICATION.md`) con Bounded Contexts, entidades, Value Objects, invariantes y casos de uso.
 * **README.md Humanizado (Estilo "Hecho a Mano por Ti"):** Redactado en primera persona y en tono natural de estudiante o ingeniero desarrollador (sin lenguaje artificial de IA), detallando las decisiones de diseño arquitectónico DDD, estructura de capas, comandos de ejecución local (`npm start`) y tests unitarios (`npm test`), firmado con tu nombre y correo oficial.
 * **Commits Atómicos por Bounded Context & Atribución de Autor:** En lugar de un único commit monolítico, el autómata divide los archivos en commits limpios secuenciales (`chore(scaffold)`, `feat(shared-kernel)`, `feat(<context>-domain)`, `feat(<context>-application)`, `feat(<context>-infrastructure)`, `test(<context>)`, `docs`), firmando cada commit con `--author="Tu Nombre <tucorreo@gmail.com>"` para que tu gráfico de contribuciones en GitHub se ilumine de verde.
+* **👥 Matriz de Equipo & Multi-Contributor Git Dispatcher (v3.6+):** Asigna y distribuye Bounded Contexts entre múltiples integrantes de tu equipo (Squad). Cada commit de cada contexto lleva el `--author` del compañero correspondiente, permitiendo que las entregas grupales iluminen los cuadros verdes de GitHub para todos los miembros del equipo y generando una tabla de responsabilidades en el README.
 * **Empaquetado Dual & Ejecución de 1-Clic:** Descarga el proyecto en `.zip` con scripts ejecutables integrados (`setup-git.bat` para Windows y `setup-git.sh` para Linux/macOS) que inicializan el repositorio, crean la rama `feature/...` y disparan los commits con doble clic, o ejecuta el push directo a GitHub vía sandbox backend con tu Personal Access Token.
-* **Modal Interactivo `[ 📋 FORJA GIT ]` (`AssignmentForgeModal.vue`):** Asistente táctico de 4 pasos con presets inmediatos (Préstamos Bibliotecarios, E-Commerce y Citas Médicas), configuración de autor y visor de código en vivo.
+* **Modal Interactivo `[ 📋 FORJA GIT ]` (`AssignmentForgeModal.vue`):** Asistente táctico de 4 pasos con presets inmediatos (Préstamos Bibliotecarios, E-Commerce y Citas Médicas), configuración de autor/squad y visor de código en vivo.
 * **Comandos en Terminal y CLI:** Soporte de `forge`, `assign` y `git` en la terminal web y comando `ares forge` en la CLI.
 
 ---

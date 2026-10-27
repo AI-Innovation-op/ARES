@@ -7,6 +7,7 @@ import {
   type ProyectoForjado,
   type StackOption,
   type ArchivoGenerado,
+  type TeamMember,
 } from '../../services/assignment.service.js';
 
 const emit = defineEmits<{
@@ -30,6 +31,79 @@ const remoteUrl = ref('');
 const githubToken = ref('');
 const stackSeleccionado = ref('typescript-ddd');
 const stacks = ref<StackOption[]>([]);
+
+// Modo Squad de Equipo Colaborativo (v3.6)
+const modoEquipo = ref(false);
+const miembrosEquipo = ref<TeamMember[]>([
+  {
+    id: '1',
+    name: 'Kevin Commander',
+    email: 'kevin.commander@gmail.com',
+    role: 'Tech Lead / Arquitecto DDD',
+    assignedContexts: ['prestamos'],
+    color: '#00ffaa',
+  },
+  {
+    id: '2',
+    name: 'Carlos Backend',
+    email: 'carlos.dev@gmail.com',
+    role: 'Senior Backend Engineer',
+    assignedContexts: ['catalogo'],
+    color: '#00e5ff',
+  },
+  {
+    id: '3',
+    name: 'Ana Tester',
+    email: 'ana.qa@gmail.com',
+    role: 'QA / Domain Invariants Auditor',
+    assignedContexts: ['usuarios'],
+    color: '#c084fc',
+  },
+]);
+
+function agregarMiembro() {
+  const nuevoId = String(miembrosEquipo.value.length + 1);
+  const colores = ['#00ffaa', '#00e5ff', '#c084fc', '#facc15', '#f87171', '#fb923c'];
+  miembrosEquipo.value.push({
+    id: nuevoId,
+    name: `Integrante ${nuevoId}`,
+    email: `dev${nuevoId}@gmail.com`,
+    role: 'Software Engineer',
+    assignedContexts: [],
+    color: colores[miembrosEquipo.value.length % colores.length],
+  });
+}
+
+function eliminarMiembro(idx: number) {
+  if (miembrosEquipo.value.length <= 1) return;
+  miembrosEquipo.value.splice(idx, 1);
+}
+
+function repartirContextosEquitativamente() {
+  if (!analisis.value || miembrosEquipo.value.length === 0) return;
+  const contextos = analisis.value.boundedContexts.map((c) => c.identificador);
+
+  // Limpiar asignaciones actuales
+  miembrosEquipo.value.forEach((m) => (m.assignedContexts = []));
+
+  contextos.forEach((ctx, idx) => {
+    const miembro = miembrosEquipo.value[idx % miembrosEquipo.value.length];
+    if (miembro) {
+      if (!miembro.assignedContexts) miembro.assignedContexts = [];
+      miembro.assignedContexts.push(ctx);
+    }
+  });
+}
+
+function toggleContextoMiembro(miembro: TeamMember, ctxId: string) {
+  if (!miembro.assignedContexts) miembro.assignedContexts = [];
+  const idx = miembro.assignedContexts.indexOf(ctxId);
+  if (idx > -1) {
+    miembro.assignedContexts.splice(idx, 1);
+  } else {
+    miembro.assignedContexts.push(ctxId);
+  }
+}
 
 // Resultados de la forja
 const analisis = ref<AnalisisEnunciado | null>(null);
@@ -141,6 +215,7 @@ async function desofuscarTexto() {
     if (res.slug) {
       ramaGit.value = `feature/${res.slug}`;
     }
+    repartirContextosEquitativamente();
     pasoActual.value = 2;
   } catch (err: any) {
     error.value = err?.response?.data?.error || err?.message || 'Error al desofuscar enunciado';
@@ -164,6 +239,7 @@ async function forjarProyectoCompleto() {
         branchName: ramaGit.value,
         remoteUrl: remoteUrl.value || undefined,
         githubToken: githubToken.value || undefined,
+        teamMembers: modoEquipo.value ? miembrosEquipo.value : undefined,
       },
       stack: stackSeleccionado.value,
     });
@@ -260,7 +336,7 @@ function cerrarModal() {
             <div class="font-orbitron font-bold text-sm sm:text-base text-slate-100 flex items-center gap-2">
               <span>FORJA SOBERANA DE EJERCICIOS & GIT AUTÓNOMO</span>
               <span class="px-2 py-0.5 rounded text-[10px] bg-[#00ffaa]/15 border border-[#00ffaa]/50 text-[#00ffaa]">
-                v3.5 SOVEREIGN FORGE
+                v3.6 MULTI-CONTRIBUTOR MATRIX
               </span>
             </div>
             <p class="text-[11px] text-slate-400">
@@ -415,6 +491,130 @@ function cerrarModal() {
               >
                 {{ ctx.nombre }}
               </span>
+            </div>
+          </div>
+
+          <!-- Selector de Modo: Individual vs Squad de Equipo (v3.6) -->
+          <div class="bg-[#040914] p-3.5 rounded-lg border border-[#132a4a] flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+              <span class="text-2xl">{{ modoEquipo ? '👥' : '👤' }}</span>
+              <div>
+                <div class="text-xs font-bold flex items-center gap-2">
+                  <span class="text-slate-200">MODO DE ASIGNACIÓN:</span>
+                  <span
+                    class="px-2 py-0.5 rounded text-[10px] font-bold"
+                    :class="modoEquipo ? 'bg-purple-950 border border-purple-500/60 text-purple-300' : 'bg-cyan-950 border border-cyan-500/60 text-cyan-300'"
+                  >
+                    {{ modoEquipo ? 'SQUAD DE EQUIPO MULTI-CONTRIBUTOR (v3.6)' : 'DESARROLLADOR INDIVIDUAL' }}
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-400">
+                  {{ modoEquipo ? 'Reparte Bounded Contexts y genera commits firmados con el usuario de cada integrante para que todo el team tenga cuadros verdes.' : 'Firma todos los commits atómicos con tu cuenta principal de GitHub.' }}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              @click="modoEquipo = !modoEquipo"
+              class="px-3.5 py-1.5 rounded text-xs font-bold transition cursor-pointer border flex items-center gap-1.5"
+              :class="modoEquipo ? 'bg-purple-900/40 border-purple-400 text-purple-200 hover:bg-purple-900/60' : 'bg-cyan-900/40 border-cyan-400 text-cyan-200 hover:bg-cyan-900/60'"
+            >
+              <span>{{ modoEquipo ? '👤 Cambiar a Individual' : '👥 Activar Modo Squad' }}</span>
+            </button>
+          </div>
+
+          <!-- Matriz de Squad de Equipo si modoEquipo está activo -->
+          <div v-if="modoEquipo" class="bg-[#040914] p-4 rounded-lg border border-purple-500/40 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#132a4a] pb-2">
+              <div class="flex items-center gap-2 text-xs font-bold text-purple-300">
+                <span>👥</span>
+                <span>INTEGRANTES DEL SQUAD ({{ miembrosEquipo.length }} DESARROLLADORES)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  @click="repartirContextosEquitativamente"
+                  class="px-2.5 py-1 rounded bg-[#0b1b36] border border-[#132a4a] hover:border-[#00ffaa] text-[#00ffaa] text-[11px] font-bold transition cursor-pointer"
+                  title="Repartir Bounded Contexts equitativamente entre los integrantes"
+                >
+                  ⚖️ Repartir Contextos
+                </button>
+                <button
+                  type="button"
+                  @click="agregarMiembro"
+                  class="px-2.5 py-1 rounded bg-purple-950/60 border border-purple-500/60 hover:bg-purple-900/40 text-purple-300 text-[11px] font-bold transition cursor-pointer"
+                >
+                  ➕ Agregar Integrante
+                </button>
+              </div>
+            </div>
+
+            <!-- Tarjetas de Integrantes -->
+            <div class="space-y-3">
+              <div
+                v-for="(m, mIdx) in miembrosEquipo"
+                :key="m.id"
+                class="p-3 rounded-lg bg-[#071329] border border-[#132a4a] space-y-2"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ backgroundColor: m.color || '#00ffaa' }"></span>
+                    <span class="text-xs font-bold text-slate-100">Integrante #{{ mIdx + 1 }} {{ mIdx === 0 ? '(Tech Lead)' : '' }}</span>
+                  </div>
+                  <button
+                    v-if="miembrosEquipo.length > 1"
+                    type="button"
+                    @click="eliminarMiembro(mIdx)"
+                    class="text-red-400 hover:text-red-300 text-xs cursor-pointer"
+                    title="Eliminar integrante"
+                  >
+                    🗑️ Quitar
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div>
+                    <label class="text-[10px] text-slate-400">Nombre / Alias:</label>
+                    <input
+                      v-model="m.name"
+                      type="text"
+                      class="w-full rounded bg-[#040914] border border-[#132a4a] px-2.5 py-1.5 text-xs text-slate-100 focus:border-purple-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400">Correo GitHub (para cuadros verdes):</label>
+                    <input
+                      v-model="m.email"
+                      type="email"
+                      class="w-full rounded bg-[#040914] border border-[#132a4a] px-2.5 py-1.5 text-xs text-slate-100 focus:border-purple-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-slate-400">Rol en el Proyecto:</label>
+                    <input
+                      v-model="m.role"
+                      type="text"
+                      class="w-full rounded bg-[#040914] border border-[#132a4a] px-2.5 py-1.5 text-xs text-slate-100 focus:border-purple-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <!-- Bounded Contexts asignados a este integrante -->
+                <div v-if="analisis && analisis.boundedContexts.length > 0" class="pt-1 flex flex-wrap items-center gap-2 text-xs">
+                  <span class="text-[11px] text-slate-400">Contextos asignados:</span>
+                  <button
+                    v-for="ctx in analisis.boundedContexts"
+                    :key="ctx.identificador"
+                    type="button"
+                    @click="toggleContextoMiembro(m, ctx.identificador)"
+                    class="px-2 py-0.5 rounded text-[11px] transition cursor-pointer border"
+                    :class="m.assignedContexts?.includes(ctx.identificador) ? 'bg-[#00ffaa]/20 border-[#00ffaa] text-[#00ffaa] font-bold' : 'bg-[#040914] border-[#132a4a] text-slate-400 hover:text-slate-200'"
+                  >
+                    {{ m.assignedContexts?.includes(ctx.identificador) ? '✓ ' : '+ ' }}{{ ctx.nombre }}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -622,11 +822,46 @@ function cerrarModal() {
             </div>
           </div>
 
+          <!-- Matriz Visual de Distribución de Contribuciones del Squad (v3.6) -->
+          <div v-if="proyecto.planGit.metricasEquipo && proyecto.planGit.metricasEquipo.length > 0" class="bg-[#040914] p-3.5 rounded-lg border border-purple-500/40 space-y-2.5">
+            <div class="text-xs font-bold text-purple-300 flex items-center justify-between">
+              <span>👥 DISTRIBUCIÓN DE CONTRIBUCIONES DEL SQUAD (GREEN GRAPH MATRIX):</span>
+              <span class="text-[11px] text-slate-400">{{ proyecto.planGit.metricasEquipo.length }} Desarrolladores Activos</span>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div
+                v-for="met in proyecto.planGit.metricasEquipo"
+                :key="met.miembro.id"
+                class="p-2.5 rounded bg-[#071329] border border-[#132a4a] text-xs space-y-1.5"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1.5 truncate">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ backgroundColor: met.miembro.color || '#00ffaa' }"></span>
+                    <span class="font-bold text-slate-100 truncate">{{ met.miembro.name }}</span>
+                  </div>
+                  <span class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-purple-950/80 border border-purple-500/40 text-purple-300">
+                    {{ met.porcentaje }}% ({{ met.commitsAsignados }} commits)
+                  </span>
+                </div>
+                <div class="text-[10px] text-slate-400 truncate">{{ met.miembro.role }}</div>
+                <div class="w-full bg-[#040914] h-1.5 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-purple-400 via-cyan-400 to-[#00ffaa]" :style="{ width: met.porcentaje + '%' }"></div>
+                </div>
+                <div class="text-[10px] text-slate-400 truncate">
+                  Contextos: <span class="text-cyan-300">{{ met.boundedContexts.join(', ') || 'Scaffold / Base' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Cronograma Visual de Commits Atómicos -->
           <div class="bg-[#040914] p-3 rounded-lg border border-[#132a4a] space-y-2">
             <div class="text-xs font-bold text-slate-300 flex items-center justify-between">
               <span>🌳 CRONOGRAMA DE COMMITS ATÓMICOS PLANIFICADOS ({{ proyecto.planGit.commits.length }} COMMITS):</span>
-              <span class="text-[11px] text-emerald-400">Autor: {{ proyecto.planGit.autor.name }}</span>
+              <span class="text-[11px] text-emerald-400">
+                {{ proyecto.planGit.metricasEquipo?.length ? `Squad de ${proyecto.planGit.metricasEquipo.length} Miembros` : `Autor: ${proyecto.planGit.autor.name}` }}
+              </span>
             </div>
             <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
               <div
@@ -645,6 +880,9 @@ function cerrarModal() {
                     }"
                   >
                     {{ c.tipo.toUpperCase() }}
+                  </span>
+                  <span v-if="c.autorNombre" class="px-1.5 py-0.5 rounded text-[10px] bg-purple-950/70 border border-purple-500/30 text-purple-300 shrink-0 font-bold">
+                    👤 {{ c.autorNombre }}
                   </span>
                   <span class="text-slate-200 font-mono truncate">{{ c.mensaje }}</span>
                 </div>

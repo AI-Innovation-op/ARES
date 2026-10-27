@@ -35,6 +35,22 @@ export interface AnalisisEnunciado {
   };
 }
 
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  assignedContexts?: string[];
+  color?: string;
+}
+
+export interface MetricaContribucionEquipo {
+  miembro: TeamMember;
+  commitsAsignados: number;
+  porcentaje: number;
+  boundedContexts: string[];
+}
+
 export interface CommitSlice {
   id: string;
   orden: number;
@@ -43,6 +59,8 @@ export interface CommitSlice {
   boundedContext?: string;
   archivos: string[];
   autor: string;
+  autorNombre?: string;
+  autorEmail?: string;
 }
 
 export interface ArchivoGenerado {
@@ -56,12 +74,14 @@ export interface GitAuthorConfig {
   branchName?: string;
   remoteUrl?: string;
   githubToken?: string;
+  teamMembers?: TeamMember[];
 }
 
 export interface PlanGitCommits {
   branchName: string;
   autor: GitAuthorConfig;
   commits: CommitSlice[];
+  metricasEquipo?: MetricaContribucionEquipo[];
   scripts: {
     bat: string;
     sh: string;

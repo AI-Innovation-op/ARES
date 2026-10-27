@@ -38,8 +38,8 @@ function banner() {
   ██╔══██╗██╔══██╗██╔════╝██╔════╝
   ███████║██████╔╝█████╗  ███████╗
   ██╔══██║██╔══██╗██╔══╝  ╚════██║
-  ██║  ██║██║  ██║███████╗███████║ v3.5 TACTICAL CLI
-  ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝ [Sovereign Git Forge Core]
+  ██║  ██║██║  ██║███████╗███████║ v3.6 TACTICAL CLI
+  ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝ [Team Matrix & Multi-Contributor Forge]
 `));
   console.log(pc.dim('  Autonomous Resilient Engineering & Software-Documentation God\n'));
 }
@@ -58,7 +58,7 @@ const program = new Command();
 program
   .name('ares')
   .description('🛡️ A.R.E.S. CLI Táctico — Ingeniería de Software Full-Stack asistida por IA')
-  .version('3.5.0');
+  .version('3.6.0');
 
 // ============================================================================
 // 1. COMANDO: ares audit <file>

@@ -67,6 +67,7 @@ export async function forgeAssignmentHandler(req: Request, res: Response, next: 
       branchName: author?.branchName?.trim(),
       remoteUrl: author?.remoteUrl?.trim(),
       githubToken: author?.githubToken?.trim(),
+      teamMembers: Array.isArray(author?.teamMembers) ? author.teamMembers : undefined,
     };
 
     let analysis = providedAnalysis;

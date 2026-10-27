@@ -5,6 +5,30 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [3.6.0] - 2026-10-27
+
+### 👥 Nuevas Funcionalidades (Features)
+- **Matriz de Equipo & Multi-Contributor Git Dispatcher (Squad Colaborativo DDD):**
+  - **Gestor de Squad de Equipo (`AssignmentForgeModal.vue`):**
+    - Selector de modo: Alternancia fluida entre **Modo Individual** y **Modo Squad de Equipo (Multi-Contributor)**.
+    - Registro configurable de integrantes: nombre/alias, correo oficial de GitHub para iluminación de contribuciones y rol en el proyecto (*Tech Lead*, *Backend Dev*, *QA Auditor*).
+    - Botón **`[ ⚖️ Repartir Contextos ]`**: Algoritmo de distribución equitativa de Bounded Contexts entre los miembros del equipo.
+    - Selector interactivo de chips para asignar o desasignar Bounded Contexts puntuales a cada desarrollador.
+  - **Firma Atómica de Commits Individualizada (`GitAutomatorService`):**
+    - Cada commit atómico es firmado con el autor específico del integrante asignado a ese Bounded Context (`--author="Nombre <email@gmail.com>"`).
+    - Los commits de scaffolding y shared kernel son asignados al Tech Lead / Coordinador.
+    - Los commits de dominio, aplicación e infraestructura de cada contexto son firmados por su respectivo desarrollador.
+  - **Scripts de Automatización Multi-Autor (`setup-git.bat` / `setup-git.sh`):**
+    - Los scripts ejecutables integrados en el `.zip` alternan dinámicamente el parámetro `--author` por commit, registrando contribuciones para todos los integrantes al correr en terminales Windows, Linux o macOS.
+  - **Métricas Visuales de Contribución del Squad:**
+    - Visualizador de porcentaje y recuento de commits por integrante con barras de progreso con gradientes neón (`#00ffaa`, `#00e5ff`, `#c084fc`).
+    - Badges de autor (`👤 Nombre`) en cada tarjeta del explorador de commits planificados.
+  - **README.md Grupal Humanizado:**
+    - Generación automática de la tabla de matriz de responsabilidades por Bounded Context y redacción en primera persona del plural adaptada para entregas en equipo.
+  - **Sincronización Total de Versiones:** Monorepo actualizado a la versión `3.6.0` (`@ares-ecosystem/backend`, `@ares-ecosystem/frontend`, `@ares-ecosystem/cli`, `@ares-ecosystem/mcp`).
+
+---
+
 ## [3.5.0] - 2026-10-27
 
 ### 📋 Nuevas Funcionalidades (Features)

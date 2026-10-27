@@ -15,12 +15,29 @@ import crypto from 'node:crypto';
 
 const execFileAsync = promisify(execFile);
 
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  assignedContexts?: string[];
+  color?: string;
+}
+
+export interface MetricaContribucionEquipo {
+  miembro: TeamMember;
+  commitsAsignados: number;
+  porcentaje: number;
+  boundedContexts: string[];
+}
+
 export interface GitAuthorConfig {
   name: string;
   email: string;
   branchName?: string;
   remoteUrl?: string;
   githubToken?: string;
+  teamMembers?: TeamMember[];
 }
 
 export interface CommitSlice {
@@ -31,6 +48,8 @@ export interface CommitSlice {
   boundedContext?: string;
   archivos: string[];
   autor: string;
+  autorNombre?: string;
+  autorEmail?: string;
 }
 
 export interface ArchivoGenerado {
@@ -42,6 +61,7 @@ export interface PlanGitCommits {
   branchName: string;
   autor: GitAuthorConfig;
   commits: CommitSlice[];
+  metricasEquipo?: MetricaContribucionEquipo[];
   scripts: {
     bat: string;
     sh: string;
@@ -68,9 +88,70 @@ export class GitAutomatorService {
     boundedContexts: string[] = []
   ): PlanGitCommits {
     const branchName = autor.branchName || `feature/${(boundedContexts[0] || 'ddd-architecture').toLowerCase()}`;
-    const authorString = `${autor.name} <${autor.email}>`;
     const commits: CommitSlice[] = [];
     let orden = 1;
+
+    // Resolver autor de commit (soporta Comandante único o Squad Multi-Contributor)
+    const team = autor.teamMembers && autor.teamMembers.length > 0 ? autor.teamMembers : null;
+    const defaultAuthor = {
+      name: autor.name,
+      email: autor.email,
+      string: `${autor.name} <${autor.email}>`,
+    };
+
+    const resolverAutor = (ctx?: string, tipo?: 'chore' | 'feat' | 'test' | 'docs') => {
+      if (!team || team.length === 0) {
+        return defaultAuthor;
+      }
+
+      // 1. Si es un contexto delimitado específico, verificar si un miembro lo tiene asignado
+      if (ctx && ctx !== 'shared') {
+        const miembroAsignado = team.find((m) =>
+          m.assignedContexts?.some((ac) => ac.toLowerCase() === ctx.toLowerCase())
+        );
+        if (miembroAsignado) {
+          return {
+            name: miembroAsignado.name,
+            email: miembroAsignado.email,
+            string: `${miembroAsignado.name} <${miembroAsignado.email}>`,
+          };
+        }
+      }
+
+      // 2. Si es scaffolding inicial o shared kernel, asignar al Tech Lead (miembro 0)
+      if (tipo === 'chore' || ctx === 'shared') {
+        const lead = team[0];
+        return {
+          name: lead.name,
+          email: lead.email,
+          string: `${lead.name} <${lead.email}>`,
+        };
+      }
+
+      // 3. Si es documentación final, asignar al Tech Lead
+      if (tipo === 'docs') {
+        const lead = team[0];
+        return {
+          name: lead.name,
+          email: lead.email,
+          string: `${lead.name} <${lead.email}>`,
+        };
+      }
+
+      // 4. Si el contexto no tiene miembro asignado, distribuir equitativamente (round-robin por hash de contexto)
+      if (ctx) {
+        const hash = Math.abs(ctx.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0));
+        const idx = hash % team.length;
+        const miembroElegido = team[idx] || team[0];
+        return {
+          name: miembroElegido.name,
+          email: miembroElegido.email,
+          string: `${miembroElegido.name} <${miembroElegido.email}>`,
+        };
+      }
+
+      return defaultAuthor;
+    };
 
     // Rutas de archivos normalizadas
     const rutasDisponibles = archivos.map((a) => a.ruta.replace(/\\/g, '/'));
@@ -82,19 +163,23 @@ export class GitAutomatorService {
       )
     );
     if (archivosScaffold.length > 0) {
+      const a = resolverAutor(undefined, 'chore');
       commits.push({
         id: `commit-${orden}`,
         orden: orden++,
         tipo: 'chore',
         mensaje: 'chore(scaffold): initial project setup, environment configuration and tactical specs',
         archivos: archivosScaffold,
-        autor: authorString,
+        autor: a.string,
+        autorNombre: a.name,
+        autorEmail: a.email,
       });
     }
 
     // 2. Commit Shared Kernel: Objetos base y eventos transversales
     const archivosShared = rutasDisponibles.filter((r) => r.includes('src/shared/') || r.includes('shared/'));
     if (archivosShared.length > 0) {
+      const a = resolverAutor('shared', 'feat');
       commits.push({
         id: `commit-${orden}`,
         orden: orden++,
@@ -102,7 +187,9 @@ export class GitAutomatorService {
         boundedContext: 'shared',
         mensaje: 'feat(shared-kernel): domain events, base value objects and aggregate root contracts',
         archivos: archivosShared,
-        autor: authorString,
+        autor: a.string,
+        autorNombre: a.name,
+        autorEmail: a.email,
       });
     }
 
@@ -118,6 +205,9 @@ export class GitAutomatorService {
     }
 
     for (const ctx of contextosDetectados) {
+      const aCtx = resolverAutor(ctx, 'feat');
+      const aTest = resolverAutor(ctx, 'test');
+
       // 3.1 Dominio del contexto
       const archivosDominio = rutasDisponibles.filter(
         (r) => r.toLowerCase().includes(`${ctx}/domain/`) || r.toLowerCase().includes(`domain/${ctx}/`)
@@ -130,7 +220,9 @@ export class GitAutomatorService {
           boundedContext: ctx,
           mensaje: `feat(${ctx}-domain): entities, value objects and repository port interfaces`,
           archivos: archivosDominio,
-          autor: authorString,
+          autor: aCtx.string,
+          autorNombre: aCtx.name,
+          autorEmail: aCtx.email,
         });
       }
 
@@ -146,7 +238,9 @@ export class GitAutomatorService {
           boundedContext: ctx,
           mensaje: `feat(${ctx}-application): use cases, command/query handlers and application dtos`,
           archivos: archivosApp,
-          autor: authorString,
+          autor: aCtx.string,
+          autorNombre: aCtx.name,
+          autorEmail: aCtx.email,
         });
       }
 
@@ -162,7 +256,9 @@ export class GitAutomatorService {
           boundedContext: ctx,
           mensaje: `feat(${ctx}-infrastructure): persistence adapters, in-memory repos and http controllers`,
           archivos: archivosInfra,
-          autor: authorString,
+          autor: aCtx.string,
+          autorNombre: aCtx.name,
+          autorEmail: aCtx.email,
         });
       }
 
@@ -178,7 +274,9 @@ export class GitAutomatorService {
           boundedContext: ctx,
           mensaje: `test(${ctx}): unit test suites and domain invariants verification`,
           archivos: archivosTest,
-          autor: authorString,
+          autor: aTest.string,
+          autorNombre: aTest.name,
+          autorEmail: aTest.email,
         });
       }
     }
@@ -190,27 +288,54 @@ export class GitAutomatorService {
     );
 
     if (restantes.length > 0) {
+      const aCore = resolverAutor(undefined, 'feat');
       commits.push({
         id: `commit-${orden}`,
         orden: orden++,
         tipo: 'feat',
         mensaje: 'feat(core): main bootstrap entrypoint and server composition root',
         archivos: restantes,
-        autor: authorString,
+        autor: aCore.string,
+        autorNombre: aCore.name,
+        autorEmail: aCore.email,
       });
     }
 
     // 5. Commit Final: Documentación README.md Humanizada
     const archivosDocs = rutasDisponibles.filter((r) => /^README\.md$/i.test(r));
     if (archivosDocs.length > 0) {
+      const aDocs = resolverAutor(undefined, 'docs');
       commits.push({
         id: `commit-${orden}`,
         orden: orden++,
         tipo: 'docs',
         mensaje: 'docs: add humanized architectural documentation, bounded contexts guide and readme',
         archivos: archivosDocs,
-        autor: authorString,
+        autor: aDocs.string,
+        autorNombre: aDocs.name,
+        autorEmail: aDocs.email,
       });
+    }
+
+    // Calcular métricas de contribución por integrante
+    const metricasEquipo: MetricaContribucionEquipo[] = [];
+    if (team && team.length > 0) {
+      for (const m of team) {
+        const commitsDelMiembro = commits.filter((c) => c.autorEmail === m.email);
+        const contextosDelMiembro = Array.from(
+          new Set(
+            commitsDelMiembro
+              .map((c) => c.boundedContext)
+              .filter(Boolean) as string[]
+          )
+        );
+        metricasEquipo.push({
+          miembro: m,
+          commitsAsignados: commitsDelMiembro.length,
+          porcentaje: commits.length > 0 ? Math.round((commitsDelMiembro.length / commits.length) * 100) : 0,
+          boundedContexts: contextosDelMiembro,
+        });
+      }
     }
 
     // Generar scripts de ejecución táctica (.bat y .sh)
@@ -220,6 +345,7 @@ export class GitAutomatorService {
       branchName,
       autor,
       commits,
+      metricasEquipo,
       scripts,
     };
   }
@@ -232,13 +358,20 @@ export class GitAutomatorService {
     autor: GitAuthorConfig,
     commits: CommitSlice[]
   ): { bat: string; sh: string } {
-    const authorParam = `"${autor.name} <${autor.email}>"`;
+    const esSquad = autor.teamMembers && autor.teamMembers.length > 1;
 
     // Script Windows .bat
     let bat = `@echo off\r\n`;
     bat += `echo ================================================================\r\n`;
-    bat += `echo   A.R.E.S. v3.5 - SOVEREIGN GIT REPO AUTOMATOR\r\n`;
-    bat += `echo   Autor: ${autor.name} ^<${autor.email}^>\r\n`;
+    bat += `echo   A.R.E.S. v3.6 - SOVEREIGN MULTI-CONTRIBUTOR GIT AUTOMATOR\r\n`;
+    if (esSquad) {
+      bat += `echo   MODO: Squad Colaborativo DDD (${autor.teamMembers!.length} Integrantes)\r\n`;
+      for (const m of autor.teamMembers!) {
+        bat += `echo     * ${m.name} ^<${m.email}^> [${m.role}]\r\n`;
+      }
+    } else {
+      bat += `echo   Autor: ${autor.name} ^<${autor.email}^>\r\n`;
+    }
     bat += `echo   Rama:  ${branchName}\r\n`;
     bat += `echo ================================================================\r\n\r\n`;
     bat += `echo [1/3] Inicializando repositorio Git local...\r\n`;
@@ -246,13 +379,14 @@ export class GitAutomatorService {
     bat += `git checkout -b ${branchName}\r\n`;
     bat += `git config user.name "${autor.name}"\r\n`;
     bat += `git config user.email "${autor.email}"\r\n\r\n`;
-    bat += `echo [2/3] Ejecutando commits atomicos por Bounded Context...\r\n`;
+    bat += `echo [2/3] Ejecutando commits atomicos por Bounded Context y Miembro de Equipo...\r\n`;
 
     for (const c of commits) {
       const filesArg = c.archivos.map((f) => `"${f}"`).join(' ');
-      bat += `echo  -^> [${c.tipo.toUpperCase()}] ${c.mensaje}\r\n`;
+      const authorFlag = `"${c.autor}"`;
+      bat += `echo  -^> [${c.tipo.toUpperCase()}] ${c.mensaje} (Autor: ${c.autorNombre || autor.name})\r\n`;
       bat += `git add ${filesArg}\r\n`;
-      bat += `git commit --author=${authorParam} -m "${c.mensaje}"\r\n`;
+      bat += `git commit --author=${authorFlag} -m "${c.mensaje}"\r\n`;
     }
 
     bat += `\r\necho [3/3] Commits finalizados con exito.\r\n`;
@@ -260,7 +394,7 @@ export class GitAutomatorService {
     bat += `  echo  -^> Conectando con remoto %1 y ejecutando git push...\r\n`;
     bat += `  git remote add origin %1\r\n`;
     bat += `  git push -u origin ${branchName}\r\n`;
-    bat += `  echo [OK] Rama ${branchName} publicada en GitHub con contribuciones para ${autor.name}.\r\n`;
+    bat += `  echo [OK] Rama ${branchName} publicada en GitHub con contribuciones para todo el equipo.\r\n`;
     bat += `) else (\r\n`;
     bat += `  echo  -^> Repositorio local listo. Para subir a GitHub:\r\n`;
     bat += `  echo      git remote add origin ^<TU_REPO_URL^>\r\n`;
@@ -272,8 +406,15 @@ export class GitAutomatorService {
     let sh = `#!/usr/bin/env bash\n`;
     sh += `set -e\n`;
     sh += `echo "================================================================"\n`;
-    sh += `echo "  A.R.E.S. v3.5 - SOVEREIGN GIT REPO AUTOMATOR"\n`;
-    sh += `echo "  Autor: ${autor.name} <${autor.email}>"\n`;
+    sh += `echo "  A.R.E.S. v3.6 - SOVEREIGN MULTI-CONTRIBUTOR GIT AUTOMATOR"\n`;
+    if (esSquad) {
+      sh += `echo "  MODO: Squad Colaborativo DDD (${autor.teamMembers!.length} Integrantes)"\n`;
+      for (const m of autor.teamMembers!) {
+        sh += `echo "    * ${m.name} <${m.email}> [${m.role}]"\n`;
+      }
+    } else {
+      sh += `echo "  Autor: ${autor.name} <${autor.email}>"\n`;
+    }
     sh += `echo "  Rama:  ${branchName}"\n`;
     sh += `echo "================================================================"\n\n`;
     sh += `echo "[1/3] Inicializando repositorio Git local..."\n`;
@@ -281,13 +422,14 @@ export class GitAutomatorService {
     sh += `git checkout -b "${branchName}"\n`;
     sh += `git config user.name "${autor.name}"\n`;
     sh += `git config user.email "${autor.email}"\n\n`;
-    sh += `echo "[2/3] Ejecutando commits atomicos por Bounded Context..."\n`;
+    sh += `echo "[2/3] Ejecutando commits atomicos por Bounded Context y Miembro de Equipo..."\n`;
 
     for (const c of commits) {
       const filesArg = c.archivos.map((f) => `"${f}"`).join(' ');
-      sh += `echo " -> [${c.tipo.toUpperCase()}] ${c.mensaje}"\n`;
+      const authorFlag = `"${c.autor}"`;
+      sh += `echo " -> [${c.tipo.toUpperCase()}] ${c.mensaje} (Autor: ${c.autorNombre || autor.name})"\n`;
       sh += `git add ${filesArg}\n`;
-      sh += `git commit --author=${authorParam} -m "${c.mensaje}"\n`;
+      sh += `git commit --author=${authorFlag} -m "${c.mensaje}"\n`;
     }
 
     sh += `\necho "[3/3] Commits finalizados con éxito."\n`;
@@ -295,7 +437,7 @@ export class GitAutomatorService {
     sh += `  echo " -> Conectando con remoto $1 y ejecutando git push..."\n`;
     sh += `  git remote add origin "$1"\n`;
     sh += `  git push -u origin "${branchName}"\n`;
-    sh += `  echo "[OK] Rama ${branchName} publicada en GitHub con contribuciones para ${autor.name}."\n`;
+    sh += `  echo "[OK] Rama ${branchName} publicada en GitHub con contribuciones para todo el equipo."\n`;
     sh += `else\n`;
     sh += `  echo " -> Repositorio local listo. Para subir a GitHub:"\n`;
     sh += `  echo "     git remote add origin <TU_REPO_URL>"\n`;
@@ -341,22 +483,20 @@ export class GitAutomatorService {
       await execFileAsync('git', ['config', 'user.email', plan.autor.email], { cwd: tempDir });
       logs.push(`[Git] Repositorio inicializado en rama '${plan.branchName}'.`);
 
-      // 4. Ejecutar cada commit atómico
-      const authorFlag = `${plan.autor.name} <${plan.autor.email}>`;
-
+      // 4. Ejecutar cada commit atómico con la atribución individual de autor
       for (const slice of plan.commits) {
         // Stage files
         await execFileAsync('git', ['add', ...slice.archivos], { cwd: tempDir });
 
-        // Commit con autor asignado
-        await execFileAsync('git', ['commit', `--author=${authorFlag}`, '-m', slice.mensaje], { cwd: tempDir });
+        // Commit con autor asignado (soporta multi-contributor)
+        await execFileAsync('git', ['commit', `--author=${slice.autor}`, '-m', slice.mensaje], { cwd: tempDir });
 
         // Obtener hash generado
         const { stdout: hashOut } = await execFileAsync('git', ['rev-parse', '--short', 'HEAD'], { cwd: tempDir });
         const shortHash = hashOut.trim();
         commitHashes.push(shortHash);
 
-        logs.push(`[Commit ${shortHash}] ${slice.mensaje} (Autor: ${authorFlag})`);
+        logs.push(`[Commit ${shortHash}] ${slice.mensaje} (Autor: ${slice.autor})`);
       }
 
       // 5. Si se proporcionó un remoteUrl, intentar push remoto
