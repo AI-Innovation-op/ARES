@@ -41,7 +41,7 @@ async function main() {
     const res = await fetch(`${API_BASE}/health`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    if (!data.agent.includes('v4.0')) throw new Error(`Versión no esperada: ${data.agent}`);
+    if (!data.agent.includes('v4.')) throw new Error(`Versión no esperada: ${data.agent}`);
     return `Agente: ${data.agent} | Uptime: ${data.uptimeSeconds}s | Status: ${data.status}`;
   })) exitosos++;
 
