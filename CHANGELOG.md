@@ -5,6 +5,30 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [5.0.0] - 2026-10-30 — CLI independiente
+
+### Añadido
+
+- Núcleo CLI con contextos de conversación, propuestas y lectura de proyectos; dominio sin dependencias de infraestructura.
+- Acceso directo a Gemini, OpenRouter y servidores compatibles, streaming SSE, cancelación, timeout y configuración local sin mostrar claves.
+- Sesiones y propuestas SQLite con revisión optimista, historial y exportación.
+- Flujo `propose -> diff -> apply -> restore`, copias durables, validación de rutas, detección de conflictos y recuperación de aplicaciones interrumpidas.
+- Inspección local con ruta y línea; lectura filtrada mediante `.gitignore` y `.aresignore` y redacción de patrones comunes de secretos.
+- Plantilla CLI DDD de tareas ejecutable sin instalar paquetes, persistencia real y tests significativos.
+- Salida JSON, stdin, códigos de salida comprobables y CI de CLI para Windows/Ubuntu con Node 24/26.
+
+### Cambiado
+
+- La CLI deja de depender de Express, del backend web y de `ARES_API_URL`.
+- `forge` crea una plantilla local concreta. `test` identifica sus resultados como propuestas sin ejecutar.
+- Los instaladores respetan los errores y no modifican la política de PowerShell.
+- Documentación principal centrada en terminal; la documentación anterior se conserva en `docs/legacy-web-v4.md`.
+
+### Retirado de la CLI
+
+- Presentación de benchmarks simulados como ejecuciones, escritura directa desde `audit --write`, automatización de commits/pushes y comandos dependientes del HUD.
+- Los servicios web históricos se conservan por separado y no se consideran verificados por las pruebas de la nueva CLI.
+
 ## [4.5.0] - 2026-10-30
 
 ### 🛡️ Consolidación Soberana & Remediación Integral de Seguridad, Fiabilidad, Despliegue y CI

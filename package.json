@@ -1,0 +1,14 @@
+{
+  "name": "ares-ecosystem",
+  "version": "5.0.0",
+  "private": true,
+  "description": "ARES CLI first. El backend y la web históricos se conservan por separado.",
+  "engines": { "node": ">=24.0.0" },
+  "scripts": {
+    "setup": "npm --prefix cli ci --ignore-scripts && npm run build",
+    "build": "npm --prefix cli run build",
+    "test": "npm --prefix cli test",
+    "check": "npm --prefix cli run check",
+    "ares": "node cli/dist/index.js"
+  }
+}
