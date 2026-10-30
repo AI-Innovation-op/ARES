@@ -14,7 +14,16 @@ import axios, { type AxiosInstance } from 'axios';
  *  - en Docker, nginx reenvía /api al contenedor backend
  *  - en GitHub Pages, define VITE_API_URL=https://tu-backend (ver deploy-pages.yml)
  */
-export const API_BASE_ORIGIN: string = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
+function obtenerApiBaseOrigin(): string {
+  const envUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+  if (envUrl) return envUrl.replace(/\/+$/, '');
+  if (typeof window !== 'undefined' && window.location.hostname.endsWith('github.io')) {
+    return 'https://ares-backend-ozs5.onrender.com';
+  }
+  return '';
+}
+
+export const API_BASE_ORIGIN: string = obtenerApiBaseOrigin();
 
 const CLAVE_STORAGE = 'ares.api_key';
 

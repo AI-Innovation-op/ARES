@@ -4,10 +4,12 @@
  */
 
 import axios from 'axios';
+import { API_BASE_ORIGIN, protegerAxios } from './http.js';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: `${API_BASE_ORIGIN}/api`,
 });
+protegerAxios(api);
 
 export interface StrykerMutant {
   id: string;
@@ -83,7 +85,7 @@ export interface SuiteBenchmarkCompleta {
 
 export const benchmarkService = {
   async ejecutarSuite(titulo?: string, boundedContexts?: Array<{ nombre: string; identificador: string }>): Promise<SuiteBenchmarkCompleta> {
-    const res = await api.post('/api/benchmark/run', {
+    const res = await api.post('/benchmark/run', {
       titulo: titulo || 'Sistema DDD Táctico',
       boundedContexts: boundedContexts || [],
     });
@@ -91,12 +93,12 @@ export const benchmarkService = {
   },
 
   async obtenerPresets(): Promise<any[]> {
-    const res = await api.get('/api/benchmark/presets');
+    const res = await api.get('/benchmark/presets');
     return res.data.presets || [];
   },
 
   async generarArchivos(titulo?: string, boundedContexts?: any[]): Promise<Record<string, string>> {
-    const res = await api.post('/api/benchmark/generate', {
+    const res = await api.post('/benchmark/generate', {
       titulo,
       boundedContexts,
     });

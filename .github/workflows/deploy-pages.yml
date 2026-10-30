@@ -39,7 +39,7 @@ jobs:
         working-directory: frontend
         env:
           # URL pública de tu backend (Settings → Secrets and variables → Actions → Variables → ARES_API_URL)
-          VITE_API_URL: ${{ vars.ARES_API_URL }}
+          VITE_API_URL: ${{ vars.ARES_API_URL || 'https://ares-backend-ozs5.onrender.com' }}
         run: npm run build
 
       - name: 📤 Subir artefacto de Pages
