@@ -25,8 +25,11 @@ RUN npm run build
 # --- Etapa 2: Servidor Web Nginx de Producción ---
 FROM nginx:alpine AS runner
 
-# Copiar configuración de Nginx con soporte para SPA y proxy SSE
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Plantilla de Nginx (SPA + proxy SSE). Al arrancar, nginx sustituye ${BACKEND_URL} y ${BACKEND_HOST}
+# y genera /etc/nginx/conf.d/default.conf. Cambia estos valores al desplegar (ver docker-compose.yml / render.yaml).
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+ENV BACKEND_URL=http://backend:3000
+ENV BACKEND_HOST=backend
 
 # Copiar artefactos compilados desde el builder
 COPY --from=builder /app/dist /usr/share/nginx/html

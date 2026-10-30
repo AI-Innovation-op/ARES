@@ -1,0 +1,57 @@
+# Plantilla de Nginx. La imagen oficial de nginx sustituye ${BACKEND_URL} y ${BACKEND_HOST}
+# al arrancar (ver frontend/Dockerfile). El resto de "$variables" son de Nginx y no se tocan.
+#
+#   BACKEND_URL  = URL completa del backend, sin barra final. Ej.: http://backend:3000
+#   BACKEND_HOST = solo el nombre de host del backend.        Ej.: backend
+
+# Si la petición ya trae X-Forwarded-Proto (viene de otro proxy, p. ej. Render) se respeta; si no, se usa el esquema real.
+map $http_x_forwarded_proto $ares_proto {
+    default $http_x_forwarded_proto;
+    ''      $scheme;
+}
+
+server {
+    listen 80;
+    server_name _;
+
+    add_header X-Content-Type-Options "nosniff" always;
+
+    # Compresión Gzip para optimizar transferencia de bundles
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # Resolver DNS dinámico (Docker 127.0.0.11, y Cloudflare/Google para backends públicos)
+    resolver 127.0.0.11 1.1.1.1 8.8.8.8 valid=30s ipv6=off;
+    set $backend_upstream "${BACKEND_URL}";
+
+    # Servir archivos estáticos del build de Vue 3
+    location / {
+        root /usr/share/nginx/html;
+        index index.html index.htm;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Proxy inverso para la API de A.R.E.S. y Server-Sent Events (SSE)
+    location /api/ {
+        proxy_pass $backend_upstream$request_uri;
+        proxy_ssl_server_name on;
+        proxy_http_version 1.1;
+        proxy_set_header Connection '';
+        proxy_set_header Host ${BACKEND_HOST};
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $ares_proto;
+
+        # Crítico para Server-Sent Events (streaming de tokens en tiempo real)
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 300s;
+    }
+
+    # Healthcheck del backend
+    location /health {
+        proxy_pass $backend_upstream$request_uri;
+        proxy_ssl_server_name on;
+        proxy_set_header Host ${BACKEND_HOST};
+    }
+}
