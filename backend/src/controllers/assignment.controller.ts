@@ -9,6 +9,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ExerciseParserService } from '../services/exercise-parser.service.js';
 import { ExerciseForgeService } from '../services/exercise-forge.service.js';
 import { GitAutomatorService } from '../services/git-automator.service.js';
+import { validarNombrePersona, validarEmail, validarNombreRama } from '../utils/validacion.js';
 
 export const STACKS_SOPORTADOS = [
   {
@@ -61,13 +62,21 @@ export async function forgeAssignmentHandler(req: Request, res: Response, next: 
   try {
     const { text, analysis: providedAnalysis, author, stack } = req.body;
 
+    // Estos datos terminan escritos en los scripts setup-git.bat/.sh que el usuario ejecutará: se validan.
     const autorConfig = {
-      name: author?.name?.trim() || 'Kevin Commander',
-      email: author?.email?.trim() || 'kevin.commander@gmail.com',
-      branchName: author?.branchName?.trim(),
+      name: validarNombrePersona(author?.name?.trim() || 'Kevin Commander'),
+      email: validarEmail(author?.email?.trim() || 'kevin.commander@gmail.com'),
+      branchName: author?.branchName?.trim() ? validarNombreRama(author.branchName.trim()) : undefined,
       remoteUrl: author?.remoteUrl?.trim(),
       githubToken: author?.githubToken?.trim(),
-      teamMembers: Array.isArray(author?.teamMembers) ? author.teamMembers : undefined,
+      teamMembers: Array.isArray(author?.teamMembers)
+        ? author.teamMembers.slice(0, 20).map((m: any) => ({
+            ...m,
+            name: validarNombrePersona(m?.name),
+            email: validarEmail(m?.email),
+            role: validarNombrePersona(m?.role ?? 'Dev'),
+          }))
+        : undefined,
     };
 
     let analysis = providedAnalysis;

@@ -12,6 +12,18 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import crypto from 'node:crypto';
+import {
+  resolverRutaSegura,
+  validarNombreRama,
+  validarRemoteUrl,
+  validarTokenGithub,
+  validarNombrePersona,
+  validarEmail,
+  validarAutorGit,
+  validarMensajeCommit,
+} from '../utils/validacion.js';
+import { ValidationError } from '../middleware/error.middleware.js';
+import { VERSION } from '../config/version.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -385,7 +397,7 @@ export class GitAutomatorService {
     // Script Windows .bat
     let bat = `@echo off\r\n`;
     bat += `echo ================================================================\r\n`;
-    bat += `echo   A.R.E.S. v3.6 - SOVEREIGN MULTI-CONTRIBUTOR GIT AUTOMATOR\r\n`;
+    bat += `echo   A.R.E.S. v${VERSION} - SOVEREIGN MULTI-CONTRIBUTOR GIT AUTOMATOR\r\n`;
     if (esSquad) {
       bat += `echo   MODO: Squad Colaborativo DDD (${autor.teamMembers!.length} Integrantes)\r\n`;
       for (const m of autor.teamMembers!) {
@@ -428,7 +440,7 @@ export class GitAutomatorService {
     let sh = `#!/usr/bin/env bash\n`;
     sh += `set -e\n`;
     sh += `echo "================================================================"\n`;
-    sh += `echo "  A.R.E.S. v3.6 - SOVEREIGN MULTI-CONTRIBUTOR GIT AUTOMATOR"\n`;
+    sh += `echo "  A.R.E.S. v${VERSION} - SOVEREIGN MULTI-CONTRIBUTOR GIT AUTOMATOR"\n`;
     if (esSquad) {
       sh += `echo "  MODO: Squad Colaborativo DDD (${autor.teamMembers!.length} Integrantes)"\n`;
       for (const m of autor.teamMembers!) {
@@ -470,6 +482,65 @@ export class GitAutomatorService {
   }
 
   /**
+   * Valida TODA la entrada del cliente ANTES de tocar el disco o ejecutar git.
+   * Lanza ValidationError (HTTP 400) ante cualquier dato inseguro.
+   */
+  static validarEntrada(archivos: unknown, plan: any, tempDir: string): EntradaGitValidada {
+    if (!Array.isArray(archivos) || archivos.length === 0 || archivos.length > 500) {
+      throw new ValidationError('"files" debe ser un array de 1 a 500 archivos.');
+    }
+
+    let totalCaracteres = 0;
+    const archivosOk = archivos.map((a: any) => {
+      if (!a || typeof a.contenido !== 'string') {
+        throw new ValidationError('Cada archivo necesita "ruta" y "contenido" (texto).');
+      }
+      totalCaracteres += a.contenido.length;
+      if (a.contenido.length > 1_000_000 || totalCaracteres > 20_000_000) {
+        throw new ValidationError('Los archivos son demasiado grandes (máx. 1 MB c/u y 20 MB en total).');
+      }
+      const { absoluta, relativa } = resolverRutaSegura(tempDir, a.ruta);
+      return { absoluta, relativa, contenido: a.contenido as string };
+    });
+
+    if (!plan || typeof plan !== 'object' || !plan.autor || typeof plan.autor !== 'object' || !Array.isArray(plan.commits)) {
+      throw new ValidationError('El "plan" debe incluir "autor" y un array "commits".');
+    }
+    if (plan.commits.length > 100) {
+      throw new ValidationError('El plan admite máximo 100 commits.');
+    }
+    const scripts = plan.scripts;
+    if (!scripts || typeof scripts.bat !== 'string' || typeof scripts.sh !== 'string' || scripts.bat.length > 100_000 || scripts.sh.length > 100_000) {
+      throw new ValidationError('El plan debe incluir "scripts.bat" y "scripts.sh" como texto (máx. 100.000 caracteres).');
+    }
+
+    const commits = plan.commits.map((c: any) => {
+      if (!c || !Array.isArray(c.archivos) || c.archivos.length === 0 || c.archivos.length > 500) {
+        throw new ValidationError('Cada commit necesita un array "archivos" (1 a 500 rutas).');
+      }
+      return {
+        archivos: c.archivos.map((r: unknown) => resolverRutaSegura(tempDir, r).relativa),
+        autor: validarAutorGit(c.autor),
+        mensaje: validarMensajeCommit(c.mensaje),
+      };
+    });
+
+    const remoteUrl = plan.autor.remoteUrl ? validarRemoteUrl(plan.autor.remoteUrl) : undefined;
+    const githubToken = remoteUrl && plan.autor.githubToken ? validarTokenGithub(plan.autor.githubToken) : undefined;
+
+    return {
+      archivos: archivosOk,
+      commits,
+      branchName: validarNombreRama(plan.branchName),
+      autorNombre: validarNombrePersona(plan.autor.name),
+      autorEmail: validarEmail(plan.autor.email),
+      remoteUrl,
+      githubToken,
+      scripts: { bat: scripts.bat, sh: scripts.sh },
+    };
+  }
+
+  /**
    * Ejecuta físicamente en el backend los commits atómicos con git CLI
    * en un sandbox temporal y opcionalmente realiza el push a GitHub.
    */
@@ -479,101 +550,100 @@ export class GitAutomatorService {
   ): Promise<ResultadoGitPush> {
     const sandboxId = crypto.randomUUID().slice(0, 8);
     const tempDir = path.join(os.tmpdir(), `ares-git-forge-${sandboxId}`);
+
+    // 0. Validar ANTES de crear nada en disco (si algo es inseguro lanza ValidationError → HTTP 400)
+    const entrada = this.validarEntrada(archivos, plan, tempDir);
+
     const logs: string[] = [];
     const commitHashes: string[] = [];
+    const token = entrada.githubToken;
+    // Nunca devolver ni registrar el token (los mensajes de error de git pueden contener la URL con token)
+    const ocultar = (texto: string): string => (token ? texto.split(token).join('***') : texto);
+    const git = (args: string[]) =>
+      execFileAsync('git', args, { cwd: tempDir, env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
 
     try {
       logs.push(`[A.R.E.S.] Creando sandbox aislado en: ${tempDir}`);
       await fs.mkdir(tempDir, { recursive: true });
 
-      // 1. Escribir todos los archivos generados en disco
-      for (const arch of archivos) {
-        const fullPath = path.join(tempDir, arch.ruta);
-        await fs.mkdir(path.dirname(fullPath), { recursive: true });
-        await fs.writeFile(fullPath, arch.contenido, 'utf-8');
+      // 1. Escribir los archivos (rutas ya validadas: no pueden salir de tempDir)
+      for (const arch of entrada.archivos) {
+        await fs.mkdir(path.dirname(arch.absoluta), { recursive: true });
+        await fs.writeFile(arch.absoluta, arch.contenido, 'utf-8');
       }
 
-      // 2. Escribir los scripts de automatización también en el sandbox
-      await fs.writeFile(path.join(tempDir, 'setup-git.bat'), plan.scripts.bat, 'utf-8');
-      await fs.writeFile(path.join(tempDir, 'setup-git.sh'), plan.scripts.sh, 'utf-8');
-      logs.push(`[A.R.E.S.] ${archivos.length + 2} archivos estructurados en sandbox.`);
+      // 2. Scripts de automatización
+      await fs.writeFile(path.join(tempDir, 'setup-git.bat'), entrada.scripts.bat, 'utf-8');
+      await fs.writeFile(path.join(tempDir, 'setup-git.sh'), entrada.scripts.sh, 'utf-8');
+      logs.push(`[A.R.E.S.] ${entrada.archivos.length + 2} archivos estructurados en sandbox.`);
 
       // 3. Inicializar git
-      await execFileAsync('git', ['init'], { cwd: tempDir });
-      await execFileAsync('git', ['checkout', '-b', plan.branchName], { cwd: tempDir });
-      await execFileAsync('git', ['config', 'user.name', plan.autor.name], { cwd: tempDir });
-      await execFileAsync('git', ['config', 'user.email', plan.autor.email], { cwd: tempDir });
-      logs.push(`[Git] Repositorio inicializado en rama '${plan.branchName}'.`);
+      await git(['init']);
+      await git(['checkout', '-b', entrada.branchName]);
+      await git(['config', 'user.name', entrada.autorNombre]);
+      await git(['config', 'user.email', entrada.autorEmail]);
+      logs.push(`[Git] Repositorio inicializado en rama '${entrada.branchName}'.`);
 
-      // 4. Ejecutar cada commit atómico con la atribución individual de autor
-      for (const slice of plan.commits) {
-        // Stage files
-        await execFileAsync('git', ['add', ...slice.archivos], { cwd: tempDir });
-
-        // Commit con autor asignado (soporta multi-contributor)
-        await execFileAsync('git', ['commit', `--author=${slice.autor}`, '-m', slice.mensaje], { cwd: tempDir });
-
-        // Obtener hash generado
-        const { stdout: hashOut } = await execFileAsync('git', ['rev-parse', '--short', 'HEAD'], { cwd: tempDir });
+      // 4. Commits atómicos ("--" evita que una ruta se interprete como opción)
+      for (const slice of entrada.commits) {
+        await git(['add', '--', ...slice.archivos]);
+        await git(['commit', `--author=${slice.autor}`, '-m', slice.mensaje]);
+        const { stdout: hashOut } = await git(['rev-parse', '--short', 'HEAD']);
         const shortHash = hashOut.trim();
         commitHashes.push(shortHash);
-
         logs.push(`[Commit ${shortHash}] ${slice.mensaje} (Autor: ${slice.autor})`);
       }
 
-      // 5. Si se proporcionó un remoteUrl, intentar push remoto
-      if (plan.autor.remoteUrl) {
-        let remoteUrlFinal = plan.autor.remoteUrl.trim();
+      // 5. Push remoto opcional (remoteUrl y token ya validados)
+      if (entrada.remoteUrl) {
+        const remoteConToken = token ? entrada.remoteUrl.replace('https://', `https://${token}@`) : entrada.remoteUrl;
+        logs.push('[Git] Configurando origin remoto...');
+        await git(['remote', 'add', 'origin', remoteConToken]);
 
-        // Si se incluye GitHub Personal Access Token, inyectarlo en la URL segura
-        if (plan.autor.githubToken) {
-          const tokenLimpio = plan.autor.githubToken.trim();
-          if (remoteUrlFinal.startsWith('https://')) {
-            remoteUrlFinal = remoteUrlFinal.replace('https://', `https://${tokenLimpio}@`);
-          }
-        }
-
-        logs.push(`[Git] Configurando origin remoto...`);
-        await execFileAsync('git', ['remote', 'add', 'origin', remoteUrlFinal], { cwd: tempDir });
-
-        logs.push(`[Git] Ejecutando: git push -u origin ${plan.branchName}...`);
-        const { stdout: pushOut, stderr: pushErr } = await execFileAsync(
-          'git',
-          ['push', '-u', 'origin', plan.branchName],
-          { cwd: tempDir }
-        );
-
-        if (pushOut) logs.push(pushOut.trim());
-        if (pushErr) logs.push(pushErr.trim());
-        logs.push(`🚀 [Push Exitoso] Rama '${plan.branchName}' publicada en GitHub.`);
+        logs.push(`[Git] Ejecutando: git push -u origin ${entrada.branchName}...`);
+        const { stdout: pushOut, stderr: pushErr } = await git(['push', '-u', 'origin', entrada.branchName]);
+        if (pushOut) logs.push(ocultar(pushOut.trim()));
+        if (pushErr) logs.push(ocultar(pushErr.trim()));
+        logs.push(`🚀 [Push Exitoso] Rama '${entrada.branchName}' publicada en GitHub.`);
       }
 
       return {
         exitoso: true,
         commitsEjecutados: commitHashes.length,
-        rama: plan.branchName,
-        remoteUrl: plan.autor.remoteUrl,
+        rama: entrada.branchName,
+        remoteUrl: entrada.remoteUrl,
         commitHashes,
         logs,
       };
     } catch (err: any) {
-      logs.push(`❌ [Error Git]: ${err?.message || String(err)}`);
+      const mensaje = ocultar(err?.message || String(err));
+      logs.push(`❌ [Error Git]: ${mensaje}`);
       return {
         exitoso: false,
         commitsEjecutados: commitHashes.length,
-        rama: plan.branchName,
-        remoteUrl: plan.autor.remoteUrl,
+        rama: entrada.branchName,
+        remoteUrl: entrada.remoteUrl,
         commitHashes,
-        logs,
-        error: err?.message || String(err),
+        logs: logs.map(ocultar),
+        error: mensaje,
       };
     } finally {
-      // Limpiar sandbox temporal para no saturar disco
       try {
         await fs.rm(tempDir, { recursive: true, force: true });
       } catch {
-        // Ignorar fallas menores de limpieza en Windows
+        // Ignorar fallas menores de limpieza
       }
     }
   }
+}
+
+interface EntradaGitValidada {
+  archivos: { absoluta: string; relativa: string; contenido: string }[];
+  commits: { archivos: string[]; autor: string; mensaje: string }[];
+  branchName: string;
+  autorNombre: string;
+  autorEmail: string;
+  remoteUrl?: string;
+  githubToken?: string;
+  scripts: { bat: string; sh: string };
 }
