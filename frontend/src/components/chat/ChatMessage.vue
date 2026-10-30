@@ -536,7 +536,7 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
         <iframe
           :key="versionMiniRender"
           :srcdoc="srcdocCompilado"
-          sandbox="allow-scripts allow-forms allow-same-origin allow-modals"
+          sandbox="allow-scripts allow-forms allow-modals"
           class="w-full h-80 border-none bg-white"
         ></iframe>
       </div>

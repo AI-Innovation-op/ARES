@@ -136,12 +136,15 @@ export class ZipService {
 
   /**
    * Limpia y normaliza la ruta de archivo para evitar caracteres inválidos o escapes.
+   * Elimina los segmentos vacíos, "." y ".." para que una ruta nunca pueda salir de la carpeta del ZIP.
    */
   private limpiarRuta(ruta: string): string {
     return ruta
-      .replace(/^[\\\/]+/, '')
       .replace(/[*`"']/g, '')
-      .trim();
+      .split(/[\\/]+/)
+      .map((segmento) => segmento.trim())
+      .filter((segmento) => segmento !== '' && segmento !== '.' && segmento !== '..')
+      .join('/');
   }
 
   /**

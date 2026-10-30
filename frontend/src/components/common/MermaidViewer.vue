@@ -16,7 +16,7 @@ const escalaZoom = ref(1);
 mermaid.initialize({
   startOnLoad: false,
   theme: 'dark',
-  securityLevel: 'loose',
+  securityLevel: 'strict',
   fontFamily: 'JetBrains Mono, monospace',
   themeVariables: {
     darkMode: true,

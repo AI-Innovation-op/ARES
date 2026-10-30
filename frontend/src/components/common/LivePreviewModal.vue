@@ -18,6 +18,7 @@ const logs = ref<{ type: string; message: string; time: string }[]>([]);
 const mostrarLogs = ref(false);
 const recargando = ref(false);
 const versionRender = ref(0);
+const iframeRef = ref<HTMLIFrameElement | null>(null);
 
 const anchoContenedor = computed(() => {
   switch (dispositivo.value) {
@@ -50,6 +51,8 @@ function recargar() {
 }
 
 function handleMensajeVentana(event: MessageEvent) {
+  // Solo aceptar mensajes que vengan de ESTE iframe (el sandbox tiene origen opaco, no se puede comparar event.origin)
+  if (event.source !== iframeRef.value?.contentWindow) return;
   if (event.data?.type === 'ARES_SANDBOX_LOG' && Array.isArray(event.data.logs)) {
     logs.value = event.data.logs;
   }
@@ -156,8 +159,9 @@ onUnmounted(() => {
       <div class="flex-1 bg-[#040914] p-3 flex items-center justify-center overflow-auto relative">
         <div :class="['transition-all duration-300 overflow-hidden bg-white relative flex flex-col', anchoContenedor]">
           <iframe
+            ref="iframeRef"
             :srcdoc="srcdocCompilado"
-            sandbox="allow-scripts allow-forms allow-same-origin allow-modals"
+            sandbox="allow-scripts allow-forms allow-modals"
             class="w-full h-full border-none bg-white"
           ></iframe>
         </div>
