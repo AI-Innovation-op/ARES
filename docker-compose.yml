@@ -15,23 +15,29 @@ services:
     container_name: ares-backend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      # Solo accesible desde tu propia máquina. El frontend (nginx) llega al backend por la red interna de Docker.
+      - "127.0.0.1:3000:3000"
     environment:
       - PORT=3000
       - NODE_ENV=production
       - DB_DRIVER=${DB_DRIVER:-sqlite}
       - SQLITE_DB_PATH=/app/database/ares.db
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      # Clave de acceso a la API (obligatoria en producción). Genérala con:  openssl rand -hex 32
+      - ARES_API_KEY=${ARES_API_KEY:?Define ARES_API_KEY en el archivo .env (openssl rand -hex 32)}
+      # Saltos de proxy delante del backend (nginx del frontend = 1). Sirve para que el límite de peticiones vea la IP real.
+      - TRUST_PROXY_HOPS=${TRUST_PROXY_HOPS:-1}
       - GEMINI_TEXT_MODEL=${GEMINI_TEXT_MODEL:-gemini-3-flash-preview}
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - OPENROUTER_DEFAULT_MODEL=${OPENROUTER_DEFAULT_MODEL:-deepseek/deepseek-chat}
       - LLM_PROVIDER=${LLM_PROVIDER:-openrouter}
-      - CORS_ORIGIN=*
+      # Orígenes (separados por coma) desde los que un navegador puede llamar a la API. '*' está prohibido en producción.
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost,http://localhost:5173}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - DATABASE_URL=${DATABASE_URL:-postgresql://ares_commander:ares_dev_2026@postgres:5432/ares_db}
     volumes:
-      # Volumen para persistencia de la base de datos SQLite embebida
-      - ./database:/app/database
+      # Volumen NOMBRADO (no una carpeta del repo): Docker le da el dueño correcto (usuario "node")
+      - ares_data:/app/database
     networks:
       default:
         aliases:
@@ -52,8 +58,10 @@ services:
     container_name: ares-frontend
     restart: unless-stopped
     ports:
-      - "5173:80"
       - "80:80"
+    environment:
+      - BACKEND_URL=http://backend:3000
+      - BACKEND_HOST=backend
     depends_on:
       - backend
 
@@ -66,7 +74,7 @@ services:
     restart: unless-stopped
     profiles: ["full", "postgres"]
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_DB: ares_db
       POSTGRES_USER: ares_commander
@@ -89,7 +97,7 @@ services:
     restart: unless-stopped
     profiles: ["full", "redis"]
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - ares_redis:/data
     healthcheck:
@@ -99,6 +107,8 @@ services:
       retries: 5
 
 volumes:
+  ares_data:
+    driver: local
   ares_pgdata:
     driver: local
   ares_redis:
