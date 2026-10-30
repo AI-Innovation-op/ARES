@@ -54,7 +54,7 @@ const program = new Command();
 program
   .name('ares')
   .description('🛡️ A.R.E.S. CLI Táctico — Terminal Standalone de Ingeniería de Software asistida por IA')
-  .version('4.0.0');
+  .version('4.5.0');
 
 // ============================================================================
 // 1. COMANDO: ares audit <file>

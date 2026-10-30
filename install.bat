@@ -3,7 +3,7 @@ setlocal EnableDelayedExpansion
 chcp 65001 >nul
 
 echo ============================================================================
-echo   A.R.E.S. - INSTALADOR TACTICO GLOBAL PARA WINDOWS (v4.0 RELEASE)
+echo   A.R.E.S. - INSTALADOR TACTICO GLOBAL PARA WINDOWS (v4.5 RELEASE)
 echo   Created by AI Innovation
 echo ============================================================================
 echo.

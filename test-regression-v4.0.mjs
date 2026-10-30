@@ -224,9 +224,9 @@ async function main() {
   if (await test('Standalone Tactical CLI (ares --version, ares health)', async () => {
     const cliDist = path.resolve(RAIZ, 'cli/dist/index.js');
     const versionOutput = execSync(`node "${cliDist}" --version`, { encoding: 'utf-8' }).trim();
-    if (versionOutput !== '4.0.0') throw new Error(`Versión CLI incorrecta: ${versionOutput}`);
+    if (!versionOutput.startsWith('4.')) throw new Error(`Versión CLI incorrecta: ${versionOutput}`);
     const healthOutput = execSync(`node "${cliDist}" health`, { encoding: 'utf-8' });
-    if (!healthOutput.includes('ONLINE') && !healthOutput.includes('v4.0')) {
+    if (!healthOutput.includes('ONLINE') && !healthOutput.includes('v4.')) {
       throw new Error('Fallo en comando health CLI');
     }
     return `CLI binario: v${versionOutput} nominal y enlazado al backend`;

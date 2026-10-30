@@ -5,6 +5,41 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [4.5.0] - 2026-10-30
+
+### 🛡️ Consolidación Soberana & Remediación Integral de Seguridad, Fiabilidad, Despliegue y CI
+
+- **Fase 1 (Seguridad Crítica - v4.1.0):**
+  - **Mitigación de Path Traversal & Inyección:** Creado módulo `backend/src/utils/validacion.ts` con funciones de validación estricta (`resolverRutaSegura`, `validarNombreRama`, `validarRemoteUrl`, `validarTokenGithub`, `validarAutorGit`, `validarMensajeCommit`).
+  - **Blindaje del Autómata Git:** Normalización de comandos en `backend/src/services/git-automator.service.ts` con `git add -- <ruta>` y máscara `***` en tokens de autenticación para logs y trazas de error.
+  - **Autenticación y Control de Acceso:** Middleware de autenticación de tiempo constante (`crypto.timingSafeEqual`) con cabecera `x-api-key` y variable obligatoria en producción `ARES_API_KEY`.
+  - **Hardening de Cabeceras HTTP:** Implementación de `helmet`, CORS con lista blanca configurable (`CORS_ORIGIN`), y limitación de tasa `express-rate-limit` (120 req/min general, 15 req/min para inferencia de IA).
+  - **Aislamiento del Frontend:** Retiro de `allow-same-origin` en sandboxes de iframes (`ChatMessage.vue`, `LivePreviewModal.vue`), filtrado de mensajes exclusivos para el iframe anfitrión, Mermaid en modo `securityLevel: 'strict'` y saneamiento de rutas ZIP en `zip.service.ts`.
+  - **CLI Blindada:** Creación de `cli/src/http.ts` con `apiFetch` inyectando `x-api-key` y `cli/src/ruta-segura.ts` para confinamiento estricto de directorios de extracción.
+
+- **Fase 2 (Fiabilidad Multiplataforma - v4.2.0):**
+  - **Conmutación Inteligente de Base de Datos:** `backend/src/utils/errores-db.ts` restringe el failover hacia SQLite únicamente ante fallos genuinos de conectividad de red/Postgres (`ECONNREFUSED`, `ENOTFOUND`, `57P01`-`57P03`, `08xxx`), propagando correctamente los errores de SQL y constraints.
+  - **Cliente Lazy de Gemini:** Instanciación bajo demanda de `GoogleGenAI` en `backend/src/services/gemini.service.ts` permitiendo operar exclusivamente con `OPENROUTER_API_KEY` y arrojando HTTP 503 explicativo si se invoca sin clave.
+  - **Hook Pre-Push Tolerante a Node 20:** Carga dinámica (`await import('node:sqlite')`) en `hooks/pre-push.js` para prevenir fallos fatales `ERR_UNKNOWN_BUILTIN_MODULE` en entornos Node < 22.5.
+  - **Eliminación Total de Rutas Fijas:** Erradicación de rutas hardcodeadas `D:/ares-ecosystem` en `changelog.service.ts`, `test-regression-*.mjs`, `hooks/pre-push.js` y `mcp/src/index.ts`.
+  - **Actualización MCP:** Dependencias de `@modelcontextprotocol/sdk` (^1.32.2) y `zod` (^4.6.7) actualizadas, resolviendo vulnerabilidades reportadas por `npm audit`.
+  - **Documentación Alineada:** README maestro y de MCP actualizados con requerimientos exactos de Node (≥22.13), Three.js (0.172) y tabla de configuración de seguridad.
+
+- **Fase 3 (Despliegue Soberano - v4.3.0):**
+  - **Docker Seguro:** Contenedor de backend ejecutándose bajo usuario no privilegiado `node`, con paquete `git` preinstalado para el Autómata Git y `HEALTHCHECK` activo vía `wget`.
+  - **Frontend Nginx Dinámico:** Conversión de configuración Nginx a plantilla `nginx.conf.template` con sustitución de variables `${BACKEND_URL}` y `${BACKEND_HOST}` al arranque mediante `envsubst`.
+  - **Docker Compose Blindado:** Confinamiento de puertos de Postgres, Redis y Backend a la interfaz local `127.0.0.1`, volumen nombrado persistente `ares_data` con permisos heredados y validación estricta de `ARES_API_KEY`.
+  - **Blueprint de Render:** Generación automática de `ARES_API_KEY`, variable `CORS_ORIGIN` interactiva, `TRUST_PROXY_HOPS=2` y bloque `disk` documentado.
+  - **GitHub Pages:** Integración de variable `VITE_API_URL: ${{ vars.ARES_API_URL }}` y pinning de GitHub Actions por SHA inmutable en `deploy-pages.yml`.
+
+- **Fase 4 (Calidad & CI - v4.4.0):**
+  - **Workflow de CI Completo:** `.github/workflows/ci.yml` con tres jobs paralelos (`backend`, `frontend`, `cli-y-mcp`) cubriendo typecheck, tests, auditoría y compilación.
+  - **Sentinel PR Auditor Reparado:** Arreglado script en `.github/workflows/ares-sentinel.yml` con `await` en publicación de comentarios, diff de tres puntos (`...HEAD`), y ejecución segura `execFileSync`.
+  - **Dependabot:** Monitoreo semanal de actualizaciones de seguridad en `.github/dependabot.yml` para los 4 paquetes npm y GitHub Actions.
+  - **Suite de Regresión 16/16:** Verificación completa de todos los subsistemas funcionales con 100% de éxito.
+
+---
+
 ## [4.0.0] - 2026-10-27
 
 ### 🚀 Lanzamiento Oficial (Official Release)

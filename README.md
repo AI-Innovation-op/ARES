@@ -1,8 +1,8 @@
-# 🛡️ A.R.E.S. Ecosystem (v4.0 Sovereign Industrial Release // Created by AI Innovation)
+# 🛡️ A.R.E.S. Ecosystem (v4.5 Sovereign Industrial Release // Created by AI Innovation)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo. Y un proyecto sin tu autoría es una batalla ganada sin honor."**  
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
-> 🏷️ **Versión Actual:** **v4.0.0 (RELEASE OFICIAL)** — *Terminal Táctica Standalone, Asistente de Forja DDD Interactivo, Descarga en .ZIP (C: o D:), Commits Atómicos Git y Enrutador Adaptativo de IA.*
+> 🏷️ **Versión Actual:** **v4.5.0 (RELEASE OFICIAL)** — *Terminal Táctica Standalone, Asistente de Forja DDD Interactivo, Descarga en .ZIP (C: o D:), Commits Atómicos Git y Enrutador Adaptativo de IA.*
 
 [![Node.js](https://img.shields.io/badge/Node.js-22.13+-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -16,18 +16,18 @@
 
 ---
 
-### ⚡ Acceso Rápido & Descarga Oficial de la Terminal CLI (v4.0.0)
+### ⚡ Acceso Rápido & Descarga Oficial de la Terminal CLI (v4.5.0)
 
 <div align="center">
 
-[![Descargar ARES v4.0.0 (.ZIP)](https://img.shields.io/badge/⬇️_Descargar-ARES_v4.0.0_.ZIP-007ACC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/archive/refs/tags/v4.0.0.zip)
-[![Ver Release v4.0.0 en GitHub](https://img.shields.io/badge/📦_GitHub-Releases_v4.0.0-2EA44F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/tag/v4.0.0)
+[![Descargar ARES v4.5.0 (.ZIP)](https://img.shields.io/badge/⬇️_Descargar-ARES_v4.5.0_.ZIP-007ACC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/archive/refs/tags/v4.5.0.zip)
+[![Ver Release v4.5.0 en GitHub](https://img.shields.io/badge/📦_GitHub-Releases_v4.5.0-2EA44F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/tag/v4.5.0)
 [![Web HUD En Vivo (GitHub Pages)](https://img.shields.io/badge/🌐_Web_HUD-En_Vivo_(GitHub_Pages)-9333EA?style=for-the-badge&logo=githubpages&logoColor=white)](https://ai-innovation-op.github.io/ARES/)
 
 </div>
 
 > 🚀 **¿Cómo instalar y usar el comando `ares` en tu PC en 1 minuto?**  
-> 1. Haz clic en el botón azul de arriba: **[⬇️ Descargar ARES v4.0.0 .ZIP](https://github.com/AI-Innovation-op/ARES/archive/refs/tags/v4.0.0.zip)**.  
+> 1. Haz clic en el botón azul de arriba: **[⬇️ Descargar ARES v4.5.0 .ZIP](https://github.com/AI-Innovation-op/ARES/archive/refs/tags/v4.5.0.zip)**.  
 > 2. Descomprime el archivo `.zip` en cualquier carpeta de tu disco (ej. `C:\ARES` o `D:\ARES`).  
 > 3. Entra a la carpeta y dale **doble clic** a `install.bat` o `INSTALAR_ARES.bat` *(asegúrate de que en Tipo diga **"Archivo por lotes"**, no al script de PowerShell)*.  
 > 4. Abre cualquier terminal (CMD o PowerShell) y escribe: **`ares`**.  
