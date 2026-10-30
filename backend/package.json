@@ -14,7 +14,7 @@
   "keywords": ["ares", "gemini", "backend", "typescript"],
   "license": "MIT",
   "dependencies": {
-    "@google/genai": "^1.0.0",
+    "@google/genai": "^2.31.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
