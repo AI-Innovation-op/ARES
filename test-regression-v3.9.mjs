@@ -6,8 +6,10 @@
 
 import { execSync } from 'node:child_process';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const API_BASE = 'http://localhost:3000';
+const RAIZ = fileURLToPath(new URL('.', import.meta.url));
+const API_BASE = process.env.ARES_API_URL || 'http://localhost:3000';
 
 async function test(nombre, fn) {
   const inicio = Date.now();
@@ -219,7 +221,7 @@ async function main() {
   // 14. v3.7 Standalone CLI & Comandos de Terminal Táctica
   total++;
   if (await test('v3.7 Standalone Tactical CLI (ares --version, ares health)', async () => {
-    const cliDist = path.resolve('D:/ares-ecosystem/cli/dist/index.js');
+    const cliDist = path.resolve(RAIZ, 'cli/dist/index.js');
     const versionOutput = execSync(`node "${cliDist}" --version`, { encoding: 'utf-8' }).trim();
     if (versionOutput !== '3.9.0') throw new Error(`Versión CLI incorrecta: ${versionOutput}`);
     const healthOutput = execSync(`node "${cliDist}" health`, { encoding: 'utf-8' });
@@ -232,7 +234,7 @@ async function main() {
   // 15. v3.9 CLI Route Command
   total++;
   if (await test('v3.9 CLI Tactical Order: ares route', async () => {
-    const cliDist = path.resolve('D:/ares-ecosystem/cli/dist/index.js');
+    const cliDist = path.resolve(RAIZ, 'cli/dist/index.js');
     const routeOutput = execSync(`node "${cliDist}" route "Refactorizar aggregate root de catálogo con TypeScript"`, { encoding: 'utf-8' });
     if (!routeOutput.includes('MODELO SELECCIONADO') || !routeOutput.includes('CODE_GEN')) {
       throw new Error(`Salida inesperada de ares route: ${routeOutput}`);

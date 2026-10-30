@@ -36,15 +36,7 @@ export function generarChangelog(versionSugerida?: string): ResultadoChangelog {
       cwd: process.cwd(),
     });
   } catch (err: any) {
-    // Si no está en raíz de git, intentar en D:/ares-ecosystem
-    try {
-      gitOutput = execSync('git log -n 50 --pretty=format:"%h|%s|%an|%ad" --date=short', {
-        encoding: 'utf-8',
-        cwd: 'D:/ares-ecosystem',
-      });
-    } catch {
-      throw new Error(`No se pudo leer el historial de Git: ${err.message}`);
-    }
+    throw new Error(`No se pudo leer el historial de Git: ${err.message}`);
   }
 
   const lineas = gitOutput.split('\n').filter(Boolean);
@@ -179,7 +171,7 @@ export function generarChangelog(versionSugerida?: string): ResultadoChangelog {
  * Guarda o actualiza el archivo CHANGELOG.md en la raíz del repositorio.
  */
 export function escribirChangelog(nuevoMarkdown: string, rutaDestino?: string): string {
-  const rutaFinal = rutaDestino || path.resolve('D:/ares-ecosystem/CHANGELOG.md');
+  const rutaFinal = rutaDestino || path.resolve(process.cwd(), 'CHANGELOG.md');
   const encabezado = `# CHANGELOG: A.R.E.S. Ecosystem\n\nTodos los cambios notables en este proyecto se documentan en este archivo.\nFormato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [Semantic Versioning](https://semver.org/).\n\n---\n\n`;
 
   let contenidoExistente = '';

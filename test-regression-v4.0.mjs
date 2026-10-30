@@ -6,9 +6,11 @@
 
 import { execSync } from 'node:child_process';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 
-const API_BASE = 'http://localhost:3000';
+const RAIZ = fileURLToPath(new URL('.', import.meta.url));
+const API_BASE = process.env.ARES_API_URL || 'http://localhost:3000';
 
 async function test(nombre, fn) {
   const inicio = Date.now();
@@ -220,7 +222,7 @@ async function main() {
   // 14. Standalone Tactical CLI v4.0 (ares --version, ares health)
   total++;
   if (await test('Standalone Tactical CLI (ares --version, ares health)', async () => {
-    const cliDist = path.resolve('D:/ares-ecosystem/cli/dist/index.js');
+    const cliDist = path.resolve(RAIZ, 'cli/dist/index.js');
     const versionOutput = execSync(`node "${cliDist}" --version`, { encoding: 'utf-8' }).trim();
     if (versionOutput !== '4.0.0') throw new Error(`Versión CLI incorrecta: ${versionOutput}`);
     const healthOutput = execSync(`node "${cliDist}" health`, { encoding: 'utf-8' });
@@ -233,7 +235,7 @@ async function main() {
   // 15. CLI Route Command
   total++;
   if (await test('CLI Tactical Order: ares route', async () => {
-    const cliDist = path.resolve('D:/ares-ecosystem/cli/dist/index.js');
+    const cliDist = path.resolve(RAIZ, 'cli/dist/index.js');
     const routeOutput = execSync(`node "${cliDist}" route "Refactorizar aggregate root de catálogo con TypeScript"`, { encoding: 'utf-8' });
     if (!routeOutput.includes('MODELO SELECCIONADO') || !routeOutput.includes('CODE_GEN')) {
       throw new Error(`Salida inesperada de ares route: ${routeOutput}`);
@@ -244,10 +246,10 @@ async function main() {
   // 16. Empaquetador .ZIP Directo (C: o D:)
   total++;
   if (await test('Empaquetador .ZIP Directo en Disco (ares zip)', async () => {
-    const cliDist = path.resolve('D:/ares-ecosystem/cli/dist/index.js');
-    const testZip = path.resolve('D:/ares-ecosystem/test-v4-output.zip');
+    const cliDist = path.resolve(RAIZ, 'cli/dist/index.js');
+    const testZip = path.resolve(RAIZ, 'test-v4-output.zip');
     try {
-      execSync(`node "${cliDist}" zip "D:/ares-ecosystem/hooks" "${testZip}"`, { encoding: 'utf-8' });
+      execSync(`node "${cliDist}" zip "${path.join(RAIZ, 'hooks')}" "${testZip}"`, { encoding: 'utf-8' });
       if (!fs.existsSync(testZip)) throw new Error('El archivo ZIP no fue creado');
       const stat = fs.statSync(testZip);
       fs.unlinkSync(testZip);
