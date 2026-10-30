@@ -35,23 +35,10 @@ export interface ConfiguracionEntorno {
   LLM_PROVIDER: string;
   /** Modelo de texto de Google Gemini */
   GEMINI_TEXT_MODEL: string;
-}
-
-/**
- * Obtiene una variable de entorno obligatoria o lanza un error explícito.
- * @param nombre - Nombre de la variable de entorno
- * @returns Valor de la variable
- * @throws Error si la variable no está definida
- */
-function variableObligatoria(nombre: string): string {
-  const valor = process.env[nombre];
-  if (!valor) {
-    throw new Error(
-      `⚠️  Variable de entorno obligatoria "${nombre}" no encontrada.\n` +
-      `   Copia .env.example a .env y completa los valores.`
-    );
-  }
-  return valor;
+  /** Clave para acceder a la API (cabecera x-api-key). Obligatoria en producción */
+  ARES_API_KEY: string;
+  /** Saltos de proxy confiables (Render = 1; Render + nginx propio = 2; local = 0) */
+  TRUST_PROXY_HOPS: number;
 }
 
 /**
@@ -60,13 +47,27 @@ function variableObligatoria(nombre: string): string {
  */
 export const env: ConfiguracionEntorno = {
   DATABASE_URL: process.env['DATABASE_URL'] ?? '',
-  GEMINI_API_KEY: variableObligatoria('GEMINI_API_KEY'),
+  GEMINI_API_KEY: process.env['GEMINI_API_KEY'] ?? '',
   REDIS_URL: process.env['REDIS_URL'] ?? 'redis://localhost:6379',
-  PORT: parseInt(process.env['PORT'] ?? '3000', 10),
+  PORT: Number.parseInt(process.env['PORT'] ?? '3000', 10) || 3000,
   CORS_ORIGIN: process.env['CORS_ORIGIN'] ?? '*',
   NODE_ENV: process.env['NODE_ENV'] ?? 'development',
   OPENROUTER_API_KEY: process.env['OPENROUTER_API_KEY'] ?? '',
   OPENROUTER_DEFAULT_MODEL: process.env['OPENROUTER_DEFAULT_MODEL'] ?? 'deepseek/deepseek-chat',
-  LLM_PROVIDER: process.env['LLM_PROVIDER'] ?? 'openrouter',
+  LLM_PROVIDER: process.env['LLM_PROVIDER'] ?? (process.env['GEMINI_API_KEY'] ? 'gemini' : 'openrouter'),
   GEMINI_TEXT_MODEL: process.env['GEMINI_TEXT_MODEL'] ?? 'gemini-3-flash-preview',
+  ARES_API_KEY: process.env['ARES_API_KEY'] ?? '',
+  TRUST_PROXY_HOPS: Number.parseInt(process.env['TRUST_PROXY_HOPS'] ?? '0', 10) || 0,
 };
+
+// ---- Validaciones de arranque: fallar RÁPIDO y con un mensaje claro ----
+if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) {
+  throw new Error(
+    '⚠️  Falta una clave de IA: define GEMINI_API_KEY u OPENROUTER_API_KEY (copia .env.example a .env).'
+  );
+}
+if (env.NODE_ENV === 'production' && env.CORS_ORIGIN.trim() === '*') {
+  throw new Error(
+    '⚠️  CORS_ORIGIN="*" no está permitido en producción. Pon el/los origen(es) reales, ej: CORS_ORIGIN=https://ai-innovation-op.github.io'
+  );
+}

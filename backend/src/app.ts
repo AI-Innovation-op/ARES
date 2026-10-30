@@ -6,6 +6,8 @@
 
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { env } from './config/env.js';
 import { verificarConexionDB } from './config/db.js';
 import { verificarConexionRedis } from './config/redis.js';
@@ -67,7 +69,10 @@ import { MemoryService } from './services/memory.service.js';
 import { CATALOGO_MODELOS } from './services/llm.service.js';
 import { AiRouterService } from './services/ai-router.service.js';
 import { ejecutarHerramienta, DECLARACIONES_HERRAMIENTAS } from './services/tools.service.js';
-import { manejadorErrores } from './middleware/error.middleware.js';
+import { manejadorErrores, ValidationError } from './middleware/error.middleware.js';
+import { crearMiddlewareApiKey } from './middleware/auth.middleware.js';
+import { cerrarSqlite } from './config/sqlite.js';
+import { VERSION } from './config/version.js';
 
 const app = express();
 
@@ -75,15 +80,35 @@ const app = express();
 // Middlewares Globales
 // ============================================================================
 
-// Habilitar CORS para permitir conexión con Vite (localhost:5173 u otro origen)
+// Detrás de un proxy (Render, nginx) hay que decir cuántos saltos son de confianza
+// para que el límite de peticiones use la IP real del cliente.
+if (env.TRUST_PROXY_HOPS > 0) app.set('trust proxy', env.TRUST_PROXY_HOPS);
+
+// Cabeceras de seguridad HTTP
+app.use(helmet());
+
+// CORS con lista blanca. Ojo: CORS solo protege a los NAVEGADORES; la protección real es la API key.
+const origenesPermitidos = env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean);
 app.use(
   cors({
-    origin: env.CORS_ORIGIN === '*' ? '*' : [env.CORS_ORIGIN, 'http://localhost:5173'],
-    credentials: true,
+    origin(origen, cb) {
+      if (!origen) return cb(null, true); // curl, CLI, MCP: no envían Origin
+      if (origenesPermitidos.includes('*')) return cb(null, true); // solo posible en desarrollo (env.ts lo prohíbe en producción)
+      return cb(null, origenesPermitidos.includes(origen));
+    },
   })
 );
 
-// Parsear payloads JSON (límite ampliado a 15MB para soportar capturas de pantalla tácticas en base64)
+// Límite de peticiones: general y más estricto para rutas que consumen IA
+const limiteGeneral = rateLimit({ windowMs: 60_000, limit: 120, standardHeaders: 'draft-7', legacyHeaders: false });
+const limiteIA = rateLimit({ windowMs: 60_000, limit: 15, standardHeaders: 'draft-7', legacyHeaders: false });
+app.use('/api', limiteGeneral);
+app.use(['/api/chat', '/api/swarm', '/api/audit', '/api/documents', '/api/tests', '/api/benchmark'], limiteIA);
+
+// Acceso por API key a TODA la API (/health queda público). Va ANTES de leer el body.
+app.use('/api', crearMiddlewareApiKey({ claveEsperada: env.ARES_API_KEY, produccion: env.NODE_ENV === 'production' }));
+
+// Parsear payloads JSON (15MB para capturas en base64; solo llega aquí quien ya pasó la API key)
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
@@ -95,7 +120,7 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ONLINE',
-    agent: 'A.R.E.S. v4.0 Sovereign Industrial Release',
+    agent: `A.R.E.S. v${VERSION} Sovereign Industrial Release`,
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
   });
@@ -110,7 +135,10 @@ app.get('/api/models', (_req, res) => {
 
 // 1.0 Enrutador Adaptativo & Conmutador Automático de IA (v3.9)
 app.post('/api/models/route', (req, res) => {
-  const { prompt, hasImage } = req.body;
+  const { prompt, hasImage } = req.body ?? {};
+  if (prompt !== undefined && typeof prompt !== 'string') {
+    throw new ValidationError('El campo "prompt" debe ser texto.');
+  }
   const decision = AiRouterService.clasificarYEnrutar(prompt || '', Boolean(hasImage));
   res.status(200).json({
     success: true,
@@ -184,10 +212,9 @@ app.get('/api/tools', (_req, res) => {
 });
 app.post('/api/tools/execute', async (req, res, next) => {
   try {
-    const { toolName, args } = req.body;
-    if (!toolName) {
-      res.status(400).json({ error: 'El campo toolName es obligatorio.' });
-      return;
+    const { toolName, args } = req.body ?? {};
+    if (typeof toolName !== 'string' || !DECLARACIONES_HERRAMIENTAS.some((h) => h.name === toolName)) {
+      throw new ValidationError(`toolName inválido. Disponibles: ${DECLARACIONES_HERRAMIENTAS.map((h) => h.name).join(', ')}`);
     }
     const resultado = await ejecutarHerramienta(toolName, args || {});
     res.status(200).json(resultado);
@@ -214,7 +241,7 @@ app.use(manejadorErrores);
 // ============================================================================
 async function iniciarServidor(): Promise<void> {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🛡️  INICIALIZANDO SISTEMA TÁCTICO A.R.E.S. v3.8 (E2E SUITE & BENCHMARKS DDD CORE)...');
+  console.log(`🛡️  INICIALIZANDO SISTEMA TÁCTICO A.R.E.S. v${VERSION}...`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
   // Inicializar Oráculo de Memoria Semántica Vectorial Local
@@ -248,6 +275,14 @@ async function iniciarServidor(): Promise<void> {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   });
 }
+
+function apagar(senal: string): void {
+  console.log(`🛑 [A.R.E.S.] ${senal} recibido: cerrando de forma ordenada...`);
+  cerrarSqlite();
+  process.exit(0);
+}
+process.on('SIGTERM', () => apagar('SIGTERM'));
+process.on('SIGINT', () => apagar('SIGINT'));
 
 iniciarServidor().catch((error) => {
   console.error('💥 Falla crítica al arrancar el servidor A.R.E.S.:', error);
