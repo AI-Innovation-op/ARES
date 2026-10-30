@@ -9,7 +9,7 @@ import {
   ejecutarMisionEnjambre,
   ejecutarMisionEnjambreStream,
 } from '../services/swarm.service.js';
-import { ValidationError } from '../middleware/error.middleware.js';
+import { ValidationError, mensajePublico } from '../middleware/error.middleware.js';
 
 /**
  * GET /api/swarm/agents
@@ -102,7 +102,7 @@ export async function ejecutarSwarmStreamHandler(
     if (!res.headersSent) {
       next(error);
     } else {
-      res.write(`data: ${JSON.stringify({ type: 'error', message: error.message })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'error', message: mensajePublico(error) })}\n\n`);
       res.end();
     }
   }

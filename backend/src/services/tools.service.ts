@@ -76,7 +76,8 @@ export async function ejecutarHerramienta(
   nombre: string,
   argumentos: Record<string, any>
 ): Promise<Record<string, any>> {
-  console.log(`⚡ [FunctionCalling] Ejecutando herramienta táctica: "${nombre}"`, argumentos);
+  // No registrar los argumentos: pueden contener código o datos privados del usuario.
+  console.log(`⚡ [FunctionCalling] Ejecutando herramienta táctica: "${nombre}"`);
 
   switch (nombre) {
     case 'set_ares_pose': {

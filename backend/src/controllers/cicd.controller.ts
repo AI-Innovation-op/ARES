@@ -5,6 +5,7 @@
 
 import type { Request, Response } from 'express';
 import { CicdService } from '../services/cicd.service.js';
+import { mensajePublico } from '../middleware/error.middleware.js';
 
 /**
  * Lista todas las plantillas maestras de CI/CD disponibles.
@@ -86,7 +87,7 @@ export async function ejecutarPipelineStreamHandler(_req: Request, res: Response
     res.write(`data: [DONE]\n\n`);
     res.end();
   } catch (error: any) {
-    res.write(`data: ${JSON.stringify({ error: error.message || 'Error simulando pipeline' })}\n\n`);
+    res.write(`data: ${JSON.stringify({ error: mensajePublico(error) })}\n\n`);
     res.end();
   }
 }

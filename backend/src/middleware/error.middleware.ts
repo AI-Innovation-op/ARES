@@ -35,6 +35,14 @@ export class ValidationError extends Error {
 }
 
 /**
+ * Texto de error seguro para enviar al cliente: en producción NO se expone el mensaje interno.
+ */
+export function mensajePublico(err: unknown): string {
+  if (process.env.NODE_ENV === 'production') return 'Error interno del servidor.';
+  return (err as Error)?.message || 'Error desconocido';
+}
+
+/**
  * Middleware global de captura de errores de Express.
  */
 export function manejadorErrores(
@@ -60,6 +68,16 @@ export function manejadorErrores(
       mensaje: err.message,
       detalles: err.detalles,
       codigo: 'GEMINI_ERROR',
+    });
+    return;
+  }
+
+  // Errores 4xx de librerías (body-parser: JSON inválido = 400, payload grande = 413)
+  const estado = Number((err as any).status ?? (err as any).statusCode);
+  if (estado >= 400 && estado < 500) {
+    res.status(estado).json({
+      error: estado === 413 ? 'Payload demasiado grande' : 'Petición inválida',
+      codigo: 'BAD_REQUEST',
     });
     return;
   }

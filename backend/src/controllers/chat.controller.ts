@@ -5,7 +5,7 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import { procesarMensajeChat, procesarMensajeChatStream } from '../services/chat.service.js';
-import { ValidationError } from '../middleware/error.middleware.js';
+import { ValidationError, mensajePublico } from '../middleware/error.middleware.js';
 import type { ChatRequest } from '../types/api.types.js';
 
 export async function chatHandler(
@@ -77,7 +77,7 @@ export async function chatStreamHandler(
     if (!res.headersSent) {
       next(error);
     } else {
-      res.write(`data: ${JSON.stringify({ type: 'error', message: error.message })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'error', message: mensajePublico(error) })}\n\n`);
       res.end();
     }
   }

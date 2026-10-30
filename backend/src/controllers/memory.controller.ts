@@ -3,25 +3,32 @@
  * @module controllers/memory.controller
  */
 
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
+import { ValidationError } from '../middleware/error.middleware.js';
 import { MemoryService, type MemoryCollection } from '../services/memory.service.js';
 
-export async function listarMemoriasHandler(req: Request, res: Response): Promise<void> {
+export async function listarMemoriasHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const coleccion = req.query.collection as MemoryCollection | undefined;
     const memorias = await MemoryService.listarMemorias(coleccion);
     res.json({ total: memorias.length, memorias });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Error listando memorias' });
+  } catch (error) {
+    next(error);
   }
 }
 
-export async function guardarMemoriaHandler(req: Request, res: Response): Promise<void> {
+export async function guardarMemoriaHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { title, content, collection, tags, metadata, id } = req.body;
-    if (!title || !content) {
-      res.status(400).json({ error: 'Los campos "title" y "content" son obligatorios.' });
-      return;
+    const { title, content, collection, tags, metadata, id } = req.body ?? {};
+    if (typeof title !== 'string' || typeof content !== 'string' || !title.trim() || !content.trim()) {
+      throw new ValidationError('Los campos "title" y "content" son obligatorios y deben ser texto.');
+    }
+    if (title.length > 200 || content.length > 50_000) {
+      throw new ValidationError('"title" admite máx. 200 caracteres y "content" máx. 50.000.');
+    }
+    // Un cliente solo puede actualizar memorias creadas por él (prefijo mem-); las sembradas (ADR-001...) no.
+    if (id !== undefined && !/^mem-[A-Za-z0-9-]{1,64}$/.test(String(id))) {
+      throw new ValidationError('"id" inválido: solo se pueden actualizar memorias que empiecen por "mem-".');
     }
 
     const nuevaMemoria = await MemoryService.guardarMemoria({
@@ -34,12 +41,12 @@ export async function guardarMemoriaHandler(req: Request, res: Response): Promis
     });
 
     res.status(201).json(nuevaMemoria);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Error guardando memoria' });
+  } catch (error) {
+    next(error);
   }
 }
 
-export async function buscarSemanticaHandler(req: Request, res: Response): Promise<void> {
+export async function buscarSemanticaHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { query, threshold, limit, collection } = req.body;
     if (!query || typeof query !== 'string') {
@@ -58,26 +65,26 @@ export async function buscarSemanticaHandler(req: Request, res: Response): Promi
     );
 
     res.json(resultado);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Error en búsqueda semántica' });
+  } catch (error) {
+    next(error);
   }
 }
 
-export async function eliminarMemoriaHandler(req: Request, res: Response): Promise<void> {
+export async function eliminarMemoriaHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const id = String(req.params.id);
     await MemoryService.eliminarMemoria(id);
     res.json({ success: true, message: `Memoria ${id} eliminada.` });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Error eliminando memoria' });
+  } catch (error) {
+    next(error);
   }
 }
 
-export async function obtenerEstadisticasHandler(_req: Request, res: Response): Promise<void> {
+export async function obtenerEstadisticasHandler(_req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const stats = await MemoryService.obtenerEstadisticas();
     res.json(stats);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Error obteniendo estadísticas' });
+  } catch (error) {
+    next(error);
   }
 }
