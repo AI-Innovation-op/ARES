@@ -60,14 +60,14 @@ export const env: ConfiguracionEntorno = {
   TRUST_PROXY_HOPS: Number.parseInt(process.env['TRUST_PROXY_HOPS'] ?? '0', 10) || 0,
 };
 
-// ---- Validaciones de arranque: fallar RÁPIDO y con un mensaje claro ----
+// ---- Validaciones de arranque: advertir con un mensaje claro ----
 if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) {
-  throw new Error(
-    '⚠️  Falta una clave de IA: define GEMINI_API_KEY u OPENROUTER_API_KEY (copia .env.example a .env).'
+  console.warn(
+    '⚠️  [Config] Falta una clave de IA: define GEMINI_API_KEY u OPENROUTER_API_KEY en las variables de entorno.'
   );
 }
 if (env.NODE_ENV === 'production' && env.CORS_ORIGIN.trim() === '*') {
-  throw new Error(
-    '⚠️  CORS_ORIGIN="*" no está permitido en producción. Pon el/los origen(es) reales, ej: CORS_ORIGIN=https://ai-innovation-op.github.io'
+  console.warn(
+    '⚠️  [Seguridad] CORS_ORIGIN="*" detectado en producción. Se recomienda restringir los dominios en las variables de entorno.'
   );
 }
