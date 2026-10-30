@@ -36,8 +36,22 @@ services:
         value: deepseek/deepseek-chat
       - key: LLM_PROVIDER
         value: openrouter
+      # Clave de acceso a la API: Render la genera sola. Cópiala desde el panel de Render (Environment) para usarla en el HUD, la CLI y el MCP.
+      - key: ARES_API_KEY
+        generateValue: true
+      # Orígenes permitidos, separados por coma (la URL de tu frontend). Ej.: https://ares-frontend.onrender.com
+      # No se puede dejar "*" en producción: el backend se niega a arrancar.
       - key: CORS_ORIGIN
-        value: "*"
+        sync: false
+      # Saltos de proxy: 1 si llamas al backend directamente; 2 si pasas por el nginx del frontend.
+      - key: TRUST_PROXY_HOPS
+        value: 2
+    # PERSISTENCIA: en el plan "free" el disco se borra en cada despliegue y se pierde la memoria/ADRs guardados en SQLite.
+    # Con un plan de pago, descomenta este bloque (y cambia "plan: free" por "plan: starter"):
+    # disk:
+    #   name: ares-data
+    #   mountPath: /app/database
+    #   sizeGB: 1
 
   # --------------------------------------------------------------------------
   # 2. Frontend Tactical HUD (Docker Nginx + Three.js)
@@ -49,3 +63,9 @@ services:
     dockerfilePath: ./frontend/Dockerfile
     plan: free
     region: oregon
+    envVars:
+      # A dónde reenvía nginx las peticiones /api. Cámbialas si tu backend tiene otra URL.
+      - key: BACKEND_URL
+        value: https://ares-backend-ozs5.onrender.com
+      - key: BACKEND_HOST
+        value: ares-backend-ozs5.onrender.com
