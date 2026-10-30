@@ -106,7 +106,14 @@ app.use('/api', limiteGeneral);
 app.use(['/api/chat', '/api/swarm', '/api/audit', '/api/documents', '/api/tests', '/api/benchmark'], limiteIA);
 
 // Acceso por API key a TODA la API (/health queda público). Va ANTES de leer el body.
-app.use('/api', crearMiddlewareApiKey({ claveEsperada: env.ARES_API_KEY, produccion: env.NODE_ENV === 'production' }));
+app.use(
+  '/api',
+  crearMiddlewareApiKey({
+    claveEsperada: env.ARES_API_KEY,
+    produccion: env.NODE_ENV === 'production',
+    origenesPermitidos,
+  })
+);
 
 // Parsear payloads JSON (15MB para capturas en base64; solo llega aquí quien ya pasó la API key)
 app.use(express.json({ limit: '15mb' }));

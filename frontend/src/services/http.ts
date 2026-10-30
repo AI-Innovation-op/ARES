@@ -1,8 +1,8 @@
 /**
  * @fileoverview Cliente HTTP único del frontend de A.R.E.S.
  * - Una sola URL base para TODO el frontend (VITE_API_URL).
- * - Envía la cabecera `x-api-key` en cada petición.
- * - Si el servidor responde 401, pide la clave UNA vez, la guarda en sessionStorage y reintenta.
+ * - Envía la cabecera `x-api-key` en cada petición si está configurada.
+ * - Si el servidor responde 401, pide la clave de forma segura y reintenta.
  * @module services/http
  */
 
@@ -12,7 +12,7 @@ import axios, { type AxiosInstance } from 'axios';
  * URL del backend. Vacío ('') = mismo origen:
  *  - en desarrollo, el proxy de Vite (vite.config.ts) reenvía /api a localhost:3000
  *  - en Docker, nginx reenvía /api al contenedor backend
- *  - en GitHub Pages, define VITE_API_URL=https://tu-backend (ver deploy-pages.yml)
+ *  - en GitHub Pages, define VITE_API_URL=https://tu-backend o recurre al backend de Render
  */
 function obtenerApiBaseOrigin(): string {
   const envUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
@@ -32,7 +32,8 @@ let claveMemoria = '';
 
 function leerClave(): string {
   try {
-    return sessionStorage.getItem(CLAVE_STORAGE) || claveMemoria;
+    const envKey = (import.meta.env.VITE_ARES_API_KEY as string | undefined)?.trim();
+    return sessionStorage.getItem(CLAVE_STORAGE) || claveMemoria || envKey || '';
   } catch {
     return claveMemoria;
   }
@@ -51,12 +52,19 @@ let solicitudClave: Promise<string> | null = null;
 let ultimaCancelacion = 0;
 
 /**
- * Pide la clave con un cuadro de diálogo y la guarda. Si varias peticiones fallan a la vez,
- * pregunta una sola vez (todas comparten la misma promesa).
+ * Pide la clave con un cuadro de diálogo y la guarda de forma segura. Si varias peticiones fallan a la vez,
+ * pregunta una sola vez (todas comparten la misma promesa). Protegido contra entornos sin window.prompt().
  */
 function pedirClave(): Promise<string> {
   solicitudClave ??= (async () => {
-    const valor = window.prompt('Clave de acceso de A.R.E.S. (ARES_API_KEY del servidor):') ?? '';
+    let valor = '';
+    try {
+      if (typeof window !== 'undefined' && typeof window.prompt === 'function') {
+        valor = window.prompt('Clave de acceso de A.R.E.S. (ARES_API_KEY del servidor):') ?? '';
+      }
+    } catch {
+      valor = '';
+    }
     if (valor) guardarClave(valor);
     else ultimaCancelacion = Date.now();
     return valor;
