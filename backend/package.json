@@ -8,7 +8,8 @@
     "dev": "tsx watch src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "keywords": ["ares", "gemini", "backend", "typescript"],
   "license": "MIT",
@@ -17,6 +18,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
     "ioredis": "^5.6.1",
     "pg": "^8.16.0"
   },
@@ -27,5 +30,8 @@
     "@types/pg": "^8.15.4",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=22.13.0"
   }
 }
