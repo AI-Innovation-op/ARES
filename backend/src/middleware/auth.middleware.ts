@@ -1,6 +1,6 @@
 /**
  * @fileoverview Middleware de acceso por API key (cabecera `x-api-key`).
- * - Con ARES_API_KEY definida: exige la clave en toda ruta donde se monte, salvo que el origen sea un CORS permitido.
+ * - Con ARES_API_KEY definida: exige la clave en toda ruta donde se monte.
  * - Sin ARES_API_KEY en desarrollo: deja pasar (cómodo en local).
  * - Sin ARES_API_KEY en producción: responde 503 (seguro por defecto).
  * @module middleware/auth
@@ -14,37 +14,14 @@ export interface OpcionesApiKey {
   claveEsperada: string;
   /** true cuando NODE_ENV === 'production' */
   produccion: boolean;
-  /** Orígenes autorizados por CORS que tienen permitido invocar la API desde el navegador */
-  origenesPermitidos?: string[];
 }
 
 function huella(texto: string): Buffer {
   return crypto.createHash('sha256').update(texto).digest();
 }
 
-export function crearMiddlewareApiKey({
-  claveEsperada,
-  produccion,
-  origenesPermitidos = [],
-}: OpcionesApiKey): RequestHandler {
-  const origenesValidos = origenesPermitidos
-    .map((o) => o.trim().replace(/\/+$/, ''))
-    .filter((o) => o && o !== '*');
-
+export function crearMiddlewareApiKey({ claveEsperada, produccion }: OpcionesApiKey): RequestHandler {
   return (req: Request, res: Response, next: NextFunction): void => {
-    // Si la petición proviene de un navegador en un origen oficial permitido por CORS (ej: GitHub Pages),
-    // el encabezado 'Origin' es inyectado y protegido de forma inviolable por el propio navegador.
-    const origenPeticion = req.header('origin')?.trim().replace(/\/+$/, '');
-    if (
-      origenPeticion &&
-      (origenesValidos.includes(origenPeticion) ||
-        origenPeticion.endsWith('ai-innovation-op.github.io') ||
-        origenesValidos.some((v) => origenPeticion.startsWith(v)))
-    ) {
-      next();
-      return;
-    }
-
     if (!claveEsperada) {
       if (produccion) {
         res.status(503).json({

@@ -1,6 +1,6 @@
 {
   "name": "@ares-ecosystem/mcp",
-  "version": "4.5.0",
+  "version": "4.5.1",
   "description": "Servidor MCP (Model Context Protocol) de A.R.E.S. para Cursor, Claude Desktop y Antigravity",
   "type": "module",
   "bin": {
