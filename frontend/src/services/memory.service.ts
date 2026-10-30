@@ -1,3 +1,4 @@
+import { apiFetch } from './http.js';
 /**
  * @fileoverview Cliente API Frontend para el Oráculo de Memoria Semántica Vectorial Local (A.R.E.S. v3.3).
  * @module services/memory.service
@@ -32,15 +33,13 @@ export interface MemoryStats {
   ultimaActualizacion: string;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
 export class MemoryFrontendService {
   /**
    * Lista todas las memorias registradas.
    */
   public static async listarMemorias(coleccion?: MemoryCollection): Promise<ArchitecturalMemory[]> {
-    const url = coleccion ? `${API_BASE}/api/memory?collection=${coleccion}` : `${API_BASE}/api/memory`;
-    const res = await fetch(url);
+    const url = coleccion ? `/api/memory?collection=${coleccion}` : `/api/memory`;
+    const res = await apiFetch(url);
     if (!res.ok) throw new Error('Error al listar memorias');
     const data = await res.json();
     return data.memorias;
@@ -57,7 +56,7 @@ export class MemoryFrontendService {
     tags?: string[];
     metadata?: Record<string, any>;
   }): Promise<ArchitecturalMemory> {
-    const res = await fetch(`${API_BASE}/api/memory`, {
+    const res = await apiFetch(`/api/memory`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(datos),
@@ -75,7 +74,7 @@ export class MemoryFrontendService {
     limit: number = 6,
     collection?: MemoryCollection
   ): Promise<SearchResult> {
-    const res = await fetch(`${API_BASE}/api/memory/search`, {
+    const res = await apiFetch(`/api/memory/search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query, threshold, limit, collection }),
@@ -88,7 +87,7 @@ export class MemoryFrontendService {
    * Elimina una memoria por ID.
    */
   public static async eliminarMemoria(id: string): Promise<boolean> {
-    const res = await fetch(`${API_BASE}/api/memory/${id}`, {
+    const res = await apiFetch(`/api/memory/${id}`, {
       method: 'DELETE',
     });
     if (!res.ok) throw new Error(`Error al eliminar la memoria ${id}`);
@@ -100,7 +99,7 @@ export class MemoryFrontendService {
    * Obtiene estadísticas del oráculo vectorial.
    */
   public static async obtenerEstadisticas(): Promise<MemoryStats> {
-    const res = await fetch(`${API_BASE}/api/memory/stats`);
+    const res = await apiFetch(`/api/memory/stats`);
     if (!res.ok) throw new Error('Error al obtener estadísticas de memoria');
     return await res.json();
   }

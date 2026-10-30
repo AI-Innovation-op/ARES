@@ -1,3 +1,4 @@
+import { apiFetch } from './http.js';
 /**
  * @fileoverview Cliente API Frontend para el Motor de CI/CD & Despliegues Autónomos (v3.2).
  * @module services/cicd.service
@@ -63,14 +64,12 @@ export interface AuditResult {
   issues: AuditIssue[];
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
 export class CicdFrontendService {
   /**
    * Obtiene el catálogo de plantillas CI/CD.
    */
   public static async listarTemplates(): Promise<CicdTemplate[]> {
-    const res = await fetch(`${API_BASE}/api/cicd/templates`);
+    const res = await apiFetch(`/api/cicd/templates`);
     if (!res.ok) throw new Error('Error al obtener plantillas de CI/CD');
     const data = await res.json();
     return data.templates;
@@ -80,7 +79,7 @@ export class CicdFrontendService {
    * Obtiene una plantilla específica.
    */
   public static async obtenerTemplate(id: string): Promise<CicdTemplate> {
-    const res = await fetch(`${API_BASE}/api/cicd/templates/${id}`);
+    const res = await apiFetch(`/api/cicd/templates/${id}`);
     if (!res.ok) throw new Error(`Error al obtener plantilla ${id}`);
     return await res.json();
   }
@@ -89,7 +88,7 @@ export class CicdFrontendService {
    * Audita una especificación YAML.
    */
   public static async auditarWorkflow(yaml: string): Promise<AuditResult> {
-    const res = await fetch(`${API_BASE}/api/cicd/audit`, {
+    const res = await apiFetch(`/api/cicd/audit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ yaml }),
@@ -102,7 +101,7 @@ export class CicdFrontendService {
    * Obtiene el estado actual del pipeline.
    */
   public static async obtenerEstado(): Promise<PipelineExecution> {
-    const res = await fetch(`${API_BASE}/api/cicd/status`);
+    const res = await apiFetch(`/api/cicd/status`);
     if (!res.ok) throw new Error('Error al consultar estado del pipeline');
     return await res.json();
   }
@@ -115,36 +114,51 @@ export class CicdFrontendService {
     onCompletado: () => void,
     onError: (err: any) => void
   ): () => void {
-    const eventSource = new EventSource(`${API_BASE}/api/cicd/simulate/stream`);
+    const controlador = new AbortController();
 
-    eventSource.onmessage = (event) => {
-      if (event.data === '[DONE]') {
-        eventSource.close();
-        onCompletado();
-        return;
-      }
-
+    (async () => {
       try {
-        const parsed = JSON.parse(event.data);
-        if (parsed.error) {
-          eventSource.close();
-          onError(new Error(parsed.error));
-          return;
+        const res = await apiFetch('/api/cicd/simulate/stream', { signal: controlador.signal });
+        if (!res.ok || !res.body) throw new Error(`Falla HTTP al conectar el stream (${res.status})`);
+
+        const lector = res.body.getReader();
+        const decodificador = new TextDecoder('utf-8');
+        let buffer = '';
+
+        while (true) {
+          const { value, done } = await lector.read();
+          if (done) break;
+          buffer += decodificador.decode(value, { stream: true });
+          const lineas = buffer.split('\n');
+          buffer = lineas.pop() ?? '';
+
+          for (const linea of lineas) {
+            const texto = linea.trim();
+            if (!texto.startsWith('data:')) continue;
+            const dato = texto.replace(/^data:\s*/, '');
+            if (dato === '[DONE]') {
+              onCompletado();
+              return;
+            }
+            try {
+              const parsed = JSON.parse(dato);
+              if (parsed.error) {
+                onError(new Error(parsed.error));
+                return;
+              }
+              onProgreso(parsed);
+            } catch (e) {
+              console.error('Error parseando SSE de pipeline:', e);
+            }
+          }
         }
-        onProgreso(parsed);
-      } catch (e) {
-        console.error('Error parseando SSE de pipeline:', e);
+        onCompletado();
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') onError(err);
       }
-    };
+    })();
 
-    eventSource.onerror = (err) => {
-      eventSource.close();
-      onError(err);
-    };
-
-    // Devuelve función destructora / abortadora
-    return () => {
-      eventSource.close();
-    };
+    // Devuelve función abortadora
+    return () => controlador.abort();
   }
 }

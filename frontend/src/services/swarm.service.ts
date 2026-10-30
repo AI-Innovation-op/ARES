@@ -5,6 +5,7 @@
  */
 
 import axios from 'axios';
+import { API_BASE_ORIGIN } from './http.js';
 
 export interface SubagenteFrontend {
   id: string;
@@ -42,7 +43,7 @@ class SwarmService {
     }
 
     try {
-      const { data } = await axios.get<RespuestaAgentesSwarm>('/api/swarm/agents');
+      const { data } = await axios.get<RespuestaAgentesSwarm>(`${API_BASE_ORIGIN}/api/swarm/agents`);
       this.agentesCache = data.agents;
       return data.agents;
     } catch (error) {
@@ -55,7 +56,7 @@ class SwarmService {
    * Ejecuta una misión del enjambre de forma síncrona.
    */
   async ejecutarMision(mision: string, provider?: string, model?: string): Promise<SwarmMissionResult> {
-    const { data } = await axios.post<SwarmMissionResult>('/api/swarm/execute', {
+    const { data } = await axios.post<SwarmMissionResult>(`${API_BASE_ORIGIN}/api/swarm/execute`, {
       mission: mision,
       provider,
       model,

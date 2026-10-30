@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { API_BASE_ORIGIN, apiFetch, protegerAxios } from './http.js';
 import type {
   RespuestaChat,
   RespuestaAuditoria,
@@ -14,13 +15,7 @@ import type {
   NumeroPose,
 } from '../types/ares.types.js';
 
-// Enlace táctico del backend: si estamos en Render u otro dominio público, apunta al backend en la nube
-const RENDER_BACKEND_URL = 'https://ares-backend-ozs5.onrender.com';
-export const API_BASE_ORIGIN =
-  import.meta.env.VITE_API_URL ||
-  (typeof window !== 'undefined' && (window.location.hostname.includes('render.com') || window.location.hostname.includes('onrender.com'))
-    ? RENDER_BACKEND_URL
-    : '');
+export { API_BASE_ORIGIN };
 
 const cliente = axios.create({
   baseURL: `${API_BASE_ORIGIN}/api`,
@@ -29,6 +24,7 @@ const cliente = axios.create({
     'Content-Type': 'application/json',
   },
 });
+protegerAxios(cliente);
 
 export const apiService = {
   /**
@@ -48,7 +44,7 @@ export const apiService = {
     onError?: (error: Error) => void;
   }): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_ORIGIN}/api/chat/stream`, {
+      const response = await apiFetch('/api/chat/stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import MermaidViewer from '../common/MermaidViewer.vue';
+import { API_BASE_ORIGIN } from '../../services/http.js';
 
 const emit = defineEmits<{
   (e: 'cerrar'): void;
@@ -35,7 +36,7 @@ async function ejecutarAuditoria(urlAUsar?: string) {
   pasoActual.value = '🔍 Conectando con GitHub API y extrayendo árbol de archivos...';
 
   try {
-    const res = await axios.post('/api/audit/github', { url: urlFinal });
+    const res = await axios.post(`${API_BASE_ORIGIN}/api/audit/github`, { url: urlFinal });
     resultadoAuditoria.value = res.data;
   } catch (err: any) {
     console.error('Error al auditar repositorio GitHub:', err);

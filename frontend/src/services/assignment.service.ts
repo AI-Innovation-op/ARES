@@ -5,6 +5,7 @@
  */
 
 import axios from 'axios';
+import { API_BASE_ORIGIN } from './http.js';
 import JSZip from 'jszip';
 
 export interface BoundedContextMeta {
@@ -116,7 +117,7 @@ export interface StackOption {
 }
 
 class AssignmentService {
-  private baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  private baseUrl = API_BASE_ORIGIN;
 
   async limpiarTexto(text: string, stack?: string): Promise<AnalisisEnunciado> {
     const res = await axios.post(`${this.baseUrl}/api/assignment/clean-text`, { text, stack });

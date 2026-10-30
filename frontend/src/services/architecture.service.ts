@@ -1,3 +1,4 @@
+import { apiFetch } from './http.js';
 /**
  * @fileoverview Cliente API Frontend para el Radar de Arquitectura C4 & Tracing de Eventos (A.R.E.S. v3.4).
  * @module services/architecture.service
@@ -48,14 +49,12 @@ export interface SystemTopology {
   edges: TopologyEdge[];
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
 export class ArchitectureFrontendService {
   /**
    * Obtiene la lista de topologías disponibles.
    */
   public static async listarTopologias(): Promise<Array<{ id: string; nombre: string; descripcion: string; patronArquitectonico: string }>> {
-    const res = await fetch(`${API_BASE}/api/architecture/topologies`);
+    const res = await apiFetch(`/api/architecture/topologies`);
     if (!res.ok) throw new Error('Error al listar topologías');
     const data = await res.json();
     return data.topologias;
@@ -65,8 +64,8 @@ export class ArchitectureFrontendService {
    * Obtiene la topología activa o por ID.
    */
   public static async obtenerTopologia(id?: string): Promise<SystemTopology> {
-    const url = id ? `${API_BASE}/api/architecture/topology/${id}` : `${API_BASE}/api/architecture/topology`;
-    const res = await fetch(url);
+    const url = id ? `/api/architecture/topology/${id}` : `/api/architecture/topology`;
+    const res = await apiFetch(url);
     if (!res.ok) throw new Error('Error al obtener la topología');
     return await res.json();
   }
@@ -75,7 +74,7 @@ export class ArchitectureFrontendService {
    * Simula ráfagas de tráfico sobre el sistema.
    */
   public static async simularTrafico(multiplier: number = 2.0): Promise<{ mensaje: string; topologia: SystemTopology }> {
-    const res = await fetch(`${API_BASE}/api/architecture/simulate-traffic`, {
+    const res = await apiFetch(`/api/architecture/simulate-traffic`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ multiplier }),
@@ -88,7 +87,7 @@ export class ArchitectureFrontendService {
    * Inyecta caos para probar resiliencia y circuit breakers.
    */
   public static async inyectarCaos(nodoId?: string): Promise<{ nodoAfectado: string; accion: string; topologia: SystemTopology }> {
-    const res = await fetch(`${API_BASE}/api/architecture/inject-chaos`, {
+    const res = await apiFetch(`/api/architecture/inject-chaos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nodoId }),
@@ -101,7 +100,7 @@ export class ArchitectureFrontendService {
    * Restaura la topología al 100% de salud.
    */
   public static async restaurar(): Promise<{ mensaje: string; topologia: SystemTopology }> {
-    const res = await fetch(`${API_BASE}/api/architecture/restore`, {
+    const res = await apiFetch(`/api/architecture/restore`, {
       method: 'POST',
     });
     if (!res.ok) throw new Error('Error restaurando topología');
@@ -112,8 +111,8 @@ export class ArchitectureFrontendService {
    * Exporta a sintaxis Mermaid C4.
    */
   public static async exportarMermaidC4(id?: string): Promise<string> {
-    const url = id ? `${API_BASE}/api/architecture/export/c4?id=${id}` : `${API_BASE}/api/architecture/export/c4`;
-    const res = await fetch(url);
+    const url = id ? `/api/architecture/export/c4?id=${id}` : `/api/architecture/export/c4`;
+    const res = await apiFetch(url);
     if (!res.ok) throw new Error('Error exportando C4');
     const data = await res.json();
     return data.mermaid;
