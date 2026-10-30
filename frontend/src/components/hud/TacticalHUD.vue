@@ -1,16 +1,41 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed } from 'vue';
+import { onMounted, onUnmounted, computed, ref } from 'vue';
 import { useFsmStore } from '../../stores/fsm.store.js';
 import { useChatStore } from '../../stores/chat.store.js';
 import { useUiStore } from '../../stores/ui.store.js';
 import { useAudio } from '../../composables/useAudio.js';
 import { useTacticalVoice } from '../../composables/useTacticalVoice.js';
+import { leerClave, guardarClave } from '../../services/http.js';
 
 const fsm = useFsmStore();
 const chatStore = useChatStore();
 const uiStore = useUiStore();
 const { audioSilenciado, toggleSilencio } = useAudio();
 const { vozHabilitada, toggleVoz } = useTacticalVoice();
+
+const modalClaveAbierto = ref(false);
+const claveInput = ref(leerClave());
+const claveGuardadaExito = ref(false);
+
+function abrirModalClave() {
+  claveInput.value = leerClave();
+  modalClaveAbierto.value = true;
+  claveGuardadaExito.value = false;
+}
+
+function aplicarClave() {
+  guardarClave(claveInput.value);
+  claveGuardadaExito.value = true;
+  setTimeout(() => {
+    modalClaveAbierto.value = false;
+    claveGuardadaExito.value = false;
+  }, 1000);
+}
+
+function limpiarClave() {
+  claveInput.value = '';
+  guardarClave('');
+}
 
 const modelosFallback = [
   { id: 'auto', nombre: 'AUTO: Enrutador Inteligente', proveedor: 'gemini', icono: '🤖' },
@@ -104,6 +129,18 @@ function onSelectModelo(id: string) {
 
     <!-- Controles Rápidos -->
     <div class="flex items-center gap-2 shrink-0">
+      <!-- Clave API Táctica Modal Trigger -->
+      <button
+        type="button"
+        @click="abrirModalClave"
+        class="px-2.5 py-1.5 rounded border transition cursor-pointer flex items-center gap-1.5 text-xs font-mono"
+        :class="claveInput ? 'border-amber-400/80 bg-amber-950/40 text-amber-300 font-bold' : 'border-[#132a4a] bg-[#040914] text-slate-300 hover:border-amber-400 hover:text-amber-300'"
+        title="Configurar clave táctica ARES_API_KEY para autenticación en la nube"
+      >
+        <span>🔑</span>
+        <span class="hidden sm:inline">CLAVE</span>
+      </button>
+
       <!-- Terminal Táctica Shell Trigger (v2.8) -->
       <button
         type="button"
@@ -142,6 +179,62 @@ function onSelectModelo(id: string) {
       <div class="flex items-center gap-1.5 bg-[#040914] px-2.5 py-1.5 rounded border border-[#132a4a] text-xs font-mono text-emerald-400">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
         <span class="hidden sm:inline">ONLINE</span>
+      </div>
+    </div>
+
+    <!-- Modal Táctico para Clave API -->
+    <div
+      v-if="modalClaveAbierto"
+      class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+      @click.self="modalClaveAbierto = false"
+    >
+      <div class="bg-[#091326] border border-cyan-500/50 rounded-lg p-5 max-w-md w-full shadow-2xl font-mono text-xs">
+        <div class="flex items-center justify-between mb-3 border-b border-cyan-900/60 pb-2">
+          <span class="text-cyan-300 font-bold flex items-center gap-2">
+            🔐 AUTENTICACIÓN TÁCTICA A.R.E.S.
+          </span>
+          <button @click="modalClaveAbierto = false" class="text-slate-400 hover:text-white">✕</button>
+        </div>
+        <p class="text-slate-300 text-[11px] mb-3 leading-relaxed">
+          Ingresa la clave <code class="text-cyan-400 bg-cyan-950 px-1 py-0.5 rounded">ARES_API_KEY</code> de tu servidor en Render para autorizar peticiones protegidas.
+        </p>
+        <div class="mb-3">
+          <label class="block text-slate-400 text-[10px] uppercase mb-1">Clave Táctica (x-api-key)</label>
+          <input
+            v-model="claveInput"
+            type="text"
+            placeholder="Pega aquí tu clave ARES_API_KEY..."
+            class="w-full bg-[#040914] border border-cyan-700/60 rounded px-2.5 py-1.5 text-cyan-200 outline-none focus:border-cyan-400"
+          />
+        </div>
+        <div v-if="claveGuardadaExito" class="text-emerald-400 text-[11px] mb-3 font-bold">
+          ✓ Clave táctica sincronizada correctamente.
+        </div>
+        <div class="flex items-center justify-between pt-2">
+          <button
+            type="button"
+            @click="limpiarClave"
+            class="text-rose-400 hover:text-rose-300 hover:underline"
+          >
+            Borrar clave
+          </button>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              @click="modalClaveAbierto = false"
+              class="px-3 py-1 rounded border border-slate-700 hover:bg-slate-800 text-slate-300"
+            >
+              Cerrar
+            </button>
+            <button
+              type="button"
+              @click="aplicarClave"
+              class="px-3 py-1 rounded bg-cyan-500 hover:bg-cyan-400 text-black font-bold"
+            >
+              Guardar Clave
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </header>

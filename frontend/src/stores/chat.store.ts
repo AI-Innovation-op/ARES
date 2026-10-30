@@ -288,7 +288,11 @@ export const useChatStore = defineStore('chat', () => {
         errorMensaje.value = err.message || 'Falla de comunicación con el Núcleo Táctico de A.R.E.S.';
 
         if (mensajes.value[targetIdx]) {
-          mensajes.value[targetIdx].content = `⚠️ **ALERTA DE EXCEPCIÓN:** ${errorMensaje.value}`;
+          if (err?.response?.status === 401 || String(err?.message || '').includes('401')) {
+            mensajes.value[targetIdx].content = `⚠️ **ALERTA DE AUTENTICACIÓN (HTTP 401):** El backend en Render requiere la clave táctica \`ARES_API_KEY\`.\n\n- 🔑 **Solución rápida:** Pulsa el botón **🔑 CLAVE** en la barra superior del HUD y pega tu clave (la encuentras en tu pestaña abierta de Render ➔ *Environment* ➔ \`ARES_API_KEY\`).\n- 🚀 **Solución permanente:** En tu pestaña abierta de Render, pulsa **Manual Deploy ➔ Deploy latest commit** para activar el pase libre por origen CORS verificado.`;
+          } else {
+            mensajes.value[targetIdx].content = `⚠️ **ALERTA DE EXCEPCIÓN:** ${errorMensaje.value}`;
+          }
           mensajes.value[targetIdx].poseNumber = 2;
         }
       }

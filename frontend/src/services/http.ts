@@ -2,7 +2,7 @@
  * @fileoverview Cliente HTTP único del frontend de A.R.E.S.
  * - Una sola URL base para TODO el frontend (VITE_API_URL).
  * - Envía la cabecera `x-api-key` en cada petición si está configurada.
- * - Si el servidor responde 401, pide la clave de forma segura y reintenta.
+ * - Soporta persistencia de clave en localStorage y sessionStorage.
  * @module services/http
  */
 
@@ -27,22 +27,34 @@ export const API_BASE_ORIGIN: string = obtenerApiBaseOrigin();
 
 const CLAVE_STORAGE = 'ares.api_key';
 
-/** Copia en memoria por si el navegador bloquea sessionStorage (modo privado). */
+/** Copia en memoria por si el navegador bloquea sessionStorage/localStorage (modo privado). */
 let claveMemoria = '';
 
-function leerClave(): string {
+export function leerClave(): string {
   try {
     const envKey = (import.meta.env.VITE_ARES_API_KEY as string | undefined)?.trim();
-    return sessionStorage.getItem(CLAVE_STORAGE) || claveMemoria || envKey || '';
+    return (
+      sessionStorage.getItem(CLAVE_STORAGE) ||
+      localStorage.getItem(CLAVE_STORAGE) ||
+      claveMemoria ||
+      envKey ||
+      ''
+    );
   } catch {
     return claveMemoria;
   }
 }
 
-function guardarClave(valor: string): void {
-  claveMemoria = valor;
+export function guardarClave(valor: string): void {
+  claveMemoria = valor.trim();
   try {
-    sessionStorage.setItem(CLAVE_STORAGE, valor);
+    if (claveMemoria) {
+      sessionStorage.setItem(CLAVE_STORAGE, claveMemoria);
+      localStorage.setItem(CLAVE_STORAGE, claveMemoria);
+    } else {
+      sessionStorage.removeItem(CLAVE_STORAGE);
+      localStorage.removeItem(CLAVE_STORAGE);
+    }
   } catch {
     /* sin storage: se usa solo la copia en memoria */
   }
@@ -52,8 +64,8 @@ let solicitudClave: Promise<string> | null = null;
 let ultimaCancelacion = 0;
 
 /**
- * Pide la clave con un cuadro de diálogo y la guarda de forma segura. Si varias peticiones fallan a la vez,
- * pregunta una sola vez (todas comparten la misma promesa). Protegido contra entornos sin window.prompt().
+ * Pide la clave con un cuadro de diálogo y la guarda de forma segura si está disponible.
+ * Protegido contra entornos sin window.prompt().
  */
 function pedirClave(): Promise<string> {
   solicitudClave ??= (async () => {
@@ -76,8 +88,6 @@ function pedirClave(): Promise<string> {
 
 /**
  * Tras un 401: devuelve la clave con la que reintentar, o '' si no hay.
- * - Si otra petición ya consiguió una clave distinta a la que usó esta, se reutiliza sin volver a preguntar.
- * - Si el usuario canceló hace menos de 1 minuto, no se vuelve a molestar.
  */
 async function claveParaReintentar(claveUsada: string): Promise<string> {
   const actual = leerClave();
@@ -121,5 +131,5 @@ export function protegerAxios(instancia: AxiosInstance): void {
   });
 }
 
-// El axios global (usado por assignment, swarm y GithubAuditModal) queda protegido al importar este módulo.
+// El axios global queda protegido al importar este módulo.
 protegerAxios(axios);
