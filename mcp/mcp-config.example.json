@@ -2,9 +2,10 @@
   "mcpServers": {
     "ares": {
       "command": "node",
-      "args": ["D:/ares-ecosystem/mcp/dist/index.js"],
+      "args": ["/RUTA/A/ARES/mcp/dist/index.js"],
       "env": {
-        "ARES_API_URL": "http://localhost:3000"
+        "ARES_API_URL": "http://localhost:3000",
+        "ARES_API_KEY": "la-misma-clave-que-usa-el-servidor"
       }
     }
   }

@@ -17,8 +17,7 @@ import path from 'node:path';
 // Cargar variables de entorno
 const posiblesEnv = [
   path.resolve(process.cwd(), '.env'),
-  path.resolve('D:/ares-ecosystem/backend/.env'),
-  path.resolve('D:/ares-ecosystem/.env'),
+  path.resolve(process.cwd(), '../backend/.env'),
 ];
 
 for (const p of posiblesEnv) {
@@ -40,7 +39,10 @@ async function callAresApi(endpoint: string, method: string = 'GET', body?: any)
   const url = `${API_BASE}${endpoint}`;
   const options: RequestInit = {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(process.env.ARES_API_KEY ? { 'x-api-key': process.env.ARES_API_KEY } : {}),
+    },
   };
   if (body) {
     options.body = JSON.stringify(body);
