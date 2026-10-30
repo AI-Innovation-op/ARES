@@ -1,2 +1,2 @@
 /** Versión única del producto. Súbela aquí al publicar (y en los package.json). */
-export const VERSION = '4.0.0';
+export const VERSION = '4.1.0';
