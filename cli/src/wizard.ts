@@ -13,6 +13,7 @@ import path from 'node:path';
 import pc from 'picocolors';
 import JSZip from 'jszip';
 import { imprimirLineaDivisoria } from './banner.js';
+import { apiFetch } from './http.js';
 
 export interface OpcionesWizard {
   rl?: readline.Interface;
@@ -99,7 +100,7 @@ Bounded Contexts requeridos:
     // PASO 2: Desofuscación y Extracción de Bounded Contexts
     // ========================================================================
     console.log(pc.cyan('\n  ✨ Analizando enunciado y estructurando Bounded Contexts...'));
-    const resClean = await fetch(`${apiBase}/api/assignment/clean-text`, {
+    const resClean = await apiFetch(`${apiBase}/api/assignment/clean-text`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: textoEnunciado }),
@@ -191,7 +192,7 @@ Bounded Contexts requeridos:
     // ========================================================================
     console.log(pc.cyan('\n  ⚔️  Forjando proyecto DDD, entidades, arquitectura y commits...'));
 
-    const resForge = await fetch(`${apiBase}/api/assignment/forge`, {
+    const resForge = await apiFetch(`${apiBase}/api/assignment/forge`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

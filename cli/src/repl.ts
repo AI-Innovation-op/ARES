@@ -12,6 +12,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { imprimirBannerCircuito, imprimirLineaDivisoria, imprimirTarjetaEstado } from './banner.js';
 import { ejecutarAsistenteForja } from './wizard.js';
+import { rutaDestinoSegura } from './ruta-segura.js';
+import { apiFetch } from './http.js';
 
 export class TacticalRepl {
   private rl: readline.Interface | null = null;
@@ -25,7 +27,7 @@ export class TacticalRepl {
 
   async verificarServidor(): Promise<boolean> {
     try {
-      const res = await fetch(`${this.apiBase}/health`, { signal: AbortSignal.timeout(2500) });
+      const res = await apiFetch(`${this.apiBase}/health`, { signal: AbortSignal.timeout(2500) });
       return res.ok;
     } catch {
       return false;
@@ -195,7 +197,7 @@ export class TacticalRepl {
     }
     imprimirLineaDivisoria('ENRUTADOR ADAPTATIVO & CONMUTADOR IA (v3.9)');
     try {
-      const res = await fetch(`${this.apiBase}/api/models/route`, {
+      const res = await apiFetch(`${this.apiBase}/api/models/route`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: promptTexto }),
@@ -227,7 +229,7 @@ export class TacticalRepl {
     console.log(pc.cyan('  🚀 [3/3] Disparando benchmark de carga con Grafana k6 (50 VUs)...\n'));
 
     try {
-      const res = await fetch(`${this.apiBase}/api/benchmark/run`, {
+      const res = await apiFetch(`${this.apiBase}/api/benchmark/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ titulo: proyecto }),
@@ -263,7 +265,7 @@ export class TacticalRepl {
 
   private async mostrarEstado(): Promise<void> {
     try {
-      const res = await fetch(`${this.apiBase}/health`);
+      const res = await apiFetch(`${this.apiBase}/health`);
       const data = await res.json();
       imprimirTarjetaEstado({
         estado: data.status || 'ONLINE',
@@ -296,7 +298,7 @@ export class TacticalRepl {
   private async mostrarRadar(): Promise<void> {
     imprimirLineaDivisoria('RADAR DE ARQUITECTURA C4 (TOPOLOGÍA DISTRIBUIDA)');
     try {
-      const res = await fetch(`${this.apiBase}/api/architecture/topology`);
+      const res = await apiFetch(`${this.apiBase}/api/architecture/topology`);
       const data = await res.json();
       console.log(`  ${pc.bold(pc.cyan('Arquitectura:'))} ${data.nombre}`);
       console.log(`  ${pc.dim('Nodos en el clúster:')} ${data.nodos?.length || 0}`);
@@ -317,7 +319,7 @@ export class TacticalRepl {
 
     imprimirLineaDivisoria(`BÚSQUEDA VECTORIAL: "${query}"`);
     try {
-      const res = await fetch(`${this.apiBase}/api/memory/search`, {
+      const res = await apiFetch(`${this.apiBase}/api/memory/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, limit: 3, umbral: 0.4 }),
@@ -356,7 +358,7 @@ export class TacticalRepl {
     console.log(pc.yellow('  ⚔️ Ejecutando análisis estático y cálculo Big-O...'));
 
     try {
-      const res = await fetch(`${this.apiBase}/api/audit`, {
+      const res = await apiFetch(`${this.apiBase}/api/audit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: codigo, language: 'typescript' }),
@@ -381,7 +383,7 @@ export class TacticalRepl {
     console.log(pc.magenta('  🐝 Despachando a la Legión de 4 Subagentes...'));
 
     try {
-      const res = await fetch(`${this.apiBase}/api/swarm/execute`, {
+      const res = await apiFetch(`${this.apiBase}/api/swarm/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mision }),
@@ -423,7 +425,7 @@ Bounded Contexts:
 
     try {
       console.log(pc.cyan('  ✨ [1/3] Desofuscando texto y extrayendo Bounded Contexts...'));
-      const resClean = await fetch(`${this.apiBase}/api/assignment/clean-text`, {
+      const resClean = await apiFetch(`${this.apiBase}/api/assignment/clean-text`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: textoEnunciado }),
@@ -435,7 +437,7 @@ Bounded Contexts:
       console.log(`  ${pc.green('✓')} Bounded Contexts: ${an.boundedContexts.map((c: any) => pc.cyan(c.nombre)).join(', ')}`);
 
       console.log(pc.cyan('\n  ⚔️  [2/3] Forjando código DDD, arquitectura y commits atómicos...'));
-      const resForge = await fetch(`${this.apiBase}/api/assignment/forge`, {
+      const resForge = await apiFetch(`${this.apiBase}/api/assignment/forge`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -454,7 +456,7 @@ Bounded Contexts:
       console.log(pc.cyan(`\n  💾 [3/3] Escribiendo ${proj.archivos.length} archivos en: ${outDir}...`));
 
       for (const a of proj.archivos) {
-        const dest = path.join(outDir, a.ruta);
+        const dest = rutaDestinoSegura(outDir, a.ruta);
         fs.mkdirSync(path.dirname(dest), { recursive: true });
         fs.writeFileSync(dest, a.contenido, 'utf-8');
       }
@@ -473,7 +475,7 @@ Bounded Contexts:
     process.stdout.write(`\n${pc.bold(pc.cyan('🛡️ A.R.E.S.: '))} `);
 
     try {
-      const res = await fetch(`${this.apiBase}/api/chat`, {
+      const res = await apiFetch(`${this.apiBase}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -17,14 +17,14 @@ import JSZip from 'jszip';
 import { imprimirBannerCircuito } from './banner.js';
 import { TacticalRepl, iniciarRepl } from './repl.js';
 import { ejecutarAsistenteForja } from './wizard.js';
+import { rutaDestinoSegura } from './ruta-segura.js';
+import { apiFetch } from './http.js';
 
 // Intentar cargar variables desde .env en el directorio actual o en backend
 const posiblesEnv = [
   path.resolve(process.cwd(), '.env'),
   path.resolve(process.cwd(), '../.env'),
   path.resolve(process.cwd(), '../backend/.env'),
-  path.resolve('D:/ares-ecosystem/backend/.env'),
-  path.resolve('D:/ares-ecosystem/.env'),
 ];
 
 for (const envPath of posiblesEnv) {
@@ -42,7 +42,7 @@ function banner() {
 
 async function verificarServidor(): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(2000) });
+    const res = await apiFetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(2000) });
     return res.ok;
   } catch {
     return false;
@@ -83,12 +83,12 @@ program
     const online = await verificarServidor();
     if (!online) {
       console.error(pc.red(`❌ El servidor de A.R.E.S. en ${API_BASE} no está activo.`));
-      console.log(pc.cyan(`👉 Inicia el servidor con: cd D:\\ares-ecosystem\\backend && npm run dev`));
+      console.log(pc.cyan(`👉 Inicia el servidor con: cd backend && npm run dev`));
       process.exit(1);
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/audit`, {
+      const res = await apiFetch(`${API_BASE}/api/audit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -179,7 +179,7 @@ program
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/documents/generate`, {
+      const res = await apiFetch(`${API_BASE}/api/documents/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -238,7 +238,7 @@ program
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/tests/generate`, {
+      const res = await apiFetch(`${API_BASE}/api/tests/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -280,7 +280,7 @@ program
     console.log(pc.yellow('📡 Conectando con telemetría Bio-Armadura...\n'));
 
     try {
-      const res = await fetch(`${API_BASE}/api/bio/default`);
+      const res = await apiFetch(`${API_BASE}/api/bio/default`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const bio = (await res.json()) as any;
 
@@ -315,7 +315,7 @@ program
     console.log(pc.cyan(`💬 [${opciones.provider.toUpperCase()} | ${opciones.model}]: ${pc.white(consulta)}\n`));
 
     try {
-      const res = await fetch(`${API_BASE}/api/chat`, {
+      const res = await apiFetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -352,7 +352,7 @@ program
     banner();
     console.log(pc.cyan(`🔍 Analizando prompt táctico con AiRouterService...`));
     try {
-      const res = await fetch(`${API_BASE}/api/models/route`, {
+      const res = await apiFetch(`${API_BASE}/api/models/route`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: consulta }),
@@ -385,7 +385,7 @@ program
   .action(async () => {
     banner();
     try {
-      const res = await fetch(`${API_BASE}/api/models`);
+      const res = await apiFetch(`${API_BASE}/api/models`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as any;
 
@@ -413,7 +413,7 @@ program
     console.log(pc.yellow(`📡 Comprobando enlace con servidor en ${API_BASE}...`));
 
     try {
-      const res = await fetch(`${API_BASE}/health`);
+      const res = await apiFetch(`${API_BASE}/health`);
       if (res.ok) {
         const data = (await res.json()) as any;
         console.log(pc.green(`\n🟢 SISTEMA EN LÍNEA: ${data.agent}`));
@@ -425,7 +425,7 @@ program
       }
     } catch (err: any) {
       console.log(pc.red(`\n🔴 SERVIDOR NO RESPONDE en ${API_BASE} (${err.message})`));
-      console.log(pc.cyan(`👉 Inicia el servidor con: cd D:\\ares-ecosystem\\backend && npm run dev\n`));
+      console.log(pc.cyan(`👉 Inicia el servidor con: cd backend && npm run dev\n`));
     }
   });
 
@@ -447,7 +447,7 @@ program
 
     if (online) {
       try {
-        const res = await fetch(`${API_BASE}/api/changelog/generate`, {
+        const res = await apiFetch(`${API_BASE}/api/changelog/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -674,7 +674,7 @@ program
     const online = await verificarServidor();
     if (!online) {
       console.error(pc.red(`❌ El servidor de A.R.E.S. en ${API_BASE} no está activo.`));
-      console.log(pc.cyan(`👉 Inicia el servidor con: cd D:\\ares-ecosystem\\backend && npm run dev`));
+      console.log(pc.cyan(`👉 Inicia el servidor con: cd backend && npm run dev`));
       process.exit(1);
     }
 
@@ -706,7 +706,7 @@ Bounded Contexts:
 
     try {
       console.log(pc.yellow('✨ Desofuscando texto y analizando Bounded Contexts...'));
-      const resClean = await fetch(`${API_BASE}/api/assignment/clean-text`, {
+      const resClean = await apiFetch(`${API_BASE}/api/assignment/clean-text`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: textoEnunciado, stack: opciones.stack }),
@@ -718,7 +718,7 @@ Bounded Contexts:
       console.log(pc.green(`✓ Bounded Contexts: ${dataClean.analysis.boundedContexts.map((c: any) => c.nombre).join(', ')}`));
 
       console.log(pc.yellow('\n⚔️  Forjando proyecto DDD y planificando commits atómicos...'));
-      const resForge = await fetch(`${API_BASE}/api/assignment/forge`, {
+      const resForge = await apiFetch(`${API_BASE}/api/assignment/forge`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -744,7 +744,7 @@ Bounded Contexts:
         const outDir = path.resolve(opciones.output);
         console.log(pc.cyan(`\n💾 Escribiendo archivos en: ${outDir}...`));
         for (const arch of proj.archivos) {
-          const dest = path.join(outDir, arch.ruta);
+          const dest = rutaDestinoSegura(outDir, arch.ruta);
           fs.mkdirSync(path.dirname(dest), { recursive: true });
           fs.writeFileSync(dest, arch.contenido, 'utf-8');
         }
@@ -834,7 +834,7 @@ program
     const mensaje = partesMensaje.join(' ');
     console.log(pc.cyan(`💬 [Orden Táctica]: ${pc.white(mensaje)}\n`));
     try {
-      const res = await fetch(`${API_BASE}/api/chat`, {
+      const res = await apiFetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -871,7 +871,7 @@ program
     console.log(pc.cyan(`🧪 Disparando Suite de Benchmarks para: ${pc.bold(proyecto)}...\n`));
 
     try {
-      const res = await fetch(`${API_BASE}/api/benchmark/run`, {
+      const res = await apiFetch(`${API_BASE}/api/benchmark/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ titulo: proyecto }),
