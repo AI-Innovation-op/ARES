@@ -11,6 +11,10 @@ export interface ConversationRepository {
   get(id: string): Conversation | undefined;
   save(conversation: Conversation, expectedRevision: number): void;
   list(): readonly Omit<ConversationData, 'turns'>[];
+  search(
+    query: string,
+    limit?: number,
+  ): readonly { id: string; title: string; updatedAt: string; revision: number; excerpt: string }[];
 }
 
 export class Ask {

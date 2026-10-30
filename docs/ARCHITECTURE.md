@@ -26,15 +26,18 @@ cli/src/
     domain/          Proposal, FileChange y transiciones
     application/     ChangeCode, ProposalRepository y ChangeWorkspace
   workspace/
-    domain/          SourcePath, SourceFile y Snapshot
+    domain/          Reexportación de tipos de fuente compartidos
     application/     Inspección estática y WorkspaceReader
+  architecture/
+    domain/          Capas, infracciones y componentes con ciclos
+    application/     AnalyzeArchitecture y puerto SourceAnalyzer
   engineering/
     application/     Documentos y plantilla CLI DDD de referencia
   verification/
     domain/          Verification y sus invariantes de evidencia
     application/     VerifyProject, ProjectChecks y VerificationRepository
   shared/
-    domain/          Errores y validaciones compartidas
+    domain/          Errores, SourcePath, SourceFile y Snapshot
     application/     LanguageModel, Identity y política de ingeniería
   infrastructure/    HTTP/SSE, SQLite, configuración y archivos
   presentation/      Commander, stdin/stdout, REPL y composición
@@ -47,7 +50,11 @@ El dominio no importa infraestructura, Node, presentación ni casos de uso. La a
 
 ## Persistencia y concurrencia
 
-La base `ARES_HOME/ares.sqlite` es exclusiva del CLI. Usa SQLite nativo, WAL, sincronización FULL, sentencias parametrizadas y versión de esquema. El esquema 2 añade evidencia de verificaciones mediante una migración transaccional que conserva los datos del esquema 1. Conversaciones y propuestas se guardan como agregados con revisión. Una actualización condicional evita que dos terminales pierdan turnos o transiciones al guardar simultáneamente. Un conflicto devuelve error.
+La base `ARES_HOME/ares.sqlite` es exclusiva del CLI. Usa SQLite nativo, WAL, sincronización FULL, sentencias parametrizadas y versión de esquema. El esquema 2 incorporó verificaciones; el esquema 3 añade búsqueda FTS5. Antes de migrar una base existente de esquema 1/2, `VACUUM INTO` crea una copia consistente independiente con nombre único en el mismo directorio. La migración y la reconstrucción del índice se realizan dentro de una transacción. La copia contiene datos privados y no debe publicarse.
+
+Conversaciones y propuestas se guardan como agregados con revisión. Una actualización condicional evita que dos terminales pierdan turnos o transiciones al guardar simultáneamente. Un conflicto devuelve error. La conversación y su índice de búsqueda se actualizan en la misma transacción: un fallo de revisión no altera el índice. Las búsquedas usan parámetros y palabras literales combinadas con AND, sin interpretar operadores del usuario.
+
+Los IDs se resuelven primero por coincidencia exacta y después por prefijo alfanumérico de al menos 8 caracteres. Dos coincidencias bastan para rechazar un prefijo ambiguo; no se elige el primer registro. Para recuperar una versión de esquema anterior, conserva la base migrada y restaura la copia como `ares.sqlite` en otro `ARES_HOME` vacío con las terminales ARES cerradas.
 
 La aplicación de una propuesta sigue este orden:
 
@@ -75,6 +82,14 @@ SQLite, las conversaciones y las copias se almacenan localmente, sin cifrado pro
 
 ## Evidencia y límites
 
+`analyze` obtiene hechos del AST de TypeScript mediante un adaptador que solo ve la instantánea seleccionada. El dominio calcula infracciones entre capas y componentes fuertemente conectados, incluyendo imports de tipos. Cada ciclo representa un grupo conectado; el orden de la lista no afirma ser la secuencia de sus aristas. Los nombres de carpeta determinan las capas: no se deduce el lenguaje del negocio de nombres arbitrarios.
+
+Se resuelven imports relativos y alias definidos en opciones locales de `tsconfig.json`. Los imports dinámicos calculados y configuraciones heredadas no se evalúan. Vue se inspecciona por bloques script, sin ejecutar su compilador. Los imports sin resolver y lenguajes no soportados se muestran aparte. `--fail-on any` rechaza además una instantánea truncada o sin módulos compatibles. Sentinel ejecuta este análisis con permisos de lectura y deja el informe en Actions; no necesita claves ni publica comentarios automáticos.
+
+`setup` usa una única interfaz readline con salida silenciada durante la clave y sin historial. Si no puede asegurar el modo oculto, rechaza la entrada. `config set --key-stdin` permite automatización sin clave en argumentos. Las actualizaciones del archivo personal conservan contenido ajeno, validan el resultado y usan temporal más reemplazo bajo bloqueo local. No sustituyen variables de proceso o de proyecto de mayor precedencia.
+
+Cada proveedor tiene una variable de clave propia; el alias genérico `ARES_API_KEY_DIRECT` requiere migración. Un decorador del puerto de IA elimina la clave configurada de mensajes salientes y del stream recibido, incluso si aparece repartida entre chunks. Se redacta antes de mostrar, persistir o indexar una respuesta nueva. No reescribe historiales antiguos ni detecta universalmente secretos desconocidos.
+
 `verify` ejecuta solo el script de `package.json` que el usuario pide, mediante `node --run`. El nombre se valida y no se construye un comando con argumentos del modelo. El script del proyecto sí es código ejecutable y requiere confianza. Su resultado guarda el código del proceso ejecutor (Node puede normalizar un fallo del script a código 1), salida limitada y redactada, duración medida y huella del contexto de fuentes. La comparación de huellas conserva sus límites de lectura; no es trazado de todas las dependencias o lecturas del proceso. Para la huella de una verificación se respetan las exclusiones del proyecto, sin permitir que un `.gitignore` de una carpeta superior oculte todo el proyecto explícito. Timeout y cancelación detienen el árbol iniciado. La evidencia histórica no se modifica: `verifications show` expone por separado si coincide con el estado actual.
 
 `audit` produce señales heurísticas con ruta y línea; no mide Big-O, SOLID, cobertura ni vulnerabilidades de dependencias. `test` propone tests; no los ejecuta. `forge` crea una plantilla concreta y comprobable. La CLI no ejecuta shell generado, no instala dependencias del proyecto objetivo y no crea commits o pushes en nombre del usuario.
@@ -88,4 +103,4 @@ Las pruebas HTTP usan un servidor local controlado. Verifican el transporte real
 - [OpenRouter: streaming y errores](https://openrouter.ai/docs/api_reference/streaming).
 - [SQLite nativo en Node.js 24](https://nodejs.org/download/release/latest-v24.x/docs/api/sqlite.html).
 
-Las decisiones de implementación están en [ADR 0001](adr/0001-cli-first.md), [ADR 0002](adr/0002-reviewable-changes.md) y [ADR 0003](adr/0003-verification-evidence.md).
+Las decisiones de implementación están en [ADR 0001](adr/0001-cli-first.md), [ADR 0002](adr/0002-reviewable-changes.md), [ADR 0003](adr/0003-verification-evidence.md) y [ADR 0004](adr/0004-architecture-and-local-search.md).

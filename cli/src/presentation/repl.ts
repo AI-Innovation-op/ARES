@@ -69,6 +69,7 @@ export async function interactiveShell(
   }
   const delegated = [
     'audit',
+    'analyze',
     'forge',
     'doc',
     'test',
@@ -80,6 +81,7 @@ export async function interactiveShell(
     'verify',
     'verifications',
     'models',
+    'search',
   ];
   const commands = [
     '/help',
@@ -130,7 +132,7 @@ export async function interactiveShell(
       try {
         if (line === '/help')
           print(
-            '/new                  Nueva conversación\n/history              Historial de esta sesión\n/sessions             Listar sesiones guardadas\n/resume ID            Reanudar sesión\n/context RUTA         Adjuntar contexto local\n/context              Retirar contexto\n/doctor               Configuración y disponibilidad\n/models               Catálogo actual del proveedor\n/model ID             Cambiar modelo en esta terminal\n/audit RUTA           Inspección local\n/forge NUEVA_CARPETA   Crear proyecto DDD de ejemplo\n/propose INSTRUCCION   Crear propuesta (--path RUTA)\n/diff ID              Revisar propuesta\n/apply ID             Aplicar propuesta\n/verify ID            Ejecutar tests de una propuesta aplicada\n/restore ID           Restaurar archivos\n/doc, /test           Proponer documentos y tests\n/verifications list   Evidencia de verificaciones\n/exit                 Salir\n\nLos comandos usan las mismas opciones que ares; admiten --help y rutas entre comillas. Escribe texto libre para conversar.',
+            '/new                  Nueva conversación\n/history              Historial de esta sesión\n/sessions             Listar sesiones guardadas\n/resume ID            Reanudar sesión\n/context RUTA         Adjuntar contexto local\n/context              Retirar contexto\n/doctor               Configuración y disponibilidad\n/models               Catálogo actual del proveedor\n/model ID             Cambiar modelo en esta terminal\n/audit RUTA           Inspección local\n/analyze RUTA         Imports, capas y ciclos con AST\n/search PALABRAS      Buscar en el historial local\n/forge NUEVA_CARPETA   Crear proyecto DDD de ejemplo\n/propose INSTRUCCION   Crear propuesta (--path RUTA)\n/diff ID              Revisar propuesta\n/apply ID             Aplicar propuesta\n/verify ID            Ejecutar tests de una propuesta aplicada\n/restore ID           Restaurar archivos\n/doc, /test           Proponer documentos y tests\n/verifications list   Evidencia de verificaciones\n/exit                 Salir\n\nLos comandos usan las mismas opciones que ares; admiten --help y rutas entre comillas. Escribe texto libre para conversar.',
             false,
           );
         else if (line === '/new') {
@@ -143,7 +145,9 @@ export async function interactiveShell(
         } else if (line.startsWith('/resume ')) {
           const id = line.slice(8).trim();
           if (!actions.exists(id))
-            throw new Error('Sesión no encontrada. Usa el ID completo de /sessions.');
+            throw new Error(
+              'Sesión no encontrada. Usa el ID de /sessions o un prefijo único de al menos 8 caracteres.',
+            );
           sessionId = id;
           print(`Sesión: ${id}`, false);
         } else if (line === '/context' || line.startsWith('/context ')) {
@@ -162,7 +166,10 @@ export async function interactiveShell(
           if (!delegated.includes(command.slice(1)))
             throw new Error('Comando desconocido. Usa /help.');
           active = new AbortController();
-          await actions.execute([command.slice(1), ...args], active.signal);
+          await actions.execute(
+            command === '/search' ? ['sessions', 'search', ...args] : [command.slice(1), ...args],
+            active.signal,
+          );
         } else {
           active = new AbortController();
           process.stdout.write('ares: ');

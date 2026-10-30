@@ -16,6 +16,7 @@ import {
   initializeConfiguration,
   publicConfiguration,
   requireAi,
+  updateConfiguration,
 } from '../infrastructure/configuration.js';
 import { CompatibleLanguageModel } from '../infrastructure/language-model.js';
 import { LocalWorkspace, readCurrent, hash } from '../infrastructure/workspace.js';
@@ -28,6 +29,7 @@ import { VerifyProject } from '../verification/application/verify-project.js';
 import { NodeProjectChecks } from '../infrastructure/project-checks.js';
 import { listModels } from '../infrastructure/model-catalog.js';
 import { selectContext } from '../infrastructure/text.js';
+import { SecretSafeModel } from '../infrastructure/secret-safe-model.js';
 
 const identity = { next: randomUUID, now: () => new Date().toISOString() };
 const version = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url), 'utf8'))
@@ -45,10 +47,9 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
   const operation = <T>(work: (signal: AbortSignal) => Promise<T>): Promise<T> =>
     externalSignal ? work(externalSignal) : cancellable(work);
   const database = () => (store ??= new SqliteStore(config().home));
-  const model = () => {
-    const c = config();
+  const model = (c = config()) => {
     requireAi(c);
-    return new CompatibleLanguageModel(c);
+    return new SecretSafeModel(new CompatibleLanguageModel(c), c.apiKey);
   };
   const changes = () => new ChangeCode(database().proposals, new LocalChangeWorkspace(), identity);
   const context = (target?: string) =>
@@ -103,6 +104,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
       detail,
       offlineCommands: [
         'audit',
+        'analyze',
         'context',
         'forge',
         'zip',
@@ -120,9 +122,13 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     );
   };
   const ask = async (prompt: string, sessionId?: string, target?: string, signal?: AbortSignal) => {
-    const ai = model();
+    const current = config();
+    const ai = model(current);
+    const safePrompt = current.apiKey
+      ? redact(prompt).split(current.apiKey).join('[REDACTED]')
+      : redact(prompt);
     const result = await new Ask(database().conversations, ai, identity).execute({
-      prompt: redact(prompt),
+      prompt: safePrompt,
       sessionId,
       context: target ? contextText(workspace.scan(path.resolve(target)), 100_000, prompt) : '',
       signal,
@@ -262,10 +268,129 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
       );
     });
 
+  configuration
+    .command('set')
+    .description('Actualizar la configuración personal; claves solo por stdin')
+    .option('--base-url <url>', 'Endpoint para el proveedor compatible')
+    .option('--key-stdin', 'Leer la clave de stdin; nunca como argumento')
+    .action(async (opts) => {
+      if (
+        options().provider === undefined &&
+        options().model === undefined &&
+        opts.baseUrl === undefined &&
+        !opts.keyStdin
+      )
+        throw new AresError('VALIDATION', 'Indica --provider, --model, --base-url o --key-stdin.');
+      const apiKey = opts.keyStdin ? await readStdin() : undefined;
+      const written = updateConfiguration({
+        provider: options().provider,
+        model: options().model,
+        baseUrl: opts.baseUrl,
+        apiKey,
+      });
+      output(
+        publicConfiguration(written),
+        `Configuración actualizada: ${written.envFile}\nLas variables del proceso o del proyecto tienen precedencia. Verifica con ares doctor --probe.`,
+      );
+    });
+
+  program
+    .command('setup')
+    .description('Configurar proveedor, modelo y clave mediante entrada oculta')
+    .action(async () => {
+      if (options().json)
+        throw new AresError('VALIDATION', 'Para automatizar usa config set --key-stdin --json.');
+      const { setupConfiguration } = await import('./setup.js');
+      const selected = await operation((signal) => setupConfiguration(signal));
+      output(
+        publicConfiguration(selected),
+        'Configuración lista. Comprueba la conexión con ares doctor --probe.',
+      );
+    });
+
+  program
+    .command('analyze [ruta]')
+    .description('Analizar imports, límites de capas y ciclos con AST de JS/TS/Vue; sin IA')
+    .option('--fail-on <criterio>', 'Devolver error por violation, cycle, parse o any')
+    .option('-o, --output <archivo>', 'Nuevo informe Markdown o JSON con --json')
+    .action(async (target = '.', opts) => {
+      if (opts.failOn && !['violation', 'cycle', 'parse', 'any'].includes(opts.failOn))
+        throw new AresError('VALIDATION', '--fail-on admite violation, cycle, parse o any.');
+      const snapshot = workspace.scan(path.resolve(target));
+      const [{ AnalyzeArchitecture }, { TypeScriptImports }] = await Promise.all([
+        import('../architecture/application/analyze-architecture.js'),
+        import('../infrastructure/typescript-imports.js'),
+      ]);
+      const report = new AnalyzeArchitecture(new TypeScriptImports()).execute(snapshot);
+      const markdown = [
+        `# Arquitectura observada\n\nProyecto: ${report.root}`,
+        `Módulos analizados: ${report.analyzedModules} | Archivos omitidos: ${report.skipped}${report.truncated ? ' | Instantánea limitada' : ''}`,
+        ...report.contexts.map(
+          (c) =>
+            `- Contexto ${c.name}: ${c.modules} módulos (${Object.entries(c.layers)
+              .map(([layer, count]) => `${layer}: ${count}`)
+              .join(', ')})`,
+        ),
+        '\n## Hallazgos',
+        ...report.violations.map(
+          (v) => `- ${v.path}:${v.line} [${v.rule}] ${v.message} Import: ${v.dependency}`,
+        ),
+        ...report.cycles.map((cycle) => `- Grupo cíclico: ${cycle.join(', ')}`),
+        ...report.parseIssues.map((issue) => `- ${issue.path}:${issue.line} ${issue.message}`),
+        ...report.unresolved.map(
+          (d) => `- Resolución pendiente en la instantánea: ${d.path}:${d.line} (${d.specifier})`,
+        ),
+        ...report.unsupportedFiles.map((file) => `- Lenguaje no analizado: ${file}`),
+        report.violations.length +
+        report.cycles.length +
+        report.parseIssues.length +
+        report.unresolved.length +
+        report.unsupportedFiles.length
+          ? ''
+          : 'Sin coincidencias para las reglas aplicadas.',
+        '\n## Límites',
+        ...report.limitations.map((line) => '- ' + line),
+      ]
+        .filter(Boolean)
+        .join('\n');
+      if (opts.output) {
+        const file = saveOutput(
+          opts.output,
+          options().json ? JSON.stringify(report, null, 2) + '\n' : markdown + '\n',
+        );
+        output({
+          file,
+          analyzedModules: report.analyzedModules,
+          violations: report.violations.length,
+          cycles: report.cycles.length,
+        });
+      } else output(report, markdown);
+      const failed =
+        ((opts.failOn === 'violation' || opts.failOn === 'any') && report.violations.length > 0) ||
+        ((opts.failOn === 'cycle' || opts.failOn === 'any') && report.cycles.length > 0) ||
+        ((opts.failOn === 'parse' || opts.failOn === 'any') && report.parseIssues.length > 0) ||
+        (opts.failOn === 'any' &&
+          (report.analyzedModules === 0 || report.truncated || report.unresolved.length > 0));
+      if (failed) process.exitCode = 1;
+    });
+
   const savedSessions = program
     .command('sessions')
     .description('Consultar y exportar conversaciones (últimas 50)');
   savedSessions.command('list').action(sessions);
+  savedSessions
+    .command('search <consulta...>')
+    .option('--limit <numero>', 'Máximo de resultados entre 1 y 50', '20')
+    .description('Buscar palabras en títulos, consultas y respuestas locales')
+    .action((parts: string[], opts) => {
+      const records = database().conversations.search(parts.join(' '), Number(opts.limit));
+      output(
+        records,
+        records.length
+          ? records.map((record) => `${record.id}\n${record.title}\n${record.excerpt}`).join('\n\n')
+          : 'No hay coincidencias.',
+      );
+    });
   savedSessions.command('show <id>').action(history);
   savedSessions
     .command('export <id>')

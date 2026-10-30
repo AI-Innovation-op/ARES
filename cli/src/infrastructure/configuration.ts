@@ -1,8 +1,10 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { parse } from 'dotenv';
 import { AresError } from '../shared/domain/errors.js';
+import { LocalChangeWorkspace } from './change-workspace.js';
 
 export type Provider = 'openrouter' | 'gemini' | 'compatible';
 export interface Configuration {
@@ -22,20 +24,39 @@ const ENDPOINTS: Record<Provider, string> = {
   compatible: 'http://127.0.0.1:11434/v1',
 };
 
+export function configurationLocation(
+  environment: NodeJS.ProcessEnv = process.env,
+  cwd = process.cwd(),
+) {
+  const home = path.resolve(environment.ARES_HOME || path.join(os.homedir(), '.ares'));
+  return {
+    home,
+    envFile: environment.ARES_ENV_FILE
+      ? path.resolve(cwd, environment.ARES_ENV_FILE)
+      : path.join(home, '.env'),
+  };
+}
+
 export function loadConfiguration(
   overrides: { provider?: string; model?: string } = {},
   environment: NodeJS.ProcessEnv = process.env,
   cwd = process.cwd(),
 ): Configuration {
-  const home = path.resolve(environment.ARES_HOME || path.join(os.homedir(), '.ares'));
-  const envFile = environment.ARES_ENV_FILE
-    ? path.resolve(cwd, environment.ARES_ENV_FILE)
-    : path.join(home, '.env');
+  const { home, envFile } = configurationLocation(environment, cwd);
   const env: Record<string, string | undefined> = {};
   for (const file of [envFile, path.join(cwd, '.env')]) {
     if (fs.existsSync(file)) Object.assign(env, parse(fs.readFileSync(file)));
   }
   Object.assign(env, environment);
+  return resolveConfiguration(overrides, env, home, envFile);
+}
+
+function resolveConfiguration(
+  overrides: { provider?: string; model?: string },
+  env: Record<string, string | undefined>,
+  home: string,
+  envFile: string,
+): Configuration {
   const provider =
     overrides.provider ||
     env.ARES_PROVIDER ||
@@ -95,20 +116,27 @@ export function loadConfiguration(
       'CONFIG',
       'El identificador de modelo no admite controles ni más de 200 caracteres.',
     );
+  const credentialName =
+    selected === 'openrouter'
+      ? 'OPENROUTER_API_KEY'
+      : selected === 'gemini'
+        ? 'GEMINI_API_KEY'
+        : 'COMPATIBLE_API_KEY';
+  const apiKey = env[credentialName] || '';
+  if (env.ARES_API_KEY_DIRECT && !apiKey)
+    throw new AresError(
+      'CONFIG',
+      `Usa ${credentialName} en lugar del alias genérico ARES_API_KEY_DIRECT. Puedes actualizarla con config set --key-stdin.`,
+    );
+  if (apiKey.length > 4096 || /[\x00-\x20\x7f]/.test(apiKey))
+    throw new AresError('CONFIG', 'La clave configurada tiene un formato inválido.');
   return Object.freeze({
     home,
     envFile,
     provider: selected,
     model,
     baseUrl,
-    apiKey:
-      env.ARES_API_KEY_DIRECT ||
-      (selected === 'openrouter'
-        ? env.OPENROUTER_API_KEY
-        : selected === 'gemini'
-          ? env.GEMINI_API_KEY
-          : env.COMPATIBLE_API_KEY) ||
-      '',
+    apiKey,
     timeoutMs: integer(env.ARES_TIMEOUT_MS, 120_000, 100, 600_000, 'ARES_TIMEOUT_MS'),
     maxTokens: integer(env.ARES_MAX_TOKENS, 8192, 128, 32768, 'ARES_MAX_TOKENS'),
   });
@@ -164,4 +192,124 @@ export function initializeConfiguration(config: Configuration): string {
     throw error;
   }
   return config.envFile;
+}
+
+export interface ConfigurationUpdate {
+  provider?: string;
+  model?: string;
+  baseUrl?: string;
+  apiKey?: string;
+}
+
+/** Preserve unrelated .env text and verify parsing before committing an atomic replacement. */
+export function updateConfiguration(
+  update: ConfigurationUpdate,
+  environment: NodeJS.ProcessEnv = process.env,
+  cwd = process.cwd(),
+): Configuration {
+  const { home, envFile } = configurationLocation(environment, cwd);
+  fs.mkdirSync(path.dirname(envFile), { recursive: true, mode: 0o700 });
+  return new LocalChangeWorkspace().withLock(fs.realpathSync(path.dirname(envFile)), () =>
+    updateConfigurationLocked(update, home, envFile, environment),
+  );
+}
+
+function updateConfigurationLocked(
+  update: ConfigurationUpdate,
+  home: string,
+  envFile: string,
+  environment: NodeJS.ProcessEnv,
+): Configuration {
+  let original: string | null = null;
+  try {
+    const stat = fs.lstatSync(envFile);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 64_000)
+      throw new AresError('CONFIG', 'La configuración debe ser un archivo regular de hasta 64 KB.');
+    original = fs.readFileSync(envFile, 'utf8');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
+  const previous = parse(original || '');
+  const provider =
+    update.provider || previous.ARES_PROVIDER || environment.ARES_PROVIDER || 'openrouter';
+  const changes: Record<string, string | null> = { ARES_PROVIDER: provider };
+  if (provider !== previous.ARES_PROVIDER) changes.ARES_API_KEY_DIRECT = null;
+  if (update.model !== undefined) changes.ARES_MODEL = update.model;
+  if (update.baseUrl !== undefined) changes.ARES_BASE_URL = update.baseUrl;
+  else if (provider !== previous.ARES_PROVIDER) changes.ARES_BASE_URL = null;
+  if (update.apiKey !== undefined) {
+    if (
+      update.apiKey.length < 8 ||
+      update.apiKey.length > 4096 ||
+      /[\x00-\x20\x7f]/.test(update.apiKey)
+    )
+      throw new AresError(
+        'CONFIG',
+        'La clave requiere entre 8 y 4096 caracteres, sin espacios ni controles.',
+      );
+    changes[
+      provider === 'gemini'
+        ? 'GEMINI_API_KEY'
+        : provider === 'compatible'
+          ? 'COMPATIBLE_API_KEY'
+          : 'OPENROUTER_API_KEY'
+    ] = update.apiKey;
+    changes.ARES_API_KEY_DIRECT = null;
+  }
+  const values = { ...previous };
+  for (const [key, value] of Object.entries(changes)) {
+    if (value === null) delete values[key];
+    else values[key] = value;
+  }
+  const validated = resolveConfiguration({}, values, home, envFile);
+  const quote = (value: string) => {
+    if (/[\r\n\x00]/.test(value))
+      throw new AresError('CONFIG', 'Los valores de configuración no admiten saltos de línea.');
+    if (!value.includes("'")) return `'${value}'`;
+    if (!value.includes('"') && !value.includes('\\')) return `"${value}"`;
+    if (!value.includes('`')) return '`' + value + '`';
+    throw new AresError('CONFIG', 'El valor no se puede guardar de forma segura en .env.');
+  };
+  const assignment =
+    /^[ \t]*(?:export[ \t]+)?([A-Za-z_][A-Za-z0-9_]*)[ \t]*=[ \t]*(?:'(?:\\'|[^'])*'|"(?:\\"|[^"])*"|`[^`]*`|[^\r\n]*)(?:[ \t]*#[^\r\n]*)?/gm;
+  const seen = new Set<string>();
+  let content = (original || '').replace(assignment, (match, key: string) => {
+    if (!Object.prototype.hasOwnProperty.call(changes, key)) return match;
+    seen.add(key);
+    return changes[key] === null ? '' : `${key}=${quote(changes[key]!)}`;
+  });
+  for (const [key, value] of Object.entries(changes))
+    if (!seen.has(key) && value !== null)
+      content += (content.endsWith('\n') || !content ? '' : '\n') + `${key}=${quote(value)}\n`;
+  const parsed = parse(content);
+  for (const [key, value] of Object.entries(values))
+    if (parsed[key] !== value)
+      throw new AresError(
+        'CONFLICT',
+        'El formato de .env no permite una actualización segura; no se modificó.',
+      );
+  for (const [key, value] of Object.entries(changes))
+    if (value === null && parsed[key] !== undefined)
+      throw new AresError('CONFLICT', 'No se pudo actualizar la configuración de forma segura.');
+  fs.mkdirSync(path.dirname(envFile), { recursive: true, mode: 0o700 });
+  const temporary = path.join(path.dirname(envFile), '.ares-config-' + randomUUID() + '.tmp');
+  try {
+    const fd = fs.openSync(temporary, 'wx', 0o600);
+    try {
+      fs.writeFileSync(fd, content, 'utf8');
+      fs.fsyncSync(fd);
+    } finally {
+      fs.closeSync(fd);
+    }
+    const current = fs.existsSync(envFile) ? fs.readFileSync(envFile, 'utf8') : null;
+    if (current !== original)
+      throw new AresError(
+        'CONFLICT',
+        'La configuración cambió en otro proceso; vuelve a intentarlo.',
+      );
+    fs.renameSync(temporary, envFile);
+  } finally {
+    if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+  }
+  return validated;
 }

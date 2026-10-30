@@ -221,8 +221,8 @@ test('offline JSON import supports the complete CLI workflow without a model', (
   assert.equal(result.status, 0, result.stderr);
   const proposal = JSON.parse(result.stdout);
   assert.equal(fs.readFileSync(path.join(root, 'a.ts'), 'utf8'), 'old\n');
-  assert.equal(run(['apply', proposal.id, '--json'], home).status, 0);
+  assert.equal(run(['apply', proposal.id.slice(0, 8), '--json'], home).status, 0);
   assert.equal(fs.readFileSync(path.join(root, 'a.ts'), 'utf8'), 'new\n');
-  assert.equal(run(['restore', proposal.id, '--json'], home).status, 0);
+  assert.equal(run(['restore', proposal.id.slice(0, 8), '--json'], home).status, 0);
   assert.equal(fs.readFileSync(path.join(root, 'a.ts'), 'utf8'), 'old\n');
 });

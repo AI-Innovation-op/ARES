@@ -110,7 +110,7 @@ test('verify is tied to the applied proposal revision and rejects later edits', 
   const unApplied = await runAsync(['verify', data.id, '--json'], home);
   assert.equal(unApplied.status, 1);
   assert.equal(run(['apply', data.id, '--json'], home).status, 0);
-  const verified = await runAsync(['verify', data.id, '--json'], home);
+  const verified = await runAsync(['verify', data.id.slice(0, 8), '--json'], home);
   assert.equal(verified.status, 0, verified.stderr);
   const evidence = JSON.parse(verified.stdout);
   assert.equal(evidence.proposalId, data.id);
@@ -119,7 +119,9 @@ test('verify is tied to the applied proposal revision and rejects later edits', 
   const later = await runAsync(['verify', data.id, '--json'], home);
   assert.equal(later.status, 1);
   assert.equal(
-    JSON.parse(run(['verifications', 'list', '--proposal', data.id, '--json'], home).stdout).length,
+    JSON.parse(
+      run(['verifications', 'list', '--proposal', data.id.slice(0, 8), '--json'], home).stdout,
+    ).length,
     1,
   );
 });
@@ -234,6 +236,6 @@ test('v1 database migration preserves conversations and proposals and adds verif
     store.close();
   }
   const reopened = new DatabaseSync(file);
-  assert.equal(reopened.prepare('PRAGMA user_version').get().user_version, 2);
+  assert.equal(reopened.prepare('PRAGMA user_version').get().user_version, 3);
   reopened.close();
 });

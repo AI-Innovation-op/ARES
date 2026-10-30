@@ -49,7 +49,7 @@ try {
   );
   fs.writeFileSync(
     path.join(runtime, 'LEEME.txt'),
-    `ARES ${metadata.version} - Portable\n\nRequiere Node.js 24 o superior. Extrae el ZIP completo; no necesitas npm install.\nWindows: INICIAR_ARES.bat o ares.cmd doctor\nUnix: sh ares doctor\n\nares.cmd config init crea la configuración local.\nConfigura proveedor, modelo y clave localmente; verifica con doctor --probe.\nSin IA: audit, forge, propuestas importadas, apply, restore y verify.\nverify ejecuta el script elegido del proyecto y guarda evidencia real.\nNo ejecuta automáticamente código escrito por un modelo.\n\nLas dependencias de ejecución están fijadas en package-lock.json.\nEl código fuente y las herramientas de desarrollo se distribuyen por separado.\n`,
+    `ARES ${metadata.version} - Portable\n\nRequiere Node.js 24 o superior. Extrae el ZIP completo; no necesitas npm install.\nWindows: INICIAR_ARES.bat o ares.cmd doctor\nUnix: sh ares doctor\n\nares.cmd setup configura la IA con entrada oculta para la clave.\nConfigura proveedor, modelo y clave localmente; verifica con doctor --probe.\nSin IA: audit, analyze, forge, sessions search, propuestas importadas, apply, restore y verify.\nverify ejecuta el script elegido del proyecto y guarda evidencia real.\nNo ejecuta automáticamente código escrito por un modelo.\n\nLas dependencias de ejecución están fijadas en package-lock.json.\nEl código fuente y las herramientas de desarrollo se distribuyen por separado.\n`,
   );
   const zip = new JSZip();
   const fixedDate = new Date('2000-01-01T00:00:00Z');

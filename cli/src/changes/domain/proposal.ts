@@ -1,4 +1,4 @@
-import { SourcePath } from '../../workspace/domain/source-path.js';
+import { SourcePath } from '../../shared/domain/source-path.js';
 import { AresError, requireText } from '../../shared/domain/errors.js';
 
 export type ProposalStatus = 'proposed' | 'applying' | 'applied' | 'restoring' | 'restored';

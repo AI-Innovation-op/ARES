@@ -1,6 +1,6 @@
 {
   "name": "@ares-ecosystem/cli",
-  "version": "5.1.0",
+  "version": "5.2.0",
   "description": "ARES: ingeniería desde terminal, dominio puro y cambios revisables",
   "type": "module",
   "bin": {
@@ -10,7 +10,8 @@
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
     "test": "npm run build && node --test test/*.test.mjs",
-    "check": "npm run format:check && npm run typecheck && npm test",
+    "check": "npm run format:check && npm run typecheck && npm test && npm run architecture",
+    "architecture": "node dist/index.js analyze src --fail-on any",
     "format": "prettier --write src test scripts \"*.json\"",
     "format:check": "prettier --check src test scripts \"*.json\"",
     "portable": "npm run build && node scripts/package-portable.mjs",
@@ -42,12 +43,12 @@
     "diff": "^9.0.0",
     "dotenv": "^16.4.7",
     "ignore": "^7.0.14",
-    "jszip": "^3.10.2"
+    "jszip": "^3.10.2",
+    "typescript": "5.8.3"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",
     "prettier": "^3.9.10",
-    "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "tsx": "^4.19.4"
   }
 }

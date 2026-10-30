@@ -5,6 +5,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [5.2.0] - 2026-10-30 — Arquitectura comprobable y configuración privada
+
+- Análisis AST de imports JS/TS y bloques script de Vue: dirección de dependencias, alias locales, ciclos y referencias no resueltas. Gate explícito para CI, sin puntuaciones simuladas.
+- Asistente de configuración con entrada oculta, actualización atómica del archivo personal y claves recibidas por stdin para automatización.
+- Credenciales separadas por proveedor y redacción de la clave configurada a través de límites arbitrarios de chunks, antes de mostrar o guardar respuestas.
+- Búsqueda local de títulos y conversaciones con FTS5, índice transaccional y prefijos únicos de IDs para sesiones, propuestas y verificaciones.
+- Migración al esquema SQLite 3 con copia consistente previa para bases existentes.
+- Sentinel comprueba arquitectura sin claves de IA ni permisos para comentar. El informe queda en el resumen de Actions.
+- El portable verifica además su analizador AST y la persistencia de configuración en un entorno temporal sin credenciales heredadas.
+
 ## [5.1.0] - 2026-10-30 — Verificación y entrega reproducible
 
 - Nuevo contexto de verificación: ejecución explícita de scripts, evidencia SQLite, huellas de fuentes, timeout, cancelación y detección de resultados desactualizados.

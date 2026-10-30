@@ -226,6 +226,30 @@ test('interactive shell consumes piped commands in order and preserves conversat
   assert.equal(JSON.parse(run(['sessions', 'list', '--json'], home).stdout)[0].revision, 2);
 });
 
+test('configured credentials echoed across HTTP chunks never enter stdout, stored turns or the search index', async (t) => {
+  const home = temporary(t),
+    secret = 'private-fixture-transport-key';
+  let received;
+  const env = await fixtureServer(t, (_req, res, body) => {
+    received = body;
+    res.writeHead(200, { 'Content-Type': 'text/event-stream' });
+    res.write(frame({ choices: [{ delta: { content: 'Echo ' + secret.slice(0, 10) } }] }));
+    res.end(frame({ choices: [{ delta: { content: secret.slice(10) } }] }) + 'data: [DONE]\n\n');
+  });
+  const result = await runAsync(['ask', 'Question ' + secret, '--json'], home, {
+    env: { ...env, COMPATIBLE_API_KEY: secret },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const data = JSON.parse(result.stdout);
+  assert.ok(!result.stdout.includes(secret));
+  assert.ok(!JSON.stringify(received).includes(secret));
+  assert.equal(data.turns[0].answer, 'Echo [REDACTED]');
+  const read = run(['sessions', 'show', data.id.slice(0, 8), '--json'], home);
+  assert.ok(!read.stdout.includes(secret));
+  assert.ok(read.stdout.includes('[REDACTED]'));
+  assert.deepEqual(JSON.parse(run(['sessions', 'search', secret, '--json'], home).stdout), []);
+});
+
 test('interactive shell runs local commands with quoted paths and changes the model for later turns', async (t) => {
   const home = temporary(t),
     root = temporary(t),
