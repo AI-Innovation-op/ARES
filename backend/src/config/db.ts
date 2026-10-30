@@ -14,6 +14,7 @@ import {
   verificarConexionSqlite,
   inicializarSqlite,
 } from './sqlite.js';
+import { esErrorDeConexion } from '../utils/errores-db.js';
 
 const { Pool } = pg;
 
@@ -70,7 +71,9 @@ export async function consulta<T extends Record<string, any> = Record<string, an
     const resultado = await pool.query<T>(texto, parametros);
     return { rows: resultado.rows };
   } catch (error: any) {
-    console.warn(`⚠️  [DB] Falla en PostgreSQL (${error.message}). Conmutando a SQLite embebido...`);
+    // Un error de SQL (sintaxis, constraint...) es un BUG: se propaga, NO se cambia de base.
+    if (!esErrorDeConexion(error)) throw error;
+    console.warn(`⚠️  [DB] PostgreSQL inaccesible (${error.message}). Conmutando a SQLite embebido...`);
     driverActivo = 'sqlite';
     return consultaSqlite<T>(texto, parametros);
   }
