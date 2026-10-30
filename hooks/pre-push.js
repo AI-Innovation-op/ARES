@@ -9,7 +9,6 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
 
 // Estilos ANSI para terminal
 const RED = '\x1b[31m';
@@ -32,7 +31,7 @@ function bannerEspartano() {
 ` + RESET);
 }
 
-export function ejecutarVerificacion() {
+export async function ejecutarVerificacion() {
   // 1. Bypass voluntario del Comandante
   if (process.env.FORCE_DEPLOY === '1' || process.env.ARES_FORCE === '1') {
     console.log(YELLOW + BOLD + '⚠️  [BYPASS TÁCTICO] Variable FORCE_DEPLOY=1 detectada.' + RESET);
@@ -70,12 +69,13 @@ export function ejecutarVerificacion() {
     const posiblesRutasDB = [
       path.resolve(process.cwd(), 'database/ares.db'),
       path.resolve(process.cwd(), '../database/ares.db'),
-      path.resolve('D:/ares-ecosystem/database/ares.db'),
     ];
 
     for (const rutaDB of posiblesRutasDB) {
       if (fs.existsSync(rutaDB)) {
         try {
+          // Import dinámico: 'node:sqlite' no existe en Node < 22.5; si falta, se usa el valor por defecto
+          const { DatabaseSync } = await import('node:sqlite');
           const db = new DatabaseSync(rutaDB);
           const fila = db.prepare(`
             SELECT stamina_pct, detected_fatigue_level, continuous_coding_minutes, logged_at 
@@ -132,7 +132,7 @@ export function ejecutarVerificacion() {
 }
 
 // Ejecutar si se llama directamente
-const codigoSalida = ejecutarVerificacion();
+const codigoSalida = await ejecutarVerificacion();
 if (codigoSalida !== 0) {
   process.exit(codigoSalida);
 }
