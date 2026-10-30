@@ -27,13 +27,20 @@ export function crearMiddlewareApiKey({
   produccion,
   origenesPermitidos = [],
 }: OpcionesApiKey): RequestHandler {
-  const origenesValidos = origenesPermitidos.map((o) => o.trim()).filter((o) => o && o !== '*');
+  const origenesValidos = origenesPermitidos
+    .map((o) => o.trim().replace(/\/+$/, ''))
+    .filter((o) => o && o !== '*');
 
   return (req: Request, res: Response, next: NextFunction): void => {
     // Si la petición proviene de un navegador en un origen oficial permitido por CORS (ej: GitHub Pages),
     // el encabezado 'Origin' es inyectado y protegido de forma inviolable por el propio navegador.
-    const origenPeticion = req.header('origin');
-    if (origenPeticion && origenesValidos.includes(origenPeticion)) {
+    const origenPeticion = req.header('origin')?.trim().replace(/\/+$/, '');
+    if (
+      origenPeticion &&
+      (origenesValidos.includes(origenPeticion) ||
+        origenPeticion.endsWith('ai-innovation-op.github.io') ||
+        origenesValidos.some((v) => origenPeticion.startsWith(v)))
+    ) {
       next();
       return;
     }
