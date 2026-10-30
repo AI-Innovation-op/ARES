@@ -5,6 +5,51 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [5.2.0] - 2026-10-30 — Arquitectura comprobable y configuración privada
+
+- Análisis AST de imports JS/TS y bloques script de Vue: dirección de dependencias, alias locales, ciclos y referencias no resueltas. Gate explícito para CI, sin puntuaciones simuladas.
+- Asistente de configuración con entrada oculta, actualización atómica del archivo personal y claves recibidas por stdin para automatización.
+- Credenciales separadas por proveedor y redacción de la clave configurada a través de límites arbitrarios de chunks, antes de mostrar o guardar respuestas.
+- Búsqueda local de títulos y conversaciones con FTS5, índice transaccional y prefijos únicos de IDs para sesiones, propuestas y verificaciones.
+- Migración al esquema SQLite 3 con copia consistente previa para bases existentes.
+- Sentinel comprueba arquitectura sin claves de IA ni permisos para comentar. El informe queda en el resumen de Actions.
+- El portable verifica además su analizador AST y la persistencia de configuración en un entorno temporal sin credenciales heredadas.
+
+## [5.1.0] - 2026-10-30 — Verificación y entrega reproducible
+
+- Nuevo contexto de verificación: ejecución explícita de scripts, evidencia SQLite, huellas de fuentes, timeout, cancelación y detección de resultados desactualizados.
+- Catálogo actual de modelos y selección de modelo dentro del REPL.
+- Comandos de auditoría, forja, propuestas, aplicación, verificación y restauración disponibles dentro de la sesión, con rutas Windows entre comillas.
+- Selección de contexto priorizando dominio, aplicación y manifiestos. Los cambios generados solo pueden editar archivos existentes cuyo contenido se envió al modelo.
+- Corregido el caso de archivo eliminado después de tomar la instantánea. Bloqueo por proyecto mediante SQLite y liberación del sistema operativo tras una caída.
+- Lectura HTTP limitada, SSE con separadores CR, validación de terminaciones y compatibilidad con el constructor SQLite de Node 26.
+- Migración transaccional del esquema CLI 1 a 2 conservando conversaciones y propuestas.
+- Formato automático, empaquetado portable desde lockfile y comprobación del paquete extraído en CI.
+
+## [5.0.0] - 2026-10-30 — CLI independiente
+
+### Añadido
+
+- Núcleo CLI con contextos de conversación, propuestas y lectura de proyectos; dominio sin dependencias de infraestructura.
+- Acceso directo a Gemini, OpenRouter y servidores compatibles, streaming SSE, cancelación, timeout y configuración local sin mostrar claves.
+- Sesiones y propuestas SQLite con revisión optimista, historial y exportación.
+- Flujo `propose -> diff -> apply -> restore`, copias durables, validación de rutas, detección de conflictos y recuperación de aplicaciones interrumpidas.
+- Inspección local con ruta y línea; lectura filtrada mediante `.gitignore` y `.aresignore` y redacción de patrones comunes de secretos.
+- Plantilla CLI DDD de tareas ejecutable sin instalar paquetes, persistencia real y tests significativos.
+- Salida JSON, stdin, códigos de salida comprobables y CI de CLI para Windows/Ubuntu con Node 24/26.
+
+### Cambiado
+
+- La CLI deja de depender de Express, del backend web y de `ARES_API_URL`.
+- `forge` crea una plantilla local concreta. `test` identifica sus resultados como propuestas sin ejecutar.
+- Los instaladores respetan los errores y no modifican la política de PowerShell.
+- Documentación principal centrada en terminal; la documentación anterior se conserva en `docs/legacy-web-v4.md`.
+
+### Retirado de la CLI
+
+- Presentación de benchmarks simulados como ejecuciones, escritura directa desde `audit --write`, automatización de commits/pushes y comandos dependientes del HUD.
+- Los servicios web históricos se conservan por separado y no se consideran verificados por las pruebas de la nueva CLI.
+
 ## [4.5.0] - 2026-10-30
 
 ### 🛡️ Consolidación Soberana & Remediación Integral de Seguridad, Fiabilidad, Despliegue y CI

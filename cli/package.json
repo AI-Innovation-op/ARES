@@ -1,13 +1,22 @@
 {
   "name": "@ares-ecosystem/cli",
-  "version": "4.5.1",
-  "description": "CLI Táctico para el ecosistema A.R.E.S. — Refactorización, Documentación y Bienestar desde la Terminal",
+  "version": "5.2.0",
+  "description": "ARES: ingeniería desde terminal, dominio puro y cambios revisables",
   "type": "module",
   "bin": {
     "ares": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "check": "npm run format:check && npm run typecheck && npm test && npm run architecture",
+    "architecture": "node dist/index.js analyze src --fail-on any",
+    "format": "prettier --write src test scripts \"*.json\"",
+    "format:check": "prettier --check src test scripts \"*.json\"",
+    "portable": "npm run build && node scripts/package-portable.mjs",
+    "smoke:portable": "node scripts/smoke-portable.mjs",
+    "prepack": "npm run build",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js"
   },
@@ -21,16 +30,25 @@
   ],
   "author": "AI Innovation / Kevin",
   "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "commander": "^15.0.0",
+    "diff": "^9.0.0",
     "dotenv": "^16.4.7",
+    "ignore": "^7.0.14",
     "jszip": "^3.10.2",
-    "picocolors": "^1.1.1"
+    "typescript": "5.8.3"
   },
   "devDependencies": {
-    "@types/jszip": "^3.4.0",
     "@types/node": "^22.13.5",
-    "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "prettier": "^3.9.10",
+    "tsx": "^4.19.4"
   }
 }

@@ -1,4 +1,4 @@
-name: 🛡️ A.R.E.S. Sentinel - PR Code Auditor
+name: ARES Sentinel - Architecture
 
 on:
   pull_request:
@@ -6,88 +6,36 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
+
+concurrency:
+  group: architecture-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   audit:
-    name: ⚔️ Espada Binaria & Escudo Aegis Audit
+    name: Arquitectura CLI (AST)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
+    defaults:
+      run:
+        working-directory: cli
     steps:
-      - name: 📥 Clonar repositorio
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
-
-      - name: ⚙️ Configurar Node.js 24
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-
-      - name: 🛡️ Ejecutar Auditoría Táctica A.R.E.S.
-        id: ares_audit
-        env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_BASE_REF: ${{ github.base_ref }}
+          cache: npm
+          cache-dependency-path: cli/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: Comprobar imports, capas y ciclos
+        run: node dist/index.js analyze src --fail-on any --output ../architecture-report.md
+      - name: Conservar informe en el resumen de la ejecución
+        if: always()
+        shell: bash
         run: |
-          node -e "
-          const { execFileSync } = require('node:child_process');
-          const fs = require('node:fs');
-
-          try {
-            const diff = execFileSync('git', ['diff', 'origin/' + process.env.GITHUB_BASE_REF + '...HEAD', '--', '*.ts', '*.js', '*.vue', '*.py']).toString();
-            if (!diff.trim()) {
-              console.log('No code changes detected in target files.');
-              fs.writeFileSync('pr_review.md', '🛡️ **A.R.E.S. Sentinel:** No se detectaron modificaciones en archivos de código fuente.');
-              process.exit(0);
-            }
-
-            console.log('Diff extracted. Length: ' + diff.length + ' chars.');
-            const prompt = 'Actúa como A.R.E.S. Sentinel. Realiza una auditoría táctica de seguridad OWASP, métricas Big-O y principios SOLID para el siguiente git diff. Termina con un veredicto (APROBADO / REQUIERE ATENCIÓN) y una recomendación de tests unitarios:\n\n' + diff.slice(0, 8000);
-
-            const apiKey = process.env.OPENROUTER_API_KEY || '';
-            if (apiKey) {
-              fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                  'Authorization': 'Bearer ' + apiKey,
-                  'Content-Type': 'application/json',
-                  'HTTP-Referer': 'https://github.com/AI-Innovation-op/ARES',
-                  'X-Title': 'A.R.E.S. Sentinel GitHub Action'
-                },
-                body: JSON.stringify({
-                  model: 'deepseek/deepseek-chat',
-                  messages: [{ role: 'user', content: prompt }]
-                })
-              }).then(r => r.json()).then(data => {
-                const report = data.choices?.[0]?.message?.content || 'No se pudo generar el informe.';
-                const header = '### 🛡️ A.R.E.S. Sentinel // Informe Táctico de Pull Request\n\n> *\"Un código sin documentación es una fortaleza sin murallas.\"*\n\n';
-                fs.writeFileSync('pr_review.md', header + report);
-              }).catch(e => {
-                fs.writeFileSync('pr_review.md', '⚠️ Error al contactar motor A.R.E.S.: ' + e.message);
-              });
-            } else {
-              fs.writeFileSync('pr_review.md', '⚠️ **A.R.E.S. Sentinel:** OPENROUTER_API_KEY o GEMINI_API_KEY no configurada en los Secrets del repositorio.');
-            }
-          } catch (e) {
-            fs.writeFileSync('pr_review.md', '⚠️ Error procesando diff: ' + e.message);
-          }
-          "
-
-      - name: 💬 Publicar Revisión en el Pull Request
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          script: |
-            const fs = require('fs');
-            if (fs.existsSync('pr_review.md')) {
-              const body = fs.readFileSync('pr_review.md', 'utf8');
-              await github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: body
-              });
-            }
+          if [ -f ../architecture-report.md ]; then
+            cat ../architecture-report.md >> "$GITHUB_STEP_SUMMARY"
+          fi

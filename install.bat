@@ -1,124 +1,53 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal
 chcp 65001 >nul
-
-echo ============================================================================
-echo   A.R.E.S. - INSTALADOR TACTICO GLOBAL PARA WINDOWS (v4.5 RELEASE)
-echo   Created by AI Innovation
-echo ============================================================================
-echo.
-
-:: 1. Verificar si Node.js esta instalado
-where node >nul 2>&1
-if errorlevel 1 goto :no_node
-
-:: 2. Verificar si npm esta disponible
-where npm >nul 2>&1
-if errorlevel 1 goto :no_npm
-
-for /f "tokens=*" %%v in ('node -v 2^>nul') do set NODE_VERSION=%%v
-echo [1/4] Node.js detectado con exito: !NODE_VERSION!
-
-:: 3. Ir a la carpeta del CLI y verificar su existencia
-if not exist "%~dp0cli" goto :no_cli_dir
-cd /d "%~dp0cli"
-
-:: 4. Instalar dependencias
-echo.
-echo [2/4] Instalando dependencias del CLI de A.R.E.S...
-call npm.cmd install
-if errorlevel 1 goto :install_error
-
-:: 5. Compilar TypeScript
-echo.
-echo [3/4] Compilando codigo TypeScript del CLI...
-call npm.cmd run build
-if errorlevel 1 goto :build_error
-
-:: 6. Registrar comando globalmente
-echo.
-echo [4/4] Registrando comando global 'ares' en Windows...
-call npm.cmd link
-if errorlevel 1 (
-    echo [AVISO] 'npm link' emitio una advertencia, continuando configuracion...
+set "ARES_LOCAL="
+set "ARES_NO_PAUSE="
+for %%A in (%*) do (
+  if /i "%%~A"=="--local" set "ARES_LOCAL=1"
+  if /i "%%~A"=="--no-pause" set "ARES_NO_PAUSE=1"
 )
-
-:: 7. Desbloquear politicas de scripts en PowerShell para el usuario actual
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "try { Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force } catch {}" >nul 2>&1
-
-echo.
-echo ============================================================================
-echo   INSTALACION COMPLETADA CON EXITO: 'ares' ESTA LISTO EN TU SISTEMA
-echo ============================================================================
-echo.
-echo Ahora puedes abrir cualquier ventana de CMD o PowerShell y escribir:
-echo    ares
-echo.
-echo Para forjar un nuevo proyecto DDD paso a paso con empaquetado en .ZIP:
-echo    ares forge
-echo.
-echo NOTA: Si tenias una terminal ya abierta antes de instalar, cierrala
-echo y abre una nueva para que Windows reconozca el comando 'ares'.
-echo ============================================================================
-echo.
-pause
+echo ARES CLI - instalacion para CMD y PowerShell
+where node >nul 2>&1
+if errorlevel 1 goto :node_error
+node -e "process.exit(Number(process.versions.node.split('.')[0]) >= 24 ? 0 : 1)"
+if errorlevel 1 goto :node_error
+where npm.cmd >nul 2>&1
+if errorlevel 1 goto :npm_error
+pushd "%~dp0cli"
+if errorlevel 1 goto :directory_error
+echo [1/3] Instalando dependencias del lockfile...
+call npm.cmd ci --ignore-scripts --no-fund
+if errorlevel 1 goto :failed
+echo [2/3] Compilando CLI...
+call npm.cmd run build
+if errorlevel 1 goto :failed
+if defined ARES_LOCAL goto :local_success
+echo [3/3] Registrando el comando global ares...
+call npm.cmd link --ignore-scripts --no-fund
+if errorlevel 1 goto :failed
+echo Instalacion completada. Abre una terminal y ejecuta: ares doctor
+echo Si PowerShell restringe scripts, usa ares.cmd.
+goto :success
+:local_success
+echo [3/3] Instalacion local completada. Ejecuta ares.cmd desde la raiz del proyecto.
+:success
+popd
+if not defined ARES_NO_PAUSE pause
 exit /b 0
-
-:no_node
-echo.
-echo ============================================================================
-echo   [AVISO CRITICO] NODE.JS NO ESTA INSTALADO EN ESTA COMPUTADORA
-echo ============================================================================
-echo.
-echo A.R.E.S. requiere Node.js (version 20 o superior) para funcionar.
-echo El comando 'node' no se encontro en las variables de entorno (PATH).
-echo.
-echo Pasos rapidos para solucionarlo:
-echo   1. Presiona cualquier tecla para abrir https://nodejs.org/ en tu navegador.
-echo   2. Descarga e instala la version recomendada (LTS o Current).
-echo   3. En el instalador, asegurate de dejar marcada la casilla "Add to PATH".
-echo   4. Una vez instalado Node.js, vuelve a dar doble clic a este 'install.bat'.
-echo.
-echo ============================================================================
-echo Presiona cualquier tecla para abrir la pagina oficial de descarga...
-pause >nul
-start https://nodejs.org/
+:failed
+popd
+echo ERROR: la instalacion no se completo. Revisa el error anterior. 1>&2
+if not defined ARES_NO_PAUSE pause
 exit /b 1
-
-:no_npm
-echo.
-echo ============================================================================
-echo   [ERROR] NODE.JS DETECTADO PERO NPM NO ESTA DISPONIBLE
-echo ============================================================================
-echo Reinstala Node.js desde https://nodejs.org/ marcando "Add to PATH".
-pause
-exit /b 1
-
-:no_cli_dir
-echo.
-echo ============================================================================
-echo   [ERROR] NO SE ENCONTRO LA CARPETA 'cli'
-echo ============================================================================
-echo Ubicacion esperada: %~dp0cli
-echo Asegurate de haber extraido/descomprimido completamente el archivo .ZIP
-echo antes de ejecutar 'install.bat'. No lo ejecutes dentro del archivo comprimido.
-echo.
-pause
-exit /b 1
-
-:install_error
-echo.
-echo ============================================================================
-echo   [ERROR] FALLA AL INSTALAR LAS DEPENDENCIAS DE NPM
-echo ============================================================================
-echo Verifica tu conexion a internet e intenta nuevamente.
-pause
-exit /b 1
-
-:build_error
-echo.
-echo ============================================================================
-echo   [ERROR] FALLA AL COMPILAR EL CLI CON TYPESCRIPT
-echo ============================================================================
-pause
-exit /b 1
+:node_error
+echo ERROR: instala Node.js 24 o superior desde https://nodejs.org/ 1>&2
+goto :prerequisite_error
+:npm_error
+echo ERROR: npm.cmd no esta disponible. Revisa tu instalacion de Node.js. 1>&2
+goto :prerequisite_error
+:directory_error
+echo ERROR: no se encuentra la carpeta cli junto al instalador. 1>&2
+:prerequisite_error
+if not defined ARES_NO_PAUSE pause
+exit /b 2

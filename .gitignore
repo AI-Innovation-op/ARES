@@ -54,3 +54,9 @@ Thumbs.db
 tmp/
 temp/
 scratch/
+
+# Datos y entregables de desarrollo local del CLI
+.ares/
+.artifacts/
+.data/
+*.tgz
