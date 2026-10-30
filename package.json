@@ -1,6 +1,6 @@
 {
   "name": "ares-ecosystem",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "private": true,
   "description": "ARES CLI first. El backend y la web históricos se conservan por separado.",
   "engines": { "node": ">=24.0.0" },
@@ -9,6 +9,8 @@
     "build": "npm --prefix cli run build",
     "test": "npm --prefix cli test",
     "check": "npm --prefix cli run check",
+    "portable": "npm --prefix cli run portable",
+    "smoke:portable": "npm --prefix cli run smoke:portable",
     "ares": "node cli/dist/index.js"
   }
 }

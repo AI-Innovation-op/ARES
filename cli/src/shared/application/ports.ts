@@ -13,7 +13,11 @@ export interface Identity {
   now(): string;
 }
 
-export async function complete(model: LanguageModel, messages: readonly Message[], signal?: AbortSignal): Promise<string> {
+export async function complete(
+  model: LanguageModel,
+  messages: readonly Message[],
+  signal?: AbortSignal,
+): Promise<string> {
   let text = '';
   for await (const chunk of model.stream(messages, signal)) text += chunk;
   return text;

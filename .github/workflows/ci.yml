@@ -85,6 +85,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: cmd
         run: ..\ares.cmd doctor --json
+      - name: Empaquetar y ejecutar entrega portable
+        if: matrix.node == 24
+        run: |
+          npm run portable
+          npm run smoke:portable
 
   mcp:
     name: MCP histórico (build)

@@ -11,6 +11,7 @@ ARES es un asistente de ingeniería que funciona en terminal. La interfaz web y 
 | Propuesta | Agregado de hasta 24 cambios revisables, vinculado a una raíz y a hashes del contenido leído. El modelo propone; el comando `apply` autoriza la escritura. |
 | Cambio | Ruta portable, hash anterior y contenido final completo; `null` representa eliminación. |
 | Diario de recuperación | Copias anteriores guardadas antes de modificar el primer archivo. Permite recuperar una aplicación interrumpida. |
+| Verificación | Evidencia inmutable de un script ejecutado: salida, tiempo medido, huella de fuentes y revisión de propuesta. Un éxito histórico no se confunde con el estado actual. |
 | Instantánea | Lectura limitada del proyecto; incluye rutas, contenido y hashes. Sus omisiones son explícitas. |
 | Ruta de fuente | Value object que rechaza traversal, rutas absolutas, alias reservados de Windows, controles, credenciales y carpetas excluidas. |
 
@@ -29,6 +30,9 @@ cli/src/
     application/     Inspección estática y WorkspaceReader
   engineering/
     application/     Documentos y plantilla CLI DDD de referencia
+  verification/
+    domain/          Verification y sus invariantes de evidencia
+    application/     VerifyProject, ProjectChecks y VerificationRepository
   shared/
     domain/          Errores y validaciones compartidas
     application/     LanguageModel, Identity y política de ingeniería
@@ -43,11 +47,11 @@ El dominio no importa infraestructura, Node, presentación ni casos de uso. La a
 
 ## Persistencia y concurrencia
 
-La base `ARES_HOME/ares.sqlite` es exclusiva del CLI. Usa SQLite nativo, WAL, sincronización FULL, sentencias parametrizadas y versión de esquema. Conversaciones y propuestas se guardan como agregados con revisión. Una actualización condicional evita que dos terminales pierdan turnos o transiciones al guardar simultáneamente. Un conflicto devuelve error.
+La base `ARES_HOME/ares.sqlite` es exclusiva del CLI. Usa SQLite nativo, WAL, sincronización FULL, sentencias parametrizadas y versión de esquema. El esquema 2 añade evidencia de verificaciones mediante una migración transaccional que conserva los datos del esquema 1. Conversaciones y propuestas se guardan como agregados con revisión. Una actualización condicional evita que dos terminales pierdan turnos o transiciones al guardar simultáneamente. Un conflicto devuelve error.
 
 La aplicación de una propuesta sigue este orden:
 
-1. Adquirir un bloqueo local de proyecto dentro de `ARES_HOME/locks`.
+1. Adquirir un bloqueo de SQLite sobre una base mutex por raíz canónica, en el directorio temporal privado del usuario. El sistema operativo lo libera al terminar o caer el proceso; no se borran bloqueos obsoletos para recuperarlo.
 2. Validar todas las rutas y hashes, antes de escribir.
 3. Guardar copias y estado `applying` de forma durable.
 4. Reemplazar archivos mediante temporal en el mismo directorio, `fsync` y rename.
@@ -55,7 +59,7 @@ La aplicación de una propuesta sigue este orden:
 
 La restauración valida todos los archivos antes de actuar. Si detecta una edición posterior, se detiene sin sobrescribirla. Acepta estados `applying`, `applied` y `restoring` para recuperarse después de una caída. Las propuestas restauradas no se reaplican: se crea una nueva.
 
-Esta operación no es una transacción global del sistema de archivos: cada archivo se reemplaza individualmente. Un proceso externo puede modificar archivos mientras ARES trabaja. El bloqueo coordina procesos ARES que usan el mismo `ARES_HOME`; no bloquea editores externos. Restaurar recupera el contenido de los archivos y puede dejar directorios vacíos creados durante la aplicación.
+Esta operación no es una transacción global del sistema de archivos: cada archivo se reemplaza individualmente. Un proceso externo puede modificar archivos mientras ARES trabaja. El bloqueo coordina procesos ARES del mismo usuario aunque usen distintos `ARES_HOME`; no bloquea editores externos. Restaurar recupera el contenido de los archivos y puede dejar directorios vacíos creados durante la aplicación.
 
 ## Proveedores y contexto
 
@@ -71,6 +75,8 @@ SQLite, las conversaciones y las copias se almacenan localmente, sin cifrado pro
 
 ## Evidencia y límites
 
+`verify` ejecuta solo el script de `package.json` que el usuario pide, mediante `node --run`. El nombre se valida y no se construye un comando con argumentos del modelo. El script del proyecto sí es código ejecutable y requiere confianza. Su resultado guarda el código del proceso ejecutor (Node puede normalizar un fallo del script a código 1), salida limitada y redactada, duración medida y huella del contexto de fuentes. La comparación de huellas conserva sus límites de lectura; no es trazado de todas las dependencias o lecturas del proceso. Para la huella de una verificación se respetan las exclusiones del proyecto, sin permitir que un `.gitignore` de una carpeta superior oculte todo el proyecto explícito. Timeout y cancelación detienen el árbol iniciado. La evidencia histórica no se modifica: `verifications show` expone por separado si coincide con el estado actual.
+
 `audit` produce señales heurísticas con ruta y línea; no mide Big-O, SOLID, cobertura ni vulnerabilidades de dependencias. `test` propone tests; no los ejecuta. `forge` crea una plantilla concreta y comprobable. La CLI no ejecuta shell generado, no instala dependencias del proyecto objetivo y no crea commits o pushes en nombre del usuario.
 
 Las pruebas HTTP usan un servidor local controlado. Verifican el transporte real y la integración CLI/SQLite/archivos; no acreditan calidad del razonamiento ni acceso a proveedores comerciales. La prueba viva del proveedor se realiza con `ares doctor --probe`.
@@ -82,4 +88,4 @@ Las pruebas HTTP usan un servidor local controlado. Verifican el transporte real
 - [OpenRouter: streaming y errores](https://openrouter.ai/docs/api_reference/streaming).
 - [SQLite nativo en Node.js 24](https://nodejs.org/download/release/latest-v24.x/docs/api/sqlite.html).
 
-Las decisiones de implementación están en [ADR 0001](adr/0001-cli-first.md) y [ADR 0002](adr/0002-reviewable-changes.md).
+Las decisiones de implementación están en [ADR 0001](adr/0001-cli-first.md), [ADR 0002](adr/0002-reviewable-changes.md) y [ADR 0003](adr/0003-verification-evidence.md).

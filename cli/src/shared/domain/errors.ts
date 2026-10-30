@@ -1,7 +1,11 @@
-export type ErrorCode = 'VALIDATION' | 'CONFIG' | 'NOT_FOUND' | 'CONFLICT' | 'PROVIDER' | 'CANCELLED' | 'IO';
+export type ErrorCode =
+  'VALIDATION' | 'CONFIG' | 'NOT_FOUND' | 'CONFLICT' | 'PROVIDER' | 'CANCELLED' | 'IO';
 
 export class AresError extends Error {
-  constructor(readonly code: ErrorCode, message: string) {
+  constructor(
+    readonly code: ErrorCode,
+    message: string,
+  ) {
     super(message);
     this.name = 'AresError';
   }

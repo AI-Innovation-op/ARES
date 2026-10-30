@@ -5,6 +5,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [5.1.0] - 2026-10-30 — Verificación y entrega reproducible
+
+- Nuevo contexto de verificación: ejecución explícita de scripts, evidencia SQLite, huellas de fuentes, timeout, cancelación y detección de resultados desactualizados.
+- Catálogo actual de modelos y selección de modelo dentro del REPL.
+- Comandos de auditoría, forja, propuestas, aplicación, verificación y restauración disponibles dentro de la sesión, con rutas Windows entre comillas.
+- Selección de contexto priorizando dominio, aplicación y manifiestos. Los cambios generados solo pueden editar archivos existentes cuyo contenido se envió al modelo.
+- Corregido el caso de archivo eliminado después de tomar la instantánea. Bloqueo por proyecto mediante SQLite y liberación del sistema operativo tras una caída.
+- Lectura HTTP limitada, SSE con separadores CR, validación de terminaciones y compatibilidad con el constructor SQLite de Node 26.
+- Migración transaccional del esquema CLI 1 a 2 conservando conversaciones y propuestas.
+- Formato automático, empaquetado portable desde lockfile y comprobación del paquete extraído en CI.
+
 ## [5.0.0] - 2026-10-30 — CLI independiente
 
 ### Añadido

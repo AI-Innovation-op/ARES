@@ -4,16 +4,50 @@ import { SourcePath } from '../../workspace/domain/source-path.js';
 /** A working reference domain, not an inferred implementation of arbitrary requirements. */
 export function forgeProject(name: string, context = 'tasks'): Readonly<Record<string, string>> {
   requireText(name, 'Nombre', 100);
-  if (!/^[a-z][a-z0-9-]{0,30}$/.test(context)) throw new AresError('VALIDATION', 'El contexto debe ser un identificador en minúsculas de hasta 31 caracteres.');
+  if (!/^[a-z][a-z0-9-]{0,30}$/.test(context))
+    throw new AresError(
+      'VALIDATION',
+      'El contexto debe ser un identificador en minúsculas de hasta 31 caracteres.',
+    );
   new SourcePath(context);
   const base = `src/${context}`;
   return Object.freeze({
-    'package.json': JSON.stringify({
-      name: 'ares-ddd-project', version: '0.1.0', private: true, type: 'module', description: name,
-      engines: { node: '>=24.0.0' }, scripts: { start: 'node src/main.ts', test: 'node --test test/*.test.ts', typecheck: 'tsc --noEmit' },
-      devDependencies: { '@types/node': '^24.0.0', typescript: '^5.8.3' },
-    }, null, 2) + '\n',
-    'tsconfig.json': JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'NodeNext', moduleResolution: 'NodeNext', strict: true, noEmit: true, allowImportingTsExtensions: true, erasableSyntaxOnly: true }, include: ['src/**/*.ts', 'test/**/*.ts'] }, null, 2) + '\n',
+    'package.json':
+      JSON.stringify(
+        {
+          name: 'ares-ddd-project',
+          version: '0.1.0',
+          private: true,
+          type: 'module',
+          description: name,
+          engines: { node: '>=24.0.0' },
+          scripts: {
+            start: 'node src/main.ts',
+            test: 'node --test test/*.test.ts',
+            typecheck: 'tsc --noEmit',
+          },
+          devDependencies: { '@types/node': '^24.0.0', typescript: '^5.8.3' },
+        },
+        null,
+        2,
+      ) + '\n',
+    'tsconfig.json':
+      JSON.stringify(
+        {
+          compilerOptions: {
+            target: 'ES2022',
+            module: 'NodeNext',
+            moduleResolution: 'NodeNext',
+            strict: true,
+            noEmit: true,
+            allowImportingTsExtensions: true,
+            erasableSyntaxOnly: true,
+          },
+          include: ['src/**/*.ts', 'test/**/*.ts'],
+        },
+        null,
+        2,
+      ) + '\n',
     '.gitignore': 'node_modules/\n.data/\n.env\n*.log\n',
     [`${base}/domain/task.ts`]: `export class TaskTitle {
   readonly value: string;
@@ -148,6 +182,7 @@ test('el caso de uso persiste y recupera una tarea desde otra conexión SQLite',
 });
 `,
     'README.md': `# ${name.replace(/[\r\n]/g, ' ')}\n\nPlantilla CLI DDD creada por ARES. Dominio de ejemplo: seguimiento de tareas.\n\nRequisito: Node.js 24 o superior. Ejecución y tests sin instalar dependencias:\n\n\`\`\`cmd\nnode src/main.ts add "Preparar primera entrega"\nnode src/main.ts list\nnode src/main.ts complete ID\nnode --test test/*.test.ts\n\`\`\`\n\nPara comprobar tipos: \`npm install\` y \`npm run typecheck\`.\n\nEl contexto \`${context}\` separa dominio puro, casos de uso y SQLite.\nEl título admite 1–120 caracteres; una tarea solo puede completarse una vez.\nLos datos se guardan en \`.data/tasks.sqlite\` (o \`APP_DATA_DIR\`).\nAdapta el lenguaje y las invariantes a tu negocio antes de ampliar el modelo.\n\nLos tests prueban reglas del dominio y persistencia real. No se generan métricas ficticias.\n`,
-    'docs/adr/0001-cli-ddd.md': '# ADR 0001: CLI con dominio puro y persistencia local\n\nEstado: aceptado.\n\nContexto: una aplicación pequeña necesita reglas comprobables y ejecución desde terminal.\n\nDecisión: monolito modular con dominio inmutable, casos de uso y adaptador SQLite. Node.js ejecuta TypeScript con sintaxis eliminable.\n\nConsecuencias: funciona sin servidor ni dependencias de ejecución; la comprobación de tipos es un paso independiente. SQLite es infraestructura y no entra al dominio. No se introducen CQRS, un bus de eventos ni microservicios sin necesidad de negocio.\n',
+    'docs/adr/0001-cli-ddd.md':
+      '# ADR 0001: CLI con dominio puro y persistencia local\n\nEstado: aceptado.\n\nContexto: una aplicación pequeña necesita reglas comprobables y ejecución desde terminal.\n\nDecisión: monolito modular con dominio inmutable, casos de uso y adaptador SQLite. Node.js ejecuta TypeScript con sintaxis eliminable.\n\nConsecuencias: funciona sin servidor ni dependencias de ejecución; la comprobación de tipos es un paso independiente. SQLite es infraestructura y no entra al dominio. No se introducen CQRS, un bus de eventos ni microservicios sin necesidad de negocio.\n',
   });
 }

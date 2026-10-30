@@ -24,17 +24,32 @@ export class Conversation {
     if (!/^[a-zA-Z0-9-]{1,64}$/.test(data.id) || data.revision !== data.turns.length) {
       throw new AresError('VALIDATION', 'Conversación inválida.');
     }
-    this.data = Object.freeze({ ...data, turns: Object.freeze(data.turns.map(t => Object.freeze({ ...t }))) });
+    this.data = Object.freeze({
+      ...data,
+      turns: Object.freeze(data.turns.map((t) => Object.freeze({ ...t }))),
+    });
     Object.freeze(this);
   }
 
   static start(id: string, at: string, title: string): Conversation {
-    return new Conversation({ id, title: requireText(title, 'Título').slice(0, 80), createdAt: at, updatedAt: at, revision: 0, turns: [] });
+    return new Conversation({
+      id,
+      title: requireText(title, 'Título').slice(0, 80),
+      createdAt: at,
+      updatedAt: at,
+      revision: 0,
+      turns: [],
+    });
   }
 
   append(turn: Turn): Conversation {
     requireText(turn.prompt, 'Consulta');
     requireText(turn.answer, 'Respuesta', 1_000_000);
-    return new Conversation({ ...this.data, updatedAt: turn.at, revision: this.data.revision + 1, turns: [...this.data.turns, turn] });
+    return new Conversation({
+      ...this.data,
+      updatedAt: turn.at,
+      revision: this.data.revision + 1,
+      turns: [...this.data.turns, turn],
+    });
   }
 }

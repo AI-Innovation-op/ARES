@@ -14,11 +14,20 @@ if (Number(process.versions.node.split('.')[0]) < 24) {
     if (error instanceof CommanderError && error.exitCode === 0) {
       process.exitCode = 0;
     } else {
-      const code = error instanceof AresError ? error.code : error instanceof CommanderError ? 'VALIDATION' : 'IO';
-      const message = terminalText(redact(error instanceof Error ? error.message : 'Error inesperado.'));
-      if (process.argv.includes('--json')) process.stderr.write(JSON.stringify({ error: { code, message } }) + '\n');
+      const code =
+        error instanceof AresError
+          ? error.code
+          : error instanceof CommanderError
+            ? 'VALIDATION'
+            : 'IO';
+      const message = terminalText(
+        redact(error instanceof Error ? error.message : 'Error inesperado.'),
+      );
+      if (process.argv.includes('--json'))
+        process.stderr.write(JSON.stringify({ error: { code, message } }) + '\n');
       else process.stderr.write(`ARES [${code}]: ${message}\n`);
-      process.exitCode = code === 'CANCELLED' ? 130 : code === 'VALIDATION' || code === 'CONFIG' ? 2 : 1;
+      process.exitCode =
+        code === 'CANCELLED' ? 130 : code === 'VALIDATION' || code === 'CONFIG' ? 2 : 1;
     }
   }
 }

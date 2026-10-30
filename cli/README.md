@@ -1,4 +1,4 @@
-# ARES CLI 5
+# ARES CLI 5.1
 
 Asistente de ingeniería para CMD, PowerShell y terminales Unix. Node.js 24 o superior. Funciona sin servidor web.
 
@@ -25,15 +25,20 @@ La sesión interactiva tiene `/help`, `/new`, `/history`, `/sessions`, `/resume 
 ares propose "Corrige esta invariante" --path mi-proyecto
 ares diff ID
 ares apply ID
+ares verify ID --script test
 ares restore ID
 ```
 
 Las propuestas no modifican el proyecto hasta ejecutar `apply`. Se comprueban hashes y rutas, y se guardan copias antes de escribir. `restore` se detiene si detecta ediciones posteriores. `propose --from cambios.json --path mi-proyecto` permite importar `{ "summary": "...", "changes": [{ "path": "src/a.ts", "content": "archivo completo" }] }` sin IA; `content: null` solicita eliminación.
 
-Más comandos: `context`, `doc`, `test`, `sessions`, `proposals` y `zip`. `--json` permite automatización; `audit --fail-on high` devuelve código 1 si encuentra señales de nivel alto. Consulta el detalle de cada comando con `--help`.
+`verify` ejecuta un script explícito del proyecto mediante `node --run` y registra su salida real. Requiere confiar en ese script. Un timeout o Ctrl+C detiene los procesos iniciados. Las fuentes o propuestas modificadas durante la ejecución invalidan el resultado. `verifications list` y `show ID` consultan evidencia histórica; `show` compara la huella con el estado actual. La base CLI se migra de esquema 1 a 2 conservando conversaciones y propuestas; versiones anteriores del CLI no deben abrir el nuevo esquema.
+
+Más comandos: `context`, `doc`, `test`, `sessions`, `proposals`, `models` y `zip`. `models` consulta el catálogo actual sin exigir un modelo ya seleccionado. `--json` permite automatización; `audit --fail-on high` devuelve código 1 si encuentra señales de nivel alto. Consulta el detalle de cada comando con `--help`.
+
+Dentro de la sesión también puedes usar `/audit`, `/forge`, `/propose`, `/diff`, `/apply`, `/verify`, `/restore`, `/models` y `/model ID`; las rutas con espacios se escriben entre comillas.
 
 `forge` genera una plantilla concreta de tareas con DDD, SQLite y tests, ejecutable sin instalar paquetes. No interpreta requisitos arbitrarios. `audit` es heurístico; `test` propone pruebas, sin ejecutarlas. `zip` exporta solo fuentes filtradas y redactadas; no es una copia exacta. Las funciones de IA envían el contexto seleccionado al proveedor configurado. Conversaciones y copias son locales y no tienen cifrado propio.
 
-Desarrollo desde `cli/`: `npm ci --ignore-scripts` y `npm run check`. El protocolo HTTP se prueba con un servidor local; el acceso comercial se comprueba por separado con `doctor --probe`.
+Desarrollo desde `cli/`: `npm ci --ignore-scripts` y `npm run check` (formato, tipos y pruebas). `npm run portable` empaqueta las dependencias fijadas sin scripts de instalación; `npm run smoke:portable` prueba el ZIP extraído. El protocolo HTTP se prueba con un servidor local; el acceso comercial de inferencia se comprueba por separado con `doctor --probe`.
 
 Kevin / AI Innovation. MIT.
