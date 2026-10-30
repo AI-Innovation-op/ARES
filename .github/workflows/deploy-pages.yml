@@ -19,12 +19,15 @@ jobs:
   build:
     name: 🏗️ Compilar Frontend SPA
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: 📥 Clonar repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: ⚙️ Configurar Node.js 24
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
@@ -34,10 +37,13 @@ jobs:
 
       - name: 🔨 Compilar con Vite
         working-directory: frontend
+        env:
+          # URL pública de tu backend (Settings → Secrets and variables → Actions → Variables → ARES_API_URL)
+          VITE_API_URL: ${{ vars.ARES_API_URL }}
         run: npm run build
 
       - name: 📤 Subir artefacto de Pages
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: frontend/dist
 
@@ -51,4 +57,4 @@ jobs:
     steps:
       - name: 🌐 Publicar en GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
