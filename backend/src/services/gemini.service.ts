@@ -93,7 +93,14 @@ Eres **A.R.E.S.** (*Autonomous Resilient Engineering & Software-Documentation Go
 - No pidas ni repitas secretos (claves, tokens). Si se pega uno, avisa para rotarlo.`;
 
 /** Instancia del cliente GoogleGenAI */
-const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+let clienteGemini: GoogleGenAI | null = null;
+function obtenerClienteGemini(): GoogleGenAI {
+  if (!env.GEMINI_API_KEY) {
+    throw new GeminiError('GEMINI_API_KEY no está configurada en el servidor.', 503);
+  }
+  clienteGemini ??= new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+  return clienteGemini;
+}
 
 /**
  * Espera una cantidad de milisegundos (para backoff exponencial).
@@ -134,7 +141,7 @@ export async function invocarGemini(params: {
       }
 
       // Convertir contenidos al formato esperado por el SDK @google/genai
-      const response = await ai.models.generateContent({
+      const response = await obtenerClienteGemini().models.generateContent({
         model,
         contents: contents as any,
         config: config as any,
@@ -212,7 +219,7 @@ export async function* invocarGeminiStream(params: {
   } = params;
 
   try {
-    const stream = await ai.models.generateContentStream({
+    const stream = await obtenerClienteGemini().models.generateContentStream({
       model,
       contents: contents as any,
       config: {
