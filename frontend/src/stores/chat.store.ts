@@ -28,7 +28,7 @@ export const useChatStore = defineStore('chat', () => {
       id: 'bienvenida',
       role: 'model',
       content:
-        '🛡️ **A.R.E.S. Core v4.5.0 en línea (Multi-Agent Swarm // Legión Soberana Activa).**\n\nSaludos, Comandante. Enjambre táctico de subagentes y protocolo de consenso operacional:\n- **🐝 Enjambre Multi-Agente:** Coordinación de Atenea (Arquitectura), Vulcano (Backend), Mercurio (Frontend) y Némesis (QA & Consenso).\n- **⚖️ Veredicto de Consenso Táctico:** Revisión cruzada obligatoria y validación estricta antes de consolidar el despliegue.\n- **🖥️ Live Sandbox & Forja .ZIP:** Previsualizaciones reactivas e interactividad en vivo listas para descarga modular DDD.\n- **🎙️ Oído Digital & Espectro:** Despacho verbal por comando de voz en caliente.\n\n¿Cuál es la primera orden táctica para la Legión?',
+        '🛡️ **A.R.E.S. Core v4.5.1 en línea (Multi-Agent Swarm // Legión Soberana Activa).**\n\nSaludos, Comandante. Enjambre táctico de subagentes y protocolo de consenso operacional:\n- **🐝 Enjambre Multi-Agente:** Coordinación de Atenea (Arquitectura), Vulcano (Backend), Mercurio (Frontend) y Némesis (QA & Consenso).\n- **⚖️ Veredicto de Consenso Táctico:** Revisión cruzada obligatoria y validación estricta antes de consolidar el despliegue.\n- **🖥️ Live Sandbox & Forja .ZIP:** Previsualizaciones reactivas e interactividad en vivo listas para descarga modular DDD.\n- **🎙️ Oído Digital & Espectro:** Despacho verbal por comando de voz en caliente.\n\n¿Cuál es la primera orden táctica para la Legión?',
       poseNumber: 1,
       timestamp: new Date(),
     },
@@ -417,7 +417,7 @@ export const useChatStore = defineStore('chat', () => {
         id: 'bienvenida',
         role: 'model',
         content:
-          '🛡️ **A.R.E.S. Core v4.5.0 en línea (Multi-Agent Swarm // Legión Soberana Activa).**\n\nConsola reiniciada. Los 4 subagentes tácticos se encuentran listos para el combate. ¿Cuál es tu siguiente orden táctica, Comandante?',
+          '🛡️ **A.R.E.S. Core v4.5.1 en línea (Multi-Agent Swarm // Legión Soberana Activa).**\n\nConsola reiniciada. Los 4 subagentes tácticos se encuentran listos para el combate. ¿Cuál es tu siguiente orden táctica, Comandante?',
         poseNumber: 1,
         timestamp: new Date(),
       },

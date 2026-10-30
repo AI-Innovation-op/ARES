@@ -67,7 +67,5 @@ if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) {
   );
 }
 if (env.NODE_ENV === 'production' && env.CORS_ORIGIN.trim() === '*') {
-  console.warn(
-    '⚠️  [Seguridad] CORS_ORIGIN="*" detectado en producción. Se recomienda restringir los dominios en las variables de entorno.'
-  );
+  throw new Error('CORS_ORIGIN="*" no está permitido en producción. Define los orígenes reales en las variables de entorno.');
 }
