@@ -28,7 +28,7 @@ Agrega lo siguiente en tu archivo de configuración de Claude Desktop (`%APPDATA
   "mcpServers": {
     "ares": {
       "command": "node",
-      "args": ["D:/ares-ecosystem/mcp/dist/index.js"],
+      "args": ["/ruta/a/ARES/mcp/dist/index.js"],
       "env": {
         "ARES_API_URL": "http://localhost:3000"
       }
@@ -41,7 +41,7 @@ Agrega lo siguiente en tu archivo de configuración de Claude Desktop (`%APPDATA
 En los ajustes de Cursor (`Features` ➔ `MCP Servers`), agrega:
 - **Name:** `ares`
 - **Type:** `command`
-- **Command:** `node D:/ares-ecosystem/mcp/dist/index.js`
+- **Command:** `node /ruta/a/ARES/mcp/dist/index.js`
 
 ### 3. Google Antigravity
 En la configuración de servidores MCP (`mcp_config.json` o sidecar):
@@ -51,7 +51,7 @@ En la configuración de servidores MCP (`mcp_config.json` o sidecar):
   "mcpServers": {
     "ares": {
       "command": "node",
-      "args": ["D:/ares-ecosystem/mcp/dist/index.js"]
+      "args": ["/ruta/a/ARES/mcp/dist/index.js"]
     }
   }
 }
@@ -62,6 +62,6 @@ En la configuración de servidores MCP (`mcp_config.json` o sidecar):
 ## 🔨 Compilación Manual
 
 ```bash
-cd D:\ares-ecosystem\mcp
+cd mcp
 npm run build
 ```

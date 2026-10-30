@@ -4,10 +4,10 @@
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), copiloto táctico de ingeniería pesada, Dios Guerrero de la Documentación Técnica y guardián de la estabilidad cognitiva de mi Comandante.*  
 > 🏷️ **Versión Actual:** **v4.0.0 (RELEASE OFICIAL)** — *Terminal Táctica Standalone, Asistente de Forja DDD Interactivo, Descarga en .ZIP (C: o D:), Commits Atómicos Git y Enrutador Adaptativo de IA.*
 
-[![Node.js](https://img.shields.io/badge/Node.js-24+-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22.13+-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.5-4FC08D?style=flat&logo=vuedotjs)](https://vuejs.org/)
-[![Three.js](https://img.shields.io/badge/Three.js-r128-black?style=flat&logo=threedotjs)](https://threejs.org/)
+[![Three.js](https://img.shields.io/badge/Three.js-0.172-black?style=flat&logo=threedotjs)](https://threejs.org/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-3_Flash-8E75B2?style=flat&logo=google)](https://ai.google.dev/)
 [![OpenRouter](https://img.shields.io/badge/OpenRouter-DeepSeek_R1_%2F_V3-6366F1?style=flat)](https://openrouter.ai/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker)](https://www.docker.com/)
@@ -31,7 +31,7 @@
 > 2. Descomprime el archivo `.zip` en cualquier carpeta de tu disco (ej. `C:\ARES` o `D:\ARES`).  
 > 3. Entra a la carpeta y dale **doble clic** a `install.bat` o `INSTALAR_ARES.bat` *(asegúrate de que en Tipo diga **"Archivo por lotes"**, no al script de PowerShell)*.  
 > 4. Abre cualquier terminal (CMD o PowerShell) y escribe: **`ares`**.  
-> *(Requisito único previo: tener instalado [Node.js v20+](https://nodejs.org/))*.  
+> *(Requisito único previo: tener instalado [Node.js 22.13 o superior (recomendado 24)](https://nodejs.org/))*.  
 > 📖 Para ver la guía ilustrada completa con todos los comandos y resolución de dudas, consulta la [Sección 6.4: Guía Maestra de la Terminal Táctica CLI](#-64-guía-maestra-de-la-terminal-táctica-cli-v40-release-oficial).
 
 ---
@@ -343,7 +343,7 @@ ares
 ```
 
 ##### 🟡 Opción 3: Si ya tienes el proyecto abierto en tu máquina
-Si ya estás dentro de la carpeta del proyecto (ej. `D:\ares-ecosystem`):
+Si ya estás dentro de la carpeta del proyecto (ej. `C:\ruta\donde\clonaste\ARES`):
 ```powershell
 # Opción directa vía instalador:
 .\install.bat
@@ -377,7 +377,7 @@ Una vez instalado, el comando `ares` está disponible globalmente en **cualquier
 #### ❓ Preguntas Frecuentes y Solución de Problemas
 
 * **¿Qué necesito tener instalado antes de empezar?**
-  * Solo necesitas [Node.js (versión 20 o superior)](https://nodejs.org/). Si no lo tienes, descárgalo e instálalo marcando la casilla *"Add to PATH"*.
+  * Solo necesitas [Node.js 22.13 o superior (recomendado 24)](https://nodejs.org/). Si no lo tienes, descárgalo e instálalo marcando la casilla *"Add to PATH"*.
 * **En PowerShell me sale el error: *"la ejecución de scripts está deshabilitada en este sistema"***:
   * Esto ocurre por la política de ejecución por defecto de Windows.
   * *Solución 1:* Ejecuta en PowerShell:  
@@ -402,9 +402,20 @@ Cuento con un servidor **Model Context Protocol (MCP)** en `mcp/` que expone mis
 * `ares_ask_assistant` (Consulta conversacional Staff Engineer)
 
 ### Hook Espartano Pre-Push ("No Deploy a las 3:00 AM")
-Implementado en `.husky/pre-push` o `.git/hooks/pre-push`, este centinela analiza la hora del sistema y el nivel de estamina de mi creador antes de permitir cualquier `git push`.
+Implementado en `hooks/pre-push` (instálalo con `ares hook install`) o `.git/hooks/pre-push`, este centinela analiza la hora del sistema y el nivel de estamina de mi creador antes de permitir cualquier `git push`.
 * Si intentas desplegar entre la **1:00 AM y las 5:00 AM** con una estamina inferior al 40%, el push es **bloqueado de inmediato**, recordándote que la fatiga es la principal causa de desastres en producción.
 * *Bypass táctico en situaciones de emergencia crítica:* `$env:FORCE_DEPLOY="1"; git push`.
+
+---
+
+## 🔐 Configuración de seguridad
+
+| Variable | Para qué sirve |
+|---|---|
+| `ARES_API_KEY` | Clave de acceso a la API (cabecera `x-api-key`). **Obligatoria en producción.** Genérala con `openssl rand -hex 32`. La CLI y el MCP la leen de su entorno; el navegador te la pide una vez. |
+| `CORS_ORIGIN` | Orígenes web permitidos, separados por comas. En producción **no** puede ser `*`. |
+| `TRUST_PROXY_HOPS` | Proxys delante del backend (`0` local, `1` Render, `2` Render + nginx propio). |
+| `GEMINI_API_KEY` / `OPENROUTER_API_KEY` | Basta con una de las dos. |
 
 ---
 
