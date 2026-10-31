@@ -1,4 +1,4 @@
-# ARES CLI 5.4
+# ARES CLI 5.5
 
 Asistente de ingeniería para CMD, PowerShell y terminales Unix. Node.js 24 o superior. Funciona sin servidor web.
 
@@ -38,7 +38,7 @@ Las propuestas no modifican el proyecto hasta ejecutar `apply`. Se comprueban ha
 
 `sessions search "palabras" --limit 10` busca en títulos, consultas y respuestas mediante SQLite FTS5, sin distinguir mayúsculas o tildes. Las palabras se combinan con AND. Sesiones, propuestas y verificaciones aceptan IDs completos o prefijos únicos de al menos 8 caracteres. Un prefijo ambiguo devuelve conflicto.
 
-La base CLI se migra al esquema 3 conservando datos. Antes de migrar esquemas 1/2 se crea una copia consistente `ares-schema-N-backup-UUID.sqlite` en `ARES_HOME`. También contiene información privada. Versiones anteriores de la CLI no deben abrir el nuevo esquema; para volver atrás conserva el original migrado y recupera la copia como `ares.sqlite` en otro `ARES_HOME` vacío con todas las terminales ARES cerradas.
+La base CLI se migra al esquema 4 conservando datos. Antes de migrar esquemas 1/2/3 se crea una copia consistente `ares-schema-N-backup-UUID.sqlite` en `ARES_HOME`. También contiene información privada. Versiones anteriores de la CLI no deben abrir el nuevo esquema; para volver atrás conserva el original migrado y recupera la copia como `ares.sqlite` en otro `ARES_HOME` vacío con todas las terminales ARES cerradas.
 
 `analyze RUTA --fail-on any` construye un grafo de imports con el AST de TypeScript: capas inferidas por directorio, infracciones, ciclos y referencias sin resolver. Admite JS, TS y bloques script de Vue; no compila ni ejecuta el proyecto. Usa solo fuentes y opciones locales de `tsconfig` presentes en la instantánea. No carga `extends` externos. `any` falla también ante imports sin resolver, parseos inválidos, una instantánea truncada o ningún módulo compatible. Los lenguajes no soportados se informan sin certificarlos.
 
@@ -61,5 +61,9 @@ La presencia de claves no acredita cuota. `doctor --probe` hace una consulta rea
 `ares --project RUTA` abre una carpeta y usa sus rutas relativas y fuentes como contexto. En el REPL: `/open RUTA` y `/close`. Abrir otro proyecto inicia una conversación nueva; las sesiones creadas en un proyecto rechazan continuaciones desde otra carpeta. El vínculo se basa en la ruta canónica y las sesiones anteriores sin proyecto se conservan.
 
 Desde el checkout, `npm run package:npm` crea un tarball compilado con lockfile publicable. `npm run smoke:npm` lo instala en un prefijo temporal y comprueba versiones y ejecución. `npm run install:global` instala una copia estable en el prefijo global de npm. Para instalar un tarball descargado: `npm install --global --ignore-scripts RUTA_AL_TGZ`. Se necesita acceso al registro o una caché de dependencias; el ZIP portable ya incluye el runtime.
+
+Perfiles de proyecto: `ares projects add miapp RUTA`, `ares --project "@miapp"`, `projects list`, `projects show miapp` y `projects configure miapp --provider PROVEEDOR --model MODELO`. `--reset` retira las preferencias. En el REPL: `/projects` y `/open @miapp`.
+
+Después de mover una carpeta, `projects relocate miapp NUEVA_RUTA` actualiza el registro y conserva la identidad de las conversaciones. No mueve archivos ni reasigna propuestas antiguas. La carpeta original debe haber desaparecido o cambiado de identidad. Las preferencias se aplican entre el archivo personal y el `.env` del proyecto, con flags y entorno por encima. Las credenciales permanecen en el archivo privado.
 
 Kevin / AI Innovation. MIT.

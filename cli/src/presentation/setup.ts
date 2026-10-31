@@ -52,7 +52,10 @@ async function hiddenQuestion(
   }
 }
 
-export async function setupConfiguration(signal?: AbortSignal): Promise<Configuration> {
+export async function setupConfiguration(
+  signal?: AbortSignal,
+  environment: NodeJS.ProcessEnv = process.env,
+): Promise<Configuration> {
   const controller = new AbortController();
   const combined = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
   const terminal = terminalInterface();
@@ -95,11 +98,18 @@ export async function setupConfiguration(signal?: AbortSignal): Promise<Configur
     terminal.rl.close();
     process.stdin.unref();
   }
-  if (!apiKey && provider !== 'compatible' && !loadConfiguration({ provider, model }).apiKey)
+  if (
+    !apiKey &&
+    provider !== 'compatible' &&
+    !loadConfiguration({ provider, model }, environment).apiKey
+  )
     throw new AresError('CONFIG', 'Falta la clave; no se guardó la configuración.');
-  const result = updateConfiguration({ provider, model, baseUrl, ...(apiKey ? { apiKey } : {}) });
+  const result = updateConfiguration(
+    { provider, model, baseUrl, ...(apiKey ? { apiKey } : {}) },
+    environment,
+  );
   diagnostic(
-    `Configuración guardada en ${configurationLocation().envFile}. Las variables del proceso o del proyecto tienen precedencia.`,
+    `Configuración guardada en ${configurationLocation(environment).envFile}. Las variables del proceso o del proyecto tienen precedencia.`,
   );
   return result;
 }

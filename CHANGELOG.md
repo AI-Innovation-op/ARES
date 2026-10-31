@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [5.5.0] - 2026-10-31 — Perfiles e identidad de proyectos
+
+- Alias locales con projects add/list/show y selección mediante @alias.
+- Preferencias de proveedor/modelo por proyecto con precedencia explícita, sin guardar claves.
+- Reubicación explícita con identidad estable de conversaciones y detección de carpetas sustituidas.
+- Catálogo SQLite 4 con copia previa de esquemas 1/2/3, vinculación transaccional y control de concurrencia.
+- Propuestas y verificaciones conservan su raíz y evidencia originales.
+
 ## [5.4.0] - 2026-10-31 — Trabajo por proyecto e instalación estable
 
 - Selección de carpeta con `--project`/`-C`, `/open` y `/close`: contexto y rutas relativas siguen el proyecto seleccionado.

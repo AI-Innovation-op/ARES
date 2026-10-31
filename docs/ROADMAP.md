@@ -4,14 +4,13 @@ Actualizado: 2026-10-31. Este documento separa capacidades ejecutadas de trabajo
 
 ## Base comprobada
 
-CLI independiente, identidad visual original, proveedores y modelos por perfil, historial local, análisis AST, cambios revisables, verificación y recuperación. La 5.4 añade proyecto activo, vínculo de conversaciones e instalación global independiente. El ciclo de programación se probó con IA real y aceptación independiente; eso no equivale a certificar cualquier cambio generado.
+CLI independiente, identidad visual original, proveedores y modelos por perfil, historial local, análisis AST, cambios revisables, verificación y recuperación. La 5.4 añadió proyecto activo e instalación independiente. La 5.5 incorpora alias, preferencias e identidad estable para reubicar conversaciones. El ciclo de programación se probó con IA real y aceptación independiente; eso no equivale a certificar cualquier cambio generado.
 
 ## Prioridad siguiente
 
-1. **Identidad persistente de proyectos:** alias, preferencias por proyecto y reubicación de carpetas con un vínculo explícito de las sesiones. Hoy la identidad utiliza la ruta canónica.
-2. **Evidencia de consumo de IA:** tokens y duración cuando el proveedor los reporte, con ausencia explícita de datos y límites configurables. Los costes deben proceder de información real del servicio; no de métricas simuladas.
-3. **Evaluación reproducible de tareas:** un conjunto de cambios de referencia con aceptación independiente para medir completitud, regresiones y alcance. Separar corrección del código y calidad del resumen generado.
-4. **Actualización y recuperación de versiones:** actualización explícita desde artefactos verificados, selección de versión y retorno a una copia compatible de los datos.
+1. **Evidencia de consumo de IA:** tokens y duración cuando el proveedor los reporte, con ausencia explícita de datos y límites configurables. Los costes deben proceder de información real del servicio; no de métricas simuladas.
+2. **Evaluación reproducible de tareas:** un conjunto de cambios de referencia con aceptación independiente para medir completitud, regresiones y alcance. Separar corrección del código y calidad del resumen generado.
+3. **Actualización y recuperación de versiones:** actualización explícita desde artefactos verificados, selección de versión y retorno a una copia compatible de los datos.
 
 ## Capacidades opcionales
 

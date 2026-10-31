@@ -75,6 +75,12 @@ try {
     throw new Error('La CLI no está ejecutando su copia instalada.');
   const project = path.join(directory, 'generated project');
   run(['forge', project]);
+  const registration = run(['projects', 'add', 'smoke', project]);
+  if (run(['--project', '@smoke', 'doctor']).projectProfile.id !== registration.project.id)
+    throw new Error('El paquete instalado no resolvió el alias.');
+  run(['projects', 'configure', 'smoke', '--provider', 'groq', '--model', 'smoke-model']);
+  if (run(['--project', '@smoke', 'doctor']).model !== 'smoke-model')
+    throw new Error('El paquete instalado no cargó su perfil.');
   if (run(['--project', project, 'verify']).status !== 'passed')
     throw new Error('La copia instalada no verificó el proyecto generado.');
   const globalPrefix = path.join(directory, 'global prefix');
@@ -121,6 +127,7 @@ try {
       pinnedDependencies: 'passed',
       projectWorkflow: 'passed',
       globalInstaller: 'passed',
+      projectProfiles: 'passed',
       platform: process.platform,
     }),
   );

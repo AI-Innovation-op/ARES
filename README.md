@@ -1,10 +1,10 @@
-# 🛡️ A.R.E.S. Ecosystem (v5.4 Terminal CLI // Created by AI Innovation)
+# 🛡️ A.R.E.S. Ecosystem (v5.5 Terminal CLI // Created by AI Innovation)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo. Y un proyecto sin tu autoría es una batalla ganada sin honor."**
 >
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), tu copiloto táctico de ingeniería y documentación. Mi centro de operaciones es tu terminal.*
 >
-> 🏷️ **Versión actual: [v5.4.0 — Release oficial](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.4.0)** · Terminal independiente · Proyectos DDD · Cambios revisables · Historial local.
+> 🏷️ **Versión actual: [v5.5.0 — Release oficial](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.5.0)** · Terminal independiente · Proyectos DDD · Cambios revisables · Historial local.
 
 [![Node.js](https://img.shields.io/badge/Node.js-24%2B-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -20,22 +20,22 @@
 
 <div align="center">
 
-[![Descargar ARES v5.4.0 ZIP portable](https://img.shields.io/badge/Descargar-ARES_v5.4.0_ZIP_portable-007ACC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.4.0/ARES-5.4.0-portable.zip)
-[![Ver release v5.4.0 en GitHub](https://img.shields.io/badge/GitHub-Release_v5.4.0-2EA44F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.4.0)
-[![Descargar código fuente ZIP](https://img.shields.io/badge/Descargar-Codigo_fuente_ZIP-9333EA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.4.0/ARES-5.4.0-source.zip)
+[![Descargar ARES v5.5.0 ZIP portable](https://img.shields.io/badge/Descargar-ARES_v5.5.0_ZIP_portable-007ACC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.5.0/ARES-5.5.0-portable.zip)
+[![Ver release v5.5.0 en GitHub](https://img.shields.io/badge/GitHub-Release_v5.5.0-2EA44F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.5.0)
+[![Descargar código fuente ZIP](https://img.shields.io/badge/Descargar-Codigo_fuente_ZIP-9333EA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.5.0/ARES-5.5.0-source.zip)
 
 </div>
 
 > 🚀 **¿Quieres empezar directamente en tu PC?**
 >
 > 1. Instala [Node.js 24 o superior](https://nodejs.org/).
-> 2. **[⬇️ Descarga el ZIP portable de ARES](https://github.com/AI-Innovation-op/ARES/releases/download/v5.4.0/ARES-5.4.0-portable.zip)** y extrae el archivo completo en tu disco, por ejemplo en `C:\ARES` o `D:\ARES`.
+> 2. **[⬇️ Descarga el ZIP portable de ARES](https://github.com/AI-Innovation-op/ARES/releases/download/v5.5.0/ARES-5.5.0-portable.zip)** y extrae el archivo completo en tu disco, por ejemplo en `C:\ARES` o `D:\ARES`.
 > 3. Si quieres usar IA, abre CMD en la carpeta que contiene `ares.cmd` y ejecuta **`ares.cmd setup`** para configurar proveedor, modelo y clave. Las funciones locales funcionan sin claves.
 > 4. Haz doble clic en **`INICIAR_ARES.bat`** para abrir la terminal y escribe **`help`** para ver los comandos. El portable incluye las dependencias; no necesita `npm install`.
 >
 > 📖 **¿Prefieres instalar desde el código fuente y tener el comando global `ares`?** Descarga el ZIP de fuentes y sigue [Empezar en CMD](#empezar-en-cmd).
 >
-> 🔎 [Ver hashes SHA-256 de la descarga](https://github.com/AI-Innovation-op/ARES/releases/download/v5.4.0/SHA256SUMS-5.4.0.txt).
+> 🔎 [Ver hashes SHA-256 de la descarga](https://github.com/AI-Innovation-op/ARES/releases/download/v5.5.0/SHA256SUMS-5.5.0.txt).
 
 ---
 
@@ -69,7 +69,7 @@ CLI independiente para conversar sobre código, inspeccionar proyectos, generar 
 
 La versión 5 reconstruye el núcleo de terminal con dominio puro, casos de uso, puertos y adaptadores. Las conversaciones y las propuestas tienen invariantes y persistencia SQLite. El diseño usa DDD en las reglas que lo necesitan y conserva una aplicación local pequeña.
 
-**Versión CLI: 5.4.0. Requisito: Node.js 24 o superior.** Git es necesario para clonar el repositorio; la ejecución del CLI no lo requiere.
+**Versión CLI: 5.5.0. Requisito: Node.js 24 o superior.** Git es necesario para clonar el repositorio; la ejecución del CLI no lo requiere.
 
 También puedes descargar el ZIP portable desde [Releases](https://github.com/AI-Innovation-op/ARES/releases), extraerlo y ejecutar `ares.cmd doctor`. Incluye las dependencias de ejecución; no requiere `npm install`.
 
@@ -116,9 +116,40 @@ Dentro del REPL:
 /close
 ```
 
-Abrir otro proyecto inicia una conversación nueva. Las sesiones nuevas guardan su proyecto y rechazan continuaciones desde otra carpeta antes de llamar al modelo; reabre la carpeta correcta para usar `/resume ID`. Con un proyecto activo, `apply`, `restore` y `verify ID` también rechazan propuestas de otra raíz. Los IDs conservan su raíz original; `--project` no los reasigna. Las sesiones anteriores sin proyecto siguen disponibles. El vínculo usa la ruta canónica: los alias y la reubicación de proyectos quedan en el [roadmap](docs/ROADMAP.md).
+Abrir otro proyecto inicia una conversación nueva. Las sesiones nuevas guardan su proyecto y rechazan continuaciones desde otra carpeta antes de llamar al modelo; reabre la carpeta correcta para usar `/resume ID`. Con un proyecto activo, `apply`, `restore` y `verify ID` también rechazan propuestas de otra raíz. Los IDs conservan su raíz original; `--project` no los reasigna. Las sesiones anteriores sin proyecto siguen disponibles. El vínculo inicial usa la ruta canónica. Al registrar la carpeta con `projects add`, sus conversaciones reciben una identidad estable que sobrevive a la reubicación explícita.
 
 `/context` sin ruta retira el contexto automático de esa conversación. `/close` vuelve a la carpeta desde la que se inició ARES. El directorio del terminal padre permanece igual. La configuración `.env` del proyecto mantiene la precedencia documentada.
+
+## Perfiles y alias de proyecto
+
+```cmd
+ares.cmd projects add miapp "D:\proyectos\miapp"
+ares.cmd projects list
+ares.cmd --project "@miapp"
+```
+
+En el REPL puedes usar `/projects` y `/open @miapp`. Los alias usan minúsculas, números, guion o guion bajo y empiezan por una letra. Registrar una carpeta vincula sus conversaciones anteriores sin cambiar sus turnos; las sesiones nuevas utilizan el mismo ID estable.
+
+Para guardar proveedor y modelo preferidos:
+
+```cmd
+ares.cmd projects configure miapp --provider gemini --model "ID_DISPONIBLE_EN_TU_CUENTA"
+ares.cmd projects show miapp
+ares.cmd projects configure miapp --reset
+```
+
+Las preferencias guardan solo proveedor y modelo. Las claves permanecen en la configuración privada. Los flags y las selecciones interactivas tienen prioridad, seguidos del entorno, el `.env` del proyecto, sus preferencias registradas y el archivo personal.
+
+Después de mover la carpeta por tu cuenta, ejecuta desde un CMD situado fuera de la ubicación anterior:
+
+```cmd
+ares.cmd projects relocate miapp "D:\nueva ruta\miapp"
+ares.cmd --project "@miapp"
+```
+
+El registro no mueve ni copia archivos. La carpeta de destino debe existir; ARES rechaza la reubicación mientras la original siga presente con su identidad. Cuando el sistema de archivos la proporciona, su identidad también permite detectar una carpeta sustituida en la misma ruta.
+
+Puedes reanudar las conversaciones con `/resume ID` después de abrir el alias. Las propuestas y verificaciones anteriores mantienen su raíz original: mover un proyecto no autoriza a aplicar o restaurar sus cambios en otro destino. Para cargar esta versión, sal de las sesiones anteriores y vuelve a abrir ARES; la primera apertura crea una copia consistente antes de actualizar la base al esquema 4.
 
 ## Útil sin claves ni conexión
 
@@ -294,7 +325,7 @@ Códigos de salida: `0` completado; `1` fallo operativo, conflicto o hallazgos s
 - El contexto respeta `.gitignore` y `.aresignore`, excluye ubicaciones privadas, binarios y enlaces, y tiene límites de tamaño. `context --content` muestra la selección redactada antes de enviarla.
 - Las funciones de IA transmiten el contexto seleccionado al proveedor configurado. La redacción de secretos es heurística, no una garantía universal.
 - El historial y las copias se guardan en `ARES_HOME/ares.sqlite`, sin cifrado propio. No se reutiliza ni migra la base del backend anterior.
-- La primera apertura de una base CLI de esquema 1 o 2 crea una copia consistente `ares-schema-N-backup-UUID.sqlite` antes de migrarla al esquema 3. La copia conserva datos sensibles igual que el original. Para volver a una CLI anterior, conserva el archivo original migrado y restaura la copia como `ares.sqlite` en otro `ARES_HOME` vacío con todas las terminales ARES cerradas.
+- La primera apertura de una base CLI de esquema 1, 2 o 3 crea una copia consistente `ares-schema-N-backup-UUID.sqlite` antes de migrarla al esquema 4. La copia conserva datos sensibles igual que el original. Para volver a una CLI anterior, conserva el archivo original migrado y restaura la copia como `ares.sqlite` en otro `ARES_HOME` vacío con todas las terminales ARES cerradas.
 - `audit` no certifica seguridad, no calcula una puntuación SOLID y no inventa métricas. `test` no presenta tests generados como ejecutados.
 - La aplicación de cambios es recuperable, con reemplazo individual de archivos. No proporciona una transacción global frente a editores u otros procesos externos.
 
@@ -309,7 +340,7 @@ Las pruebas cubren invariantes, dirección de dependencias, persistencia real, c
 
 Para crear la distribución portable con dependencias de ejecución fijadas: `npm run portable`. Para extraerla y comprobar arranque, wrapper, configuración, análisis AST y tests del proyecto generado: `npm run smoke:portable`. El ZIP requiere Node.js 24 o superior y no requiere `npm install` en el equipo de destino.
 
-La CI incluye Windows y Ubuntu con Node 24 y 26; Node 24 también construye y ejecuta el portable y el paquete npm en instalaciones aisladas. Sentinel comprueba la arquitectura con AST y publica el informe en el resumen de Actions, sin claves de IA ni comentarios automáticos. Consulta el resultado de cada ejecución en GitHub Actions. La configuración de una matriz no equivale a sus resultados. Detalles: [arquitectura y límites](docs/ARCHITECTURE.md), [decisiones](docs/adr/0001-cli-first.md), [validación 5.4](docs/VALIDATION-5.4.md) y [trabajo pendiente](docs/ROADMAP.md).
+La CI incluye Windows y Ubuntu con Node 24 y 26; Node 24 también construye y ejecuta el portable y el paquete npm en instalaciones aisladas. Sentinel comprueba la arquitectura con AST y publica el informe en el resumen de Actions, sin claves de IA ni comentarios automáticos. Consulta el resultado de cada ejecución en GitHub Actions. La configuración de una matriz no equivale a sus resultados. Detalles: [arquitectura y límites](docs/ARCHITECTURE.md), [decisiones](docs/adr/0001-cli-first.md), [validación 5.5](docs/VALIDATION-5.5.md) y [trabajo pendiente](docs/ROADMAP.md).
 
 ## Componentes históricos
 
