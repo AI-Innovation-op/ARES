@@ -1,4 +1,4 @@
-# ARES CLI 5.5
+# ARES CLI 5.6
 
 Asistente de ingeniería para CMD, PowerShell y terminales Unix. Node.js 24 o superior. Funciona sin servidor web.
 
@@ -65,5 +65,9 @@ Desde el checkout, `npm run package:npm` crea un tarball compilado con lockfile 
 Perfiles de proyecto: `ares projects add miapp RUTA`, `ares --project "@miapp"`, `projects list`, `projects show miapp` y `projects configure miapp --provider PROVEEDOR --model MODELO`. `--reset` retira las preferencias. En el REPL: `/projects` y `/open @miapp`.
 
 Después de mover una carpeta, `projects relocate miapp NUEVA_RUTA` actualiza el registro y conserva la identidad de las conversaciones. No mueve archivos ni reasigna propuestas antiguas. La carpeta original debe haber desaparecido o cambiado de identidad. Las preferencias se aplican entre el archivo personal y el `.env` del proyecto, con flags y entorno por encima. Las credenciales permanecen en el archivo privado.
+
+Equipo: `team init/show/check` comparte acuerdos en ares.team.json y ejecuta scripts explícitos. `handoff export ID -o ARCHIVO`, `handoff inspect ARCHIVO` y `handoff import ARCHIVO --path RUTA` comparten propuestas entre clones; la importación no escribe archivos. Cada persona conserva claves e historial y verifica sus cambios. La huella comprueba integridad, no autoría. El esquema SQLite sigue siendo 4.
+
+Para un equipo de cinco: cada persona instala la misma release, trabaja en su propio clon y configura sus claves con `ares setup`. Una persona crea `ares.team.json` con `team init` y lo guarda en Git; los demás usan `team show` y `team check`. Las propuestas se importan para revisión y cada clon ejecuta sus pruebas. Consulta la [guía de colaboración](https://github.com/AI-Innovation-op/ARES/blob/v5.6.0/CONTRIBUTING.md).
 
 Kevin / AI Innovation. MIT.

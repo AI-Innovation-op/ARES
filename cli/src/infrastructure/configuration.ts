@@ -38,12 +38,14 @@ export function loadConfiguration(
   environment: NodeJS.ProcessEnv = process.env,
   cwd = process.cwd(),
   preferences?: { provider: string; model: string },
+  teamDefaults?: { provider: string; model: string },
 ): Configuration {
   const { home, envFile } = configurationLocation(environment, cwd);
   const env: Record<string, string | undefined> = {};
   const ranks: Record<string, number> = {};
   const sources = [
     fs.existsSync(envFile) ? parse(fs.readFileSync(envFile)) : {},
+    teamDefaults ? { ARES_PROVIDER: teamDefaults.provider, ARES_MODEL: teamDefaults.model } : {},
     preferences ? { ARES_PROVIDER: preferences.provider, ARES_MODEL: preferences.model } : {},
     fs.existsSync(path.join(cwd, '.env')) ? parse(fs.readFileSync(path.join(cwd, '.env'))) : {},
     environment,

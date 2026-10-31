@@ -19,6 +19,8 @@ const COMMANDS = [
   ['/context RUTA', 'Adjuntar contexto; sin ruta, retirarlo.'],
   ['/open RUTA', 'Abrir carpeta o @alias como proyecto activo.'],
   ['/projects', 'Alias, perfiles de IA y reubicación de proyectos.'],
+  ['/team', 'Acuerdos y comprobaciones compartidos en Git.'],
+  ['/handoff', 'Exportar, inspeccionar e importar propuestas.'],
   ['/close', 'Cerrar proyecto y volver a la carpeta inicial.'],
   ['status / /doctor', 'Consultar configuración; conexión sin verificar.'],
   ['/models', 'Consultar el catálogo actual del proveedor.'],

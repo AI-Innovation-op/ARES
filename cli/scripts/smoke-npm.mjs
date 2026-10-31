@@ -75,6 +75,22 @@ try {
     throw new Error('La CLI no está ejecutando su copia instalada.');
   const project = path.join(directory, 'generated project');
   run(['forge', project]);
+  run(['--project', project, 'team', 'init', '--name', 'Package smoke', '--check', 'test']);
+  if (run(['--project', project, 'team', 'check']).status !== 'passed')
+    throw new Error('El paquete no ejecutó las comprobaciones compartidas.');
+  const changeFile = path.join(directory, 'handoff-source.json');
+  fs.writeFileSync(
+    changeFile,
+    JSON.stringify({
+      summary: 'Package handoff',
+      changes: [{ path: 'note.md', content: 'Shared proposal\n' }],
+    }),
+  );
+  const proposal = run(['--project', project, 'propose', '--from', changeFile]);
+  const bundleFile = path.join(directory, 'handoff.json');
+  const exported = run(['handoff', 'export', proposal.id, '-o', bundleFile]);
+  if (run(['handoff', 'inspect', bundleFile]).digest !== exported.digest)
+    throw new Error('El paquete no pudo intercambiar una propuesta.');
   const registration = run(['projects', 'add', 'smoke', project]);
   if (run(['--project', '@smoke', 'doctor']).projectProfile.id !== registration.project.id)
     throw new Error('El paquete instalado no resolvió el alias.');

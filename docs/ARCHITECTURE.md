@@ -105,4 +105,4 @@ Las pruebas HTTP usan un servidor local controlado. Verifican el transporte real
 - [OpenRouter: streaming y errores](https://openrouter.ai/docs/api_reference/streaming).
 - [SQLite nativo en Node.js 24](https://nodejs.org/download/release/latest-v24.x/docs/api/sqlite.html).
 
-Las decisiones de implementación están en [ADR 0001](adr/0001-cli-first.md), [ADR 0002](adr/0002-reviewable-changes.md), [ADR 0003](adr/0003-verification-evidence.md) y [ADR 0004](adr/0004-architecture-and-local-search.md) y [ADR 0005](adr/0005-project-scope-and-installation.md) y [ADR 0006](adr/0006-project-catalog.md).
+Las decisiones de implementación están en [ADR 0001](adr/0001-cli-first.md), [ADR 0002](adr/0002-reviewable-changes.md), [ADR 0003](adr/0003-verification-evidence.md) y [ADR 0004](adr/0004-architecture-and-local-search.md) y [ADR 0005](adr/0005-project-scope-and-installation.md) y [ADR 0006](adr/0006-project-catalog.md) y [ADR 0007](adr/0007-small-team-workflow.md).

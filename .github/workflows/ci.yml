@@ -79,7 +79,9 @@ jobs:
           cache: npm
           cache-dependency-path: cli/package-lock.json
       - run: npm ci --ignore-scripts
-      - run: npm run check
+      - run: npm run build
+      - name: Comprobaciones compartidas del equipo
+        run: node dist/index.js --project .. team check --json
       - run: npm audit --omit=dev --audit-level=high
       - name: Verificar entrada CMD
         if: runner.os == 'Windows'
