@@ -4,7 +4,7 @@ Actualizado: 2026-10-31. Este documento separa capacidades ejecutadas de trabajo
 
 ## Base comprobada
 
-CLI independiente, identidad visual original, proveedores y modelos por perfil, historial local, análisis AST, cambios revisables, verificación y recuperación. La 5.4 añadió proyecto activo e instalación independiente. La 5.5 incorpora alias, preferencias e identidad estable para reubicar conversaciones. El ciclo de programación se probó con IA real y aceptación independiente; eso no equivale a certificar cualquier cambio generado.
+CLI independiente, identidad visual original, proveedores y modelos por perfil, historial local, análisis AST, cambios revisables, verificación y recuperación. La 5.4 añadió proyecto activo e instalación independiente. La 5.5 incorporó alias, preferencias e identidad estable. La 5.6 añade acuerdos versionados, comprobaciones compartidas y propuestas portables entre clones de un equipo de cinco. El ciclo de programación se probó con IA real y aceptación independiente; eso no equivale a certificar cualquier cambio generado.
 
 ## Prioridad siguiente
 

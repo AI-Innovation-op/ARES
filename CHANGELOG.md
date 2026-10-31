@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [5.6.0] - 2026-10-31 — Flujo de equipo por Git
+
+- Configuración compartida ares.team.json: comprobaciones y recomendación opcional de IA sin claves.
+- team init/show/check y ejecución del mismo acuerdo en CI.
+- handoff export/inspect/import para revisar propuestas entre clones, con hashes de partida y normalización LF/CRLF.
+- Paquetes sin raíz local, historial, copias o evidencia ajena; importación sin escritura y verificación individual.
+- Guía de contribución para cinco desarrolladores y plantilla de PR.
+
 ## [5.5.0] - 2026-10-31 — Perfiles e identidad de proyectos
 
 - Alias locales con projects add/list/show y selección mediante @alias.

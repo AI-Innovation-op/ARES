@@ -7,6 +7,9 @@ import JSZip from 'jszip';
 import { createTwoFilesPatch } from 'diff';
 import { Ask } from '../conversation/application/ask.js';
 import { ManageProjects } from '../projects/application/manage-projects.js';
+import { ShareProposal } from '../collaboration/application/share-proposal.js';
+import { loadTeamPolicy, assertShareable } from '../infrastructure/team-files.js';
+import { registerCollaborationCommands } from './collaboration-commands.js';
 import { ChangeCode } from '../changes/application/change-code.js';
 import { forgeProject } from '../engineering/application/forge.js';
 import { generateDocument } from '../engineering/application/document.js';
@@ -108,8 +111,9 @@ export async function run(
   let interactiveModel: string | undefined;
   let interactiveProvider: string | undefined;
   const options = () => program.opts<GlobalOptions>();
-  const config = () =>
-    loadConfiguration(
+  const config = () => {
+    const policy = loadTeamPolicy(process.cwd());
+    const selected = loadConfiguration(
       {
         ...options(),
         ...(interactiveProvider
@@ -121,7 +125,11 @@ export async function run(
       environment,
       process.cwd(),
       currentProject()?.data.preferences,
+      policy?.data.ai,
     );
+    if (policy) assertShareable(JSON.stringify(policy.data), selected.secrets);
+    return selected;
+  };
   const operation = <T>(work: (signal: AbortSignal) => Promise<T>): Promise<T> =>
     externalSignal ? work(externalSignal) : cancellable(work);
   const database = () => (store ??= new SqliteStore(location.home));
@@ -163,6 +171,24 @@ export async function run(
     return selected ? contextText(workspace.scan(path.resolve(selected))) : '';
   };
   const output = (value: unknown, text?: string) => print(value, Boolean(options().json), text);
+  const verifier = () =>
+    new VerifyProject(
+      new NodeProjectChecks(config().secrets),
+      database().verifications,
+      database().proposals,
+      new LocalChangeWorkspace(),
+      identity,
+    );
+  registerCollaborationCommands(program, {
+    config,
+    workspace,
+    output,
+    operation,
+    verifier,
+    plan: (root, script) => new NodeProjectChecks(config().secrets).plan(root, script),
+    share: () =>
+      new ShareProposal(database().proposals, new LocalChangeWorkspace(), identity, hash),
+  });
   const session = (id: string) => {
     const result = database().conversations.get(id);
     if (!result) throw new AresError('NOT_FOUND', `Sesión no encontrada: ${id}`);
@@ -286,6 +312,7 @@ export async function run(
             environment,
             process.cwd(),
             currentProject()?.data.preferences,
+            loadTeamPolicy(process.cwd())?.data.ai,
           );
           interactiveModel = selected.model;
         },
@@ -295,6 +322,7 @@ export async function run(
             environment,
             process.cwd(),
             currentProject()?.data.preferences,
+            loadTeamPolicy(process.cwd())?.data.ai,
           );
           interactiveProvider = selected.provider;
           interactiveModel = selected.model;

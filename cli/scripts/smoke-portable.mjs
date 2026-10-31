@@ -55,6 +55,19 @@ try {
   if (doctor.version !== version) throw new Error('Versión incorrecta en el portable.');
   const project = path.join(directory, 'generated project');
   run(['forge', project, '--json']);
+  run([
+    '--project',
+    project,
+    'team',
+    'init',
+    '--name',
+    'Portable smoke',
+    '--check',
+    'test',
+    '--json',
+  ]);
+  if (run(['--project', project, 'team', 'check', '--json']).status !== 'passed')
+    throw new Error('El portable no ejecutó las comprobaciones compartidas.');
   const registration = run(['projects', 'add', 'smoke', project, '--json']);
   const selected = run(['--project', '@smoke', 'doctor', '--json']);
   if (selected.projectProfile.id !== registration.project.id)
