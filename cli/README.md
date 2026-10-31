@@ -1,4 +1,4 @@
-# ARES CLI 5.2
+# ARES CLI 5.3
 
 Asistente de ingeniería para CMD, PowerShell y terminales Unix. Node.js 24 o superior. Funciona sin servidor web.
 
@@ -49,5 +49,13 @@ Dentro de la sesión también puedes usar `/audit`, `/analyze`, `/search PALABRA
 `forge` genera una plantilla concreta de tareas con DDD, SQLite y tests, ejecutable sin instalar paquetes. No interpreta requisitos arbitrarios. `audit` es heurístico; `test` propone pruebas, sin ejecutarlas. `zip` exporta solo fuentes filtradas y redactadas; no es una copia exacta. Las funciones de IA envían el contexto seleccionado al proveedor configurado. Conversaciones y copias son locales y no tienen cifrado propio.
 
 Desarrollo desde `cli/`: `npm ci --ignore-scripts` y `npm run check` (formato, tipos, pruebas y límites de arquitectura). `npm run portable` empaqueta las dependencias fijadas sin scripts de instalación; `npm run smoke:portable` prueba el ZIP extraído, su analizador, configuración y un proyecto generado con tests. El protocolo HTTP se prueba con un servidor local; el acceso comercial de inferencia se comprueba por separado con `doctor --probe`.
+
+Proveedores disponibles: `openrouter`, `gemini`, `mistral`, `groq`, `cohere` y `compatible`. `ares providers` muestra perfiles y presencia de claves. Dentro del REPL, `/providers` lista y `/provider NOMBRE` selecciona temporalmente. El logo y los colores originales se conservan.
+
+Cada proveedor usa su propia variable de clave: `OPENROUTER_API_KEY`, `GEMINI_API_KEY`, `MISTRAL_API_KEY`, `GROQ_API_KEY`, `COHERE_API_KEY` o `COMPATIBLE_API_KEY`. Los modelos se guardan respectivamente en `OPENROUTER_MODEL`, `GEMINI_MODEL`, `MISTRAL_MODEL`, `GROQ_MODEL`, `COHERE_MODEL` y `COMPATIBLE_MODEL`. `ARES_MODEL` aplica al proveedor activo; `--model` tiene precedencia explícita.
+
+Consulta `ares models --provider NOMBRE` y guarda un perfil con `ares config set --provider NOMBRE --model ID`. `config set --provider NOMBRE` recupera un perfil guardado. El catálogo de Cohere usa su API nativa paginada; el transporte de texto usa su API de compatibilidad. Los endpoints nativos están fijados para aislar credenciales; las URLs personalizadas requieren `compatible`.
+
+La presencia de claves no acredita cuota. `doctor --probe` hace una consulta real que puede consumirla; errores como HTTP 429 se muestran sin cambiar a otro proveedor. La redacción de streams, mensajes y evidencia de scripts contempla todas las claves configuradas. El archivo personal contiene texto legible: protégelo con permisos del sistema operativo y exclúyelo de sincronización y Git.
 
 Kevin / AI Innovation. MIT.

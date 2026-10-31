@@ -3,10 +3,12 @@ import { Writable } from 'node:stream';
 import { AresError } from '../shared/domain/errors.js';
 import {
   configurationLocation,
+  loadConfiguration,
   updateConfiguration,
   type Configuration,
 } from '../infrastructure/configuration.js';
 import { diagnostic } from './output.js';
+import { providerNames } from '../infrastructure/providers.js';
 
 function terminalInterface() {
   if (!process.stdin.isTTY || !process.stdout.isTTY)
@@ -62,11 +64,11 @@ export async function setupConfiguration(signal?: AbortSignal): Promise<Configur
   try {
     provider =
       (
-        await terminal.rl.question('Proveedor [openrouter/gemini/compatible] (openrouter): ', {
+        await terminal.rl.question(`Proveedor [${providerNames.join('/')}] (openrouter): `, {
           signal: combined,
         })
       ).trim() || 'openrouter';
-    if (!['openrouter', 'gemini', 'compatible'].includes(provider))
+    if (!providerNames.some((name) => name === provider))
       throw new AresError('CONFIG', 'Proveedor inválido.');
     model = (
       await terminal.rl.question('ID del modelo (consulta ares models si lo necesitas): ', {
@@ -83,7 +85,7 @@ export async function setupConfiguration(signal?: AbortSignal): Promise<Configur
       terminal,
       provider === 'compatible'
         ? 'Clave opcional (Enter para omitir; entrada oculta): '
-        : 'Clave API (entrada oculta): ',
+        : 'Clave API (Enter conserva la guardada; entrada oculta): ',
       combined,
     );
   } catch (error) {
@@ -93,7 +95,7 @@ export async function setupConfiguration(signal?: AbortSignal): Promise<Configur
     terminal.rl.close();
     process.stdin.unref();
   }
-  if (!apiKey && provider !== 'compatible')
+  if (!apiKey && provider !== 'compatible' && !loadConfiguration({ provider, model }).apiKey)
     throw new AresError('CONFIG', 'Falta la clave; no se guardó la configuración.');
   const result = updateConfiguration({ provider, model, baseUrl, ...(apiKey ? { apiKey } : {}) });
   diagnostic(

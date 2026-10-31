@@ -5,8 +5,9 @@ import { randomUUID } from 'node:crypto';
 import { parse } from 'dotenv';
 import { AresError } from '../shared/domain/errors.js';
 import { LocalChangeWorkspace } from './change-workspace.js';
+import { PROVIDERS, providerDefinition, providerNames, type Provider } from './providers.js';
 
-export type Provider = 'openrouter' | 'gemini' | 'compatible';
+export type { Provider } from './providers.js';
 export interface Configuration {
   readonly home: string;
   readonly envFile: string;
@@ -14,15 +15,10 @@ export interface Configuration {
   readonly model: string;
   readonly baseUrl: string;
   readonly apiKey: string;
+  readonly secrets: readonly string[];
   readonly timeoutMs: number;
   readonly maxTokens: number;
 }
-
-const ENDPOINTS: Record<Provider, string> = {
-  openrouter: 'https://openrouter.ai/api/v1',
-  gemini: 'https://generativelanguage.googleapis.com/v1beta/openai',
-  compatible: 'http://127.0.0.1:11434/v1',
-};
 
 export function configurationLocation(
   environment: NodeJS.ProcessEnv = process.env,
@@ -44,11 +40,20 @@ export function loadConfiguration(
 ): Configuration {
   const { home, envFile } = configurationLocation(environment, cwd);
   const env: Record<string, string | undefined> = {};
-  for (const file of [envFile, path.join(cwd, '.env')]) {
-    if (fs.existsSync(file)) Object.assign(env, parse(fs.readFileSync(file)));
-  }
-  Object.assign(env, environment);
-  return resolveConfiguration(overrides, env, home, envFile);
+  const ranks: Record<string, number> = {};
+  const sources = [
+    fs.existsSync(envFile) ? parse(fs.readFileSync(envFile)) : {},
+    fs.existsSync(path.join(cwd, '.env')) ? parse(fs.readFileSync(path.join(cwd, '.env'))) : {},
+    environment,
+  ];
+  sources.forEach((source, rank) => {
+    for (const [key, value] of Object.entries(source))
+      if (value !== undefined) {
+        env[key] = value;
+        ranks[key] = rank;
+      }
+  });
+  return resolveConfiguration(overrides, env, home, envFile, ranks);
 }
 
 function resolveConfiguration(
@@ -56,21 +61,20 @@ function resolveConfiguration(
   env: Record<string, string | undefined>,
   home: string,
   envFile: string,
+  ranks: Readonly<Record<string, number>> = {},
 ): Configuration {
   const provider =
     overrides.provider ||
     env.ARES_PROVIDER ||
-    (env.OPENROUTER_API_KEY
-      ? 'openrouter'
-      : env.GEMINI_API_KEY
-        ? 'gemini'
-        : env.ARES_BASE_URL
-          ? 'compatible'
-          : 'openrouter');
-  if (!['openrouter', 'gemini', 'compatible'].includes(provider))
-    throw new AresError('CONFIG', 'Proveedor inválido: usa openrouter, gemini o compatible.');
+    providerNames.find((name) => name !== 'compatible' && env[PROVIDERS[name].key]) ||
+    (env.ARES_BASE_URL ? 'compatible' : 'openrouter');
+  const definition = providerDefinition(provider);
   const selected = provider as Provider;
-  const baseUrl = (env.ARES_BASE_URL || ENDPOINTS[selected]).replace(/\/+$/, '');
+  const useBase = selected === 'compatible' || !env.ARES_PROVIDER || env.ARES_PROVIDER === selected;
+  const baseUrl = ((useBase ? env.ARES_BASE_URL : undefined) || definition.baseUrl).replace(
+    /\/+$/,
+    '',
+  );
   let url: URL;
   try {
     url = new URL(baseUrl);
@@ -92,7 +96,7 @@ function resolveConfiguration(
       'Usa HTTPS para proveedores remotos; HTTP solo está permitido en loopback.',
     );
   }
-  if (selected !== 'compatible' && baseUrl !== ENDPOINTS[selected]) {
+  if (selected !== 'compatible' && baseUrl !== definition.baseUrl) {
     throw new AresError(
       'CONFIG',
       'ARES_BASE_URL personalizado requiere ARES_PROVIDER=compatible y su propia COMPATIBLE_API_KEY.',
@@ -110,18 +114,19 @@ function resolveConfiguration(
       throw new AresError('CONFIG', `${label} debe estar entre ${min} y ${max}.`);
     return number;
   };
-  const model = overrides.model ?? env.ARES_MODEL ?? '';
+  const genericModelAllowed = !env.ARES_PROVIDER || env.ARES_PROVIDER === selected;
+  const useGeneric =
+    genericModelAllowed &&
+    env.ARES_MODEL !== undefined &&
+    ((ranks.ARES_MODEL ?? 0) > (ranks[definition.model] ?? 0) ||
+      env[definition.model] === undefined);
+  const model = overrides.model ?? (useGeneric ? env.ARES_MODEL : env[definition.model]) ?? '';
   if (model.length > 200 || /[\x00-\x1f\x7f]/.test(model))
     throw new AresError(
       'CONFIG',
       'El identificador de modelo no admite controles ni más de 200 caracteres.',
     );
-  const credentialName =
-    selected === 'openrouter'
-      ? 'OPENROUTER_API_KEY'
-      : selected === 'gemini'
-        ? 'GEMINI_API_KEY'
-        : 'COMPATIBLE_API_KEY';
+  const credentialName = definition.key;
   const apiKey = env[credentialName] || '';
   if (env.ARES_API_KEY_DIRECT && !apiKey)
     throw new AresError(
@@ -137,6 +142,9 @@ function resolveConfiguration(
     model,
     baseUrl,
     apiKey,
+    secrets: Object.freeze([
+      ...new Set(providerNames.map((name) => env[PROVIDERS[name].key] || '').filter(Boolean)),
+    ]),
     timeoutMs: integer(env.ARES_TIMEOUT_MS, 120_000, 100, 600_000, 'ARES_TIMEOUT_MS'),
     maxTokens: integer(env.ARES_MAX_TOKENS, 8192, 128, 32768, 'ARES_MAX_TOKENS'),
   });
@@ -151,7 +159,7 @@ export function requireAi(config: Configuration): void {
   if (config.provider !== 'compatible' && !config.apiKey) {
     throw new AresError(
       'CONFIG',
-      `Falta ${config.provider === 'gemini' ? 'GEMINI_API_KEY' : 'OPENROUTER_API_KEY'}. Guárdala localmente en ${config.envFile}; ares config init crea la plantilla.`,
+      `Falta ${PROVIDERS[config.provider].key}. Guárdala localmente en ${config.envFile}; ares config init crea la plantilla.`,
     );
   }
 }
@@ -171,12 +179,7 @@ export function publicConfiguration(config: Configuration) {
 
 export function initializeConfiguration(config: Configuration): string {
   fs.mkdirSync(path.dirname(config.envFile), { recursive: true, mode: 0o700 });
-  const key =
-    config.provider === 'gemini'
-      ? 'GEMINI_API_KEY'
-      : config.provider === 'openrouter'
-        ? 'OPENROUTER_API_KEY'
-        : 'COMPATIBLE_API_KEY';
+  const key = PROVIDERS[config.provider].key;
   try {
     fs.writeFileSync(
       config.envFile,
@@ -232,9 +235,23 @@ function updateConfigurationLocked(
   const previous = parse(original || '');
   const provider =
     update.provider || previous.ARES_PROVIDER || environment.ARES_PROVIDER || 'openrouter';
+  const definition = providerDefinition(provider);
   const changes: Record<string, string | null> = { ARES_PROVIDER: provider };
+  if (
+    provider !== previous.ARES_PROVIDER &&
+    providerNames.some((name) => name === previous.ARES_PROVIDER)
+  ) {
+    const oldProfile = PROVIDERS[previous.ARES_PROVIDER as Provider].model;
+    if (previous[oldProfile] === undefined && previous.ARES_MODEL !== undefined)
+      changes[oldProfile] = previous.ARES_MODEL;
+  }
   if (provider !== previous.ARES_PROVIDER) changes.ARES_API_KEY_DIRECT = null;
-  if (update.model !== undefined) changes.ARES_MODEL = update.model;
+  if (update.model !== undefined) {
+    changes.ARES_MODEL = update.model;
+    changes[definition.model] = update.model;
+  } else if (provider !== previous.ARES_PROVIDER) {
+    changes.ARES_MODEL = previous[definition.model] || '';
+  }
   if (update.baseUrl !== undefined) changes.ARES_BASE_URL = update.baseUrl;
   else if (provider !== previous.ARES_PROVIDER) changes.ARES_BASE_URL = null;
   if (update.apiKey !== undefined) {
@@ -247,13 +264,7 @@ function updateConfigurationLocked(
         'CONFIG',
         'La clave requiere entre 8 y 4096 caracteres, sin espacios ni controles.',
       );
-    changes[
-      provider === 'gemini'
-        ? 'GEMINI_API_KEY'
-        : provider === 'compatible'
-          ? 'COMPATIBLE_API_KEY'
-          : 'OPENROUTER_API_KEY'
-    ] = update.apiKey;
+    changes[definition.key] = update.apiKey;
     changes.ARES_API_KEY_DIRECT = null;
   }
   const values = { ...previous };

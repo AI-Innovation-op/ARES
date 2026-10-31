@@ -26,7 +26,11 @@ export function write(root, name, content) {
 export function cleanEnv(home, overrides = {}) {
   const env = { ...process.env };
   for (const name of Object.keys(env))
-    if (/^(?:ARES_|OPENROUTER_API_KEY$|GEMINI_API_KEY$|COMPATIBLE_API_KEY$)/.test(name))
+    if (
+      /^(?:ARES_|(?:OPENROUTER|GEMINI|COMPATIBLE|MISTRAL|GROQ|COHERE)_(?:API_KEY|MODEL)$)/.test(
+        name,
+      )
+    )
       delete env[name];
   return { ...env, ARES_HOME: home, NO_COLOR: '1', ...overrides };
 }

@@ -4,7 +4,7 @@ CLI independiente para conversar sobre código, inspeccionar proyectos, generar 
 
 La versión 5 reconstruye el núcleo de terminal con dominio puro, casos de uso, puertos y adaptadores. Las conversaciones y las propuestas tienen invariantes y persistencia SQLite. El diseño usa DDD en las reglas que lo necesitan y conserva una aplicación local pequeña.
 
-**Versión CLI: 5.2.1. Requisito: Node.js 24 o superior.** Git es necesario para clonar el repositorio; la ejecución del CLI no lo requiere.
+**Versión CLI: 5.3.0. Requisito: Node.js 24 o superior.** Git es necesario para clonar el repositorio; la ejecución del CLI no lo requiere.
 
 También puedes descargar el ZIP portable desde [Releases](https://github.com/AI-Innovation-op/ARES/releases), extraerlo y ejecutar `ares.cmd doctor`. Incluye las dependencias de ejecución; no requiere `npm install`.
 
@@ -81,6 +81,27 @@ ARES_MODEL=ID_DEL_MODELO_LOCAL_INSTALADO
 
 El modelo se elige explícitamente: ARES no fija nombres de modelos que pueden retirarse ni instala modelos locales por su cuenta. Puedes sobrescribir la selección con `--provider` y `--model`. `COMPATIBLE_API_KEY` sirve para servidores compatibles que requieren autenticación.
 
+La CLI admite **OpenRouter, Gemini, Mistral, Groq y Cohere**, además de servidores compatibles. Cada proveedor usa su propia clave y un endpoint oficial fijo. `ares providers` muestra perfiles y presencia de credenciales, sin mostrarlas ni realizar consultas de IA.
+
+| Proveedor | Clave local | Modelo del perfil |
+|---|---|---|
+| OpenRouter | `OPENROUTER_API_KEY` | `OPENROUTER_MODEL` |
+| Gemini | `GEMINI_API_KEY` | `GEMINI_MODEL` |
+| Mistral | `MISTRAL_API_KEY` | `MISTRAL_MODEL` |
+| Groq | `GROQ_API_KEY` | `GROQ_MODEL` |
+| Cohere | `COHERE_API_KEY` | `COHERE_MODEL` |
+| Compatible | `COMPATIBLE_API_KEY` (opcional) | `COMPATIBLE_MODEL` |
+
+```cmd
+ares models --provider groq
+ares config set --provider groq --model ID_DEL_CATALOGO
+ares doctor --probe
+```
+
+`config set` conserva el modelo de cada proveedor para volver a elegirlo después. `ARES_MODEL` continúa como selección general del proveedor activo; al cambiar de proveedor se usa su propio perfil. Flags, proceso, archivo del proyecto y archivo personal conservan su precedencia; `--model` selecciona explícitamente para una consulta. Cambiar de proveedor desde el REPL con `/provider gemini` es temporal; `/providers` lista perfiles y `/model ID` cambia el modelo de la terminal.
+
+Un catálogo accesible o una clave presente no garantizan cuota o acceso a todos los modelos. `doctor --probe` comprueba generación real, y un HTTP 429 se conserva como error del proveedor. ARES no cambia silenciosamente de servicio al encontrarlo.
+
 `config set --provider compatible --model ID --base-url http://127.0.0.1:11434/v1` actualiza la configuración personal. Para automatizar una clave, suminístrala por una tubería segura a `config set --key-stdin`; nunca como argumento ni con un comando que la deje en el historial. Cada proveedor usa su propia variable de clave. El alias genérico `ARES_API_KEY_DIRECT` debe migrarse a esa variable o mediante `config set --key-stdin`.
 
 La configuración se resuelve en este orden: flags, variables del proceso, `.env` del directorio actual y `.env` personal. `ARES_HOME` cambia la ubicación de los datos; `ARES_ENV_FILE` selecciona otro archivo de configuración. La plantilla específica del CLI está en [cli/.env.example](cli/.env.example). El `.env.example` de la raíz corresponde al backend histórico.
@@ -153,6 +174,7 @@ ares propose --from cambios.json --path "D:\mi-proyecto"
 | `ares ask "consulta" --context RUTA` | Respuesta con streaming real; `--session ID` continúa una conversación. |
 | `ares doctor [--probe]` | Diagnóstico; la consulta de IA es explícita. |
 | `ares models [--filter TEXTO]` | Catálogo actual del proveedor, sin fijar IDs en el código. |
+| `ares providers` | Perfiles locales y presencia de claves, sin exponer valores ni comprobar conexión. |
 | `ares setup` | Asistente de configuración con entrada oculta para la clave. |
 | `ares config init` / `show` / `set` | Crear, consultar y actualizar configuración local sin mostrar claves. |
 | `ares context RUTA [--content]` | Archivos seleccionados; contenido redactado opcional. No llama a IA. |

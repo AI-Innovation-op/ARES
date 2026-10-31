@@ -8,7 +8,10 @@ export function terminalText(text: string): string {
 
 export function redact(text: string): string {
   return text
-    .replace(/\b(?:sk-or-v1-|sk-proj-|ghp_|github_pat_|AIza)[A-Za-z0-9_-]{12,}/g, '[REDACTED]')
+    .replace(
+      /\b(?:sk-or-v1-|sk-proj-|ghp_|github_pat_|AIza|AQ\.|mstrl_|gsk_)[A-Za-z0-9_-]{12,}/g,
+      '[REDACTED]',
+    )
     .replace(
       /((?:[A-Z_]*(?:API_KEY|SECRET|PASSWORD|TOKEN)|apiKey|password|secret|token)\s*[=:]\s*["']?)[^\s"'`,;}]{8,}/gi,
       '$1[REDACTED]',

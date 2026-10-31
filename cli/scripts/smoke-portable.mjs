@@ -31,7 +31,11 @@ try {
   const entry = path.join(runtime, 'dist/index.js');
   const env = { ...process.env, ARES_HOME: path.join(directory, 'private-data') };
   for (const key of Object.keys(env)) {
-    if (/^ARES_/.test(key) || /^(OPENROUTER|GEMINI|COMPATIBLE)_API_KEY$/.test(key)) delete env[key];
+    if (
+      /^ARES_/.test(key) ||
+      /^(OPENROUTER|GEMINI|COMPATIBLE|MISTRAL|GROQ|COHERE)_(API_KEY|MODEL)$/.test(key)
+    )
+      delete env[key];
   }
   env.ARES_HOME = path.join(directory, 'private-data');
   const run = (args) => {
