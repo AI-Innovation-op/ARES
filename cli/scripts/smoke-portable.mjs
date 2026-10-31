@@ -33,7 +33,7 @@ try {
   for (const key of Object.keys(env)) {
     if (
       /^ARES_/.test(key) ||
-      /^(OPENROUTER|GEMINI|COMPATIBLE|MISTRAL|GROQ|COHERE)_(API_KEY|MODEL)$/.test(key)
+      /^(OPENROUTER|GEMINI|COMPATIBLE|MISTRAL|GROQ|COHERE|OLLAMA)_(API_KEY|MODEL)$/.test(key)
     )
       delete env[key];
   }

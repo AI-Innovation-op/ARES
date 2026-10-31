@@ -32,10 +32,12 @@ export function selectContext(
   },
   maxChars = 100_000,
   focus = '',
+  maxBytes?: number,
 ) {
   const parts: string[] = [];
   const includedPaths: string[] = [];
   let remaining = maxChars - 512;
+  let remainingBytes = maxBytes === undefined ? Infinity : Math.max(0, maxBytes - 512);
   const terms = focus
     .toLowerCase()
     .split(/[^\p{L}\p{N}]+/u)
@@ -62,10 +64,12 @@ export function selectContext(
   );
   for (const file of ordered) {
     const block = JSON.stringify({ path: file.path, content: redact(file.content) });
-    if (block.length + 1 > remaining) continue;
+    const bytes = new TextEncoder().encode(block).length + 1;
+    if (block.length + 1 > remaining || bytes > remainingBytes) continue;
     parts.push(block);
     includedPaths.push(file.path);
     remaining -= block.length + 1;
+    remainingBytes -= bytes;
   }
   const omittedFiles = snapshot.files.length - parts.length;
   const header = JSON.stringify({

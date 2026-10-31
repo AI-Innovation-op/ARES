@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "suite": "ares-engineering-mini-v1",
+  "at": "2026-10-31T19:08:50.149Z",
+  "scope": "Tres tareas sintéticas con resultado JSON verificable. No mide calidad general de programación ni ejecuta código generado.",
+  "repetitions": 2,
+  "tasks": [
+    {
+      "id": "stock-invariant",
+      "prompt": "Un agregado tiene stock=3. reserve(4) debe rechazar sin mutar stock. Devuelve exclusivamente JSON con accepted y remaining.",
+      "expected": {
+        "accepted": false,
+        "remaining": 3
+      }
+    },
+    {
+      "id": "idempotent-command",
+      "prompt": "El saldo inicial es 10. Se procesa dos veces el mismo comando id=\"x\" para sumar 5. La regla es idempotencia por id de comando. Devuelve exclusivamente JSON con balance y appliedCommands (cantidad de comandos aplicados).",
+      "expected": {
+        "balance": 15,
+        "appliedCommands": 1
+      }
+    },
+    {
+      "id": "javascript-boundary",
+      "prompt": "Para JavaScript: const items=[10,20,30,40]; const result=items.slice(1,3); Devuelve exclusivamente JSON con result y originalLength. No ejecutes herramientas.",
+      "expected": {
+        "result": [
+          20,
+          30
+        ],
+        "originalLength": 4
+      }
+    }
+  ],
+  "results": [
+    {
+      "target": "local",
+      "model": "ollama/qwen2.5-coder:7b",
+      "task": "stock-invariant",
+      "run": 1,
+      "passed": true,
+      "durationMs": 1864.1577,
+      "answer": "```json\n{\n  \"accepted\": false,\n  \"remaining\": 3\n}\n```",
+      "usage": {
+        "inputTokens": 62,
+        "outputTokens": 20,
+        "generationMs": 1202.251,
+        "loadMs": 6.1377
+      }
+    },
+    {
+      "target": "cloud",
+      "model": "openrouter/cohere/north-mini-code:free",
+      "task": "stock-invariant",
+      "run": 1,
+      "passed": true,
+      "durationMs": 4907.2942,
+      "answer": "{\"accepted\": false, \"remaining\": 3}",
+      "usage": {
+        "inputTokens": 43,
+        "outputTokens": 262
+      }
+    },
+    {
+      "target": "local",
+      "model": "ollama/qwen2.5-coder:7b",
+      "task": "idempotent-command",
+      "run": 1,
+      "passed": true,
+      "durationMs": 929.9717999999993,
+      "answer": "```json\n{\n  \"balance\": 15,\n  \"appliedCommands\": 1\n}\n```",
+      "usage": {
+        "inputTokens": 89,
+        "outputTokens": 24,
+        "generationMs": 540.689,
+        "loadMs": 7.682
+      }
+    },
+    {
+      "target": "cloud",
+      "model": "openrouter/cohere/north-mini-code:free",
+      "task": "idempotent-command",
+      "run": 1,
+      "passed": true,
+      "durationMs": 2707.4302,
+      "answer": "{\"balance\": 15, \"appliedCommands\": 1}",
+      "usage": {
+        "inputTokens": 65,
+        "outputTokens": 236
+      }
+    },
+    {
+      "target": "local",
+      "model": "ollama/qwen2.5-coder:7b",
+      "task": "javascript-boundary",
+      "run": 1,
+      "passed": true,
+      "durationMs": 1174.6787999999997,
+      "answer": "```json\n{\n  \"result\": [20, 30],\n  \"originalLength\": 4\n}\n```",
+      "usage": {
+        "inputTokens": 76,
+        "outputTokens": 27,
+        "generationMs": 759.239,
+        "loadMs": 7.8051
+      }
+    },
+    {
+      "target": "cloud",
+      "model": "openrouter/cohere/north-mini-code:free",
+      "task": "javascript-boundary",
+      "run": 1,
+      "passed": true,
+      "durationMs": 4126.927100000001,
+      "answer": "{\n  \"result\": [20, 30],\n  \"originalLength\": 4\n}",
+      "usage": {
+        "inputTokens": 55,
+        "outputTokens": 209
+      }
+    },
+    {
+      "target": "local",
+      "model": "ollama/qwen2.5-coder:7b",
+      "task": "stock-invariant",
+      "run": 2,
+      "passed": true,
+      "durationMs": 1085.3800999999985,
+      "answer": "```json\n{\n  \"accepted\": false,\n  \"remaining\": 3\n}\n```",
+      "usage": {
+        "inputTokens": 62,
+        "outputTokens": 20,
+        "generationMs": 595.226,
+        "loadMs": 7.2783
+      }
+    },
+    {
+      "target": "cloud",
+      "model": "openrouter/cohere/north-mini-code:free",
+      "task": "stock-invariant",
+      "run": 2,
+      "passed": true,
+      "durationMs": 4693.806099999998,
+      "answer": "{\"accepted\":false,\"remaining\":3}",
+      "usage": {
+        "inputTokens": 43,
+        "outputTokens": 191
+      }
+    },
+    {
+      "target": "local",
+      "model": "ollama/qwen2.5-coder:7b",
+      "task": "idempotent-command",
+      "run": 2,
+      "passed": true,
+      "durationMs": 1370.2403999999988,
+      "answer": "```json\n{\n  \"balance\": 15,\n  \"appliedCommands\": 1\n}\n```",
+      "usage": {
+        "inputTokens": 89,
+        "outputTokens": 24,
+        "generationMs": 601.73,
+        "loadMs": 6.3551
+      }
+    },
+    {
+      "target": "cloud",
+      "model": "openrouter/cohere/north-mini-code:free",
+      "task": "idempotent-command",
+      "run": 2,
+      "passed": true,
+      "durationMs": 5556.624500000002,
+      "answer": "{\"balance\":15,\"appliedCommands\":1}",
+      "usage": {
+        "inputTokens": 65,
+        "outputTokens": 237
+      }
+    },
+    {
+      "target": "local",
+      "model": "ollama/qwen2.5-coder:7b",
+      "task": "javascript-boundary",
+      "run": 2,
+      "passed": true,
+      "durationMs": 1903.6572000000015,
+      "answer": "```json\n{\n  \"result\": [20, 30],\n  \"originalLength\": 4\n}\n```",
+      "usage": {
+        "inputTokens": 76,
+        "outputTokens": 27,
+        "generationMs": 1495.611,
+        "loadMs": 6.1357
+      }
+    },
+    {
+      "target": "cloud",
+      "model": "openrouter/cohere/north-mini-code:free",
+      "task": "javascript-boundary",
+      "run": 2,
+      "passed": true,
+      "durationMs": 6161.590100000001,
+      "answer": "{\"result\": [20, 30], \"originalLength\": 4}",
+      "usage": {
+        "inputTokens": 55,
+        "outputTokens": 181
+      }
+    }
+  ],
+  "summary": [
+    {
+      "target": "local",
+      "passed": 6,
+      "total": 6,
+      "averageMs": 1388.0143333333328
+    },
+    {
+      "target": "cloud",
+      "passed": 6,
+      "total": 6,
+      "averageMs": 4692.2787
+    }
+  ]
+}

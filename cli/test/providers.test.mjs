@@ -15,7 +15,7 @@ import { temporary, write, run, runAsync } from './helpers.mjs';
 function profiles(t) {
   const home = temporary(t),
     cwd = temporary(t);
-  const native = providerNames.filter((name) => name !== 'compatible');
+  const native = providerNames.filter((name) => !['compatible', 'ollama'].includes(name));
   write(
     home,
     '.env',
@@ -32,7 +32,7 @@ function profiles(t) {
 
 test('each provider gets its own endpoint, key and model; listing never exposes credentials', (t) => {
   const { home, cwd, env } = profiles(t);
-  for (const provider of providerNames.filter((name) => name !== 'compatible')) {
+  for (const provider of providerNames.filter((name) => !['compatible', 'ollama'].includes(name))) {
     const c = loadConfiguration({ provider }, env, cwd);
     assert.equal(c.baseUrl, PROVIDERS[provider].baseUrl);
     assert.equal(c.apiKey, 'private-fixture-' + provider);
@@ -79,7 +79,7 @@ test('profile models preserve precedence and legacy model settings survive provi
 
 test('all native transports send only their own key to the pinned provider endpoint', async (t) => {
   const { cwd, env } = profiles(t);
-  for (const provider of providerNames.filter((name) => name !== 'compatible')) {
+  for (const provider of providerNames.filter((name) => !['compatible', 'ollama'].includes(name))) {
     const c = loadConfiguration({ provider }, env, cwd);
     let seen;
     const model = new CompatibleLanguageModel(c, async (url, init) => {

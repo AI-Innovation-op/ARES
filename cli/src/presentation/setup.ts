@@ -84,13 +84,16 @@ export async function setupConfiguration(
         (
           await terminal.rl.question('Base URL (http://127.0.0.1:11434/v1): ', { signal: combined })
         ).trim() || 'http://127.0.0.1:11434/v1';
-    apiKey = await hiddenQuestion(
-      terminal,
-      provider === 'compatible'
-        ? 'Clave opcional (Enter para omitir; entrada oculta): '
-        : 'Clave API (Enter conserva la guardada; entrada oculta): ',
-      combined,
-    );
+    apiKey =
+      provider === 'ollama'
+        ? ''
+        : await hiddenQuestion(
+            terminal,
+            provider === 'compatible'
+              ? 'Clave opcional (Enter para omitir; entrada oculta): '
+              : 'Clave API (Enter conserva la guardada; entrada oculta): ',
+            combined,
+          );
   } catch (error) {
     if (combined.aborted) throw new AresError('CANCELLED', 'Configuración cancelada.');
     throw error;
@@ -100,7 +103,7 @@ export async function setupConfiguration(
   }
   if (
     !apiKey &&
-    provider !== 'compatible' &&
+    !['compatible', 'ollama'].includes(provider) &&
     !loadConfiguration({ provider, model }, environment).apiKey
   )
     throw new AresError('CONFIG', 'Falta la clave; no se guardó la configuración.');

@@ -54,7 +54,7 @@ try {
   for (const key of Object.keys(env))
     if (
       /^ARES_/.test(key) ||
-      /^(OPENROUTER|GEMINI|MISTRAL|GROQ|COHERE|COMPATIBLE)_(API_KEY|MODEL)$/.test(key)
+      /^(OPENROUTER|GEMINI|MISTRAL|GROQ|COHERE|COMPATIBLE|OLLAMA)_(API_KEY|MODEL)$/.test(key)
     )
       delete env[key];
   env.ARES_HOME = path.join(directory, 'private-data');

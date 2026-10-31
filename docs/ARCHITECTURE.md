@@ -33,6 +33,9 @@ cli/src/
     application/     AnalyzeArchitecture y puerto SourceAnalyzer
   engineering/
     application/     Documentos y plantilla CLI DDD de referencia
+  inference/
+    domain/          Política pura de presupuesto local
+    application/     Preparación local, medición y evaluación con puertos
   verification/
     domain/          Verification y sus invariantes de evidencia
     application/     VerifyProject, ProjectChecks y VerificationRepository

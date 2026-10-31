@@ -96,6 +96,9 @@ export async function interactiveShell(
     'projects',
     'team',
     'handoff',
+    'local',
+    'metrics',
+    'evaluate',
     'search',
   ];
   const commands = [
@@ -244,7 +247,7 @@ export async function interactiveShell(
             command === '/search' ? ['sessions', 'search', ...args] : [command.slice(1), ...args],
             active.signal,
           );
-          if (command === '/projects' || command === '/team') {
+          if (command === '/projects' || command === '/team' || command === '/local') {
             const selected = actions.selection();
             selectedProvider = selected.provider;
             selectedModel = selected.model;

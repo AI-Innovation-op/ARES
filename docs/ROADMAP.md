@@ -8,8 +8,8 @@ CLI independiente, identidad visual original, proveedores y modelos por perfil, 
 
 ## Prioridad siguiente
 
-1. **Evidencia de consumo de IA:** tokens y duración cuando el proveedor los reporte, con ausencia explícita de datos y límites configurables. Los costes deben proceder de información real del servicio; no de métricas simuladas.
-2. **Evaluación reproducible de tareas:** un conjunto de cambios de referencia con aceptación independiente para medir completitud, regresiones y alcance. Separar corrección del código y calidad del resumen generado.
+1. **Piloto con cinco personas:** 5.7 incorpora inferencia Ollama opcional, presupuestos por equipo y métricas de duración/tokens reportados. Completar la [validación humana](PILOT.md) en casa y trabajo; macOS y laptops pequeñas requieren medición propia. Los costes deben proceder de información real del servicio; no de métricas simuladas.
+2. **Evaluación reproducible de cambios:** la mini-suite de 5.7 compara tres tareas sintéticas de resultado objetivo. Ampliar con cambios de referencia y aceptación independiente para medir completitud, regresiones y alcance. Separar corrección del código y calidad del resumen generado.
 3. **Actualización y recuperación de versiones:** actualización explícita desde artefactos verificados, selección de versión y retorno a una copia compatible de los datos.
 
 ## Capacidades opcionales

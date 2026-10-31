@@ -1,0 +1,35 @@
+{
+  "at": "2026-10-31T19:06:44.600Z",
+  "flow": "live-propose-review-apply-verify-independent-acceptance-restore",
+  "scope": "One small normalization change in two temporary projects with the same initial source and trusted tests; both diffs reviewed before apply. Not a general coding benchmark.",
+  "results": [
+    {
+      "target": "local",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:7b",
+      "baseline": "passed",
+      "proposalMs": 15565.8484,
+      "changedFiles": [
+        "src/domain/title.js"
+      ],
+      "verification": "passed",
+      "independentAssertions": 6,
+      "independentAcceptance": "passed",
+      "exactRestore": "passed"
+    },
+    {
+      "target": "cloud",
+      "provider": "openrouter",
+      "model": "cohere/north-mini-code:free",
+      "baseline": "passed",
+      "proposalMs": 22619.033099999997,
+      "changedFiles": [
+        "src/domain/title.js"
+      ],
+      "verification": "passed",
+      "independentAssertions": 6,
+      "independentAcceptance": "passed",
+      "exactRestore": "passed"
+    }
+  ]
+}

@@ -27,7 +27,7 @@ export function cleanEnv(home, overrides = {}) {
   const env = { ...process.env };
   for (const name of Object.keys(env))
     if (
-      /^(?:ARES_|(?:OPENROUTER|GEMINI|COMPATIBLE|MISTRAL|GROQ|COHERE)_(?:API_KEY|MODEL)$)/.test(
+      /^(?:ARES_|(?:OPENROUTER|GEMINI|COMPATIBLE|MISTRAL|GROQ|COHERE|OLLAMA)_(?:API_KEY|MODEL)$)/.test(
         name,
       )
     )
