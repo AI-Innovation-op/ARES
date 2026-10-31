@@ -1,39 +1,40 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useUiStore } from '../../stores/ui.store.js';
 import TacticalHUD from '../hud/TacticalHUD.vue';
-import BioPanel from '../hud/BioPanel.vue';
 import AvatarManager from '../avatar/AvatarManager.vue';
 import ChatConsole from '../chat/ChatConsole.vue';
 import TacticalTerminal from '../hud/TacticalTerminal.vue';
-
-const uiStore = useUiStore();
+import AppIcon from '../common/AppIcon.vue';
+const ui = useUiStore();
+const showCompanion = ref(false);
+const desktop = ref(matchMedia('(min-width: 821px)').matches);
+const media = matchMedia('(min-width: 821px)');
+const resize = () => {
+  desktop.value = media.matches;
+};
+onMounted(() => media.addEventListener('change', resize));
+onUnmounted(() => media.removeEventListener('change', resize));
 </script>
-
 <template>
-  <div class="h-screen w-screen flex flex-col bg-[#040914] overflow-hidden text-slate-100 relative">
-    <!-- 1. Barra Superior HUD -->
+  <div class="ares-workspace">
+    <a class="skip-link" href="#main-content">Ir a la conversación</a>
     <TacticalHUD />
-
-    <!-- 2. Panel de Telemetría Bio-Armadura -->
-    <BioPanel />
-
-    <!-- 3. Contenedor Principal Dividido -->
-    <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
-      <!-- Columna Izquierda: Visor del Avatar (36% en desktop) -->
-      <aside class="h-64 md:h-full md:w-[36%] shrink-0">
-        <AvatarManager />
+    <div class="workspace-layout">
+      <aside class="workspace-companion" :class="{ 'mobile-companion-open': showCompanion }">
+        <AvatarManager v-if="desktop || showCompanion" />
       </aside>
-
-      <!-- Columna Derecha: Consola Táctica Exclusiva (64%) -->
-      <section class="flex-1 flex flex-col h-full overflow-hidden bg-[#040914]">
-        <ChatConsole />
-      </section>
-    </main>
-
-    <!-- 4. Terminal Táctica Shell Embebida (v2.8) -->
-    <TacticalTerminal
-      v-if="uiStore.terminalAbierta"
-      @cerrar="uiStore.terminalAbierta = false"
-    />
+      <main id="main-content" class="workspace-main" tabindex="-1"><ChatConsole /></main>
+    </div>
+    <button
+      class="mobile-companion-toggle"
+      :aria-expanded="showCompanion"
+      @click="showCompanion = !showCompanion"
+    >
+      <AppIcon :name="showCompanion ? 'close' : 'shield'" :size="18" />{{
+        showCompanion ? 'Volver a la conversación' : 'Ver a ARES'
+      }}
+    </button>
+    <TacticalTerminal v-if="ui.terminalAbierta" @cerrar="ui.terminalAbierta = false" />
   </div>
 </template>

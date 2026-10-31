@@ -54,7 +54,8 @@ export const env: ConfiguracionEntorno = {
   NODE_ENV: process.env['NODE_ENV'] ?? 'development',
   OPENROUTER_API_KEY: process.env['OPENROUTER_API_KEY'] ?? '',
   OPENROUTER_DEFAULT_MODEL: process.env['OPENROUTER_DEFAULT_MODEL'] ?? 'deepseek/deepseek-chat',
-  LLM_PROVIDER: process.env['LLM_PROVIDER'] ?? (process.env['GEMINI_API_KEY'] ? 'gemini' : 'openrouter'),
+  LLM_PROVIDER:
+    process.env['LLM_PROVIDER'] ?? (process.env['GEMINI_API_KEY'] ? 'gemini' : 'openrouter'),
   GEMINI_TEXT_MODEL: process.env['GEMINI_TEXT_MODEL'] ?? 'gemini-3-flash-preview',
   ARES_API_KEY: process.env['ARES_API_KEY'] ?? '',
   TRUST_PROXY_HOPS: Number.parseInt(process.env['TRUST_PROXY_HOPS'] ?? '0', 10) || 0,
@@ -63,9 +64,30 @@ export const env: ConfiguracionEntorno = {
 // ---- Validaciones de arranque: advertir con un mensaje claro ----
 if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) {
   console.warn(
-    '⚠️  [Config] Falta una clave de IA: define GEMINI_API_KEY u OPENROUTER_API_KEY en las variables de entorno.'
+    '⚠️  [Config] Falta una clave de IA: define GEMINI_API_KEY u OPENROUTER_API_KEY en las variables de entorno.',
   );
 }
-if (env.NODE_ENV === 'production' && env.CORS_ORIGIN.trim() === '*') {
-  throw new Error('CORS_ORIGIN="*" no está permitido en producción. Define los orígenes reales en las variables de entorno.');
+if (
+  env.NODE_ENV === 'production' &&
+  env.CORS_ORIGIN.split(',').some((origin) => origin.trim() === '*')
+) {
+  throw new Error(
+    'CORS_ORIGIN="*" no está permitido en producción. Define los orígenes reales en las variables de entorno.',
+  );
+}
+if (env.NODE_ENV === 'production') {
+  const origins = env.CORS_ORIGIN.split(',').map((origin) => origin.trim());
+  for (const origin of origins) {
+    let valid = false;
+    try {
+      const url = new URL(origin);
+      valid = ['http:', 'https:'].includes(url.protocol) && url.origin === origin;
+    } catch {
+      /* Invalid origins fail below. */
+    }
+    if (!valid)
+      throw new Error(
+        'CORS_ORIGIN debe contener orígenes HTTP(S) completos, separados por comas, sin rutas ni comodines.',
+      );
+  }
 }

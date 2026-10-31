@@ -1,241 +1,212 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed, ref } from 'vue';
-import { useFsmStore } from '../../stores/fsm.store.js';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useChatStore } from '../../stores/chat.store.js';
+import { useConnectionStore } from '../../stores/connection.store.js';
 import { useUiStore } from '../../stores/ui.store.js';
 import { useAudio } from '../../composables/useAudio.js';
 import { useTacticalVoice } from '../../composables/useTacticalVoice.js';
 import { leerClave, guardarClave } from '../../services/http.js';
-
-const fsm = useFsmStore();
-const chatStore = useChatStore();
-const uiStore = useUiStore();
+import AppIcon from '../common/AppIcon.vue';
+const chat = useChatStore(),
+  connection = useConnectionStore(),
+  ui = useUiStore();
 const { audioSilenciado, toggleSilencio } = useAudio();
 const { vozHabilitada, toggleVoz } = useTacticalVoice();
-
-const modalClaveAbierto = ref(false);
-const claveInput = ref(leerClave());
-const claveGuardadaExito = ref(false);
-
-function abrirModalClave() {
-  claveInput.value = leerClave();
-  modalClaveAbierto.value = true;
-  claveGuardadaExito.value = false;
+const dialog = ref<HTMLDialogElement | null>(null);
+const key = ref(''),
+  remember = ref(false),
+  saving = ref(false);
+const catalogue = computed(() =>
+  connection.models.length
+    ? connection.models
+    : [{ id: 'auto', nombre: 'Selecciona una conexión', proveedor: 'auto' }],
+);
+watch(
+  () => connection.models,
+  (models) => {
+    chat.modelosDisponibles = models;
+    if (models.length) {
+      const model = models.find((model) => model.id === chat.modeloSeleccionado) ?? models[0]!;
+      chat.cambiarModelo(model.id, model.proveedor === 'openrouter' ? 'openrouter' : 'gemini');
+    }
+  },
+  { immediate: true },
+);
+function openSettings() {
+  key.value = leerClave();
+  dialog.value?.showModal();
 }
-
-function aplicarClave() {
-  guardarClave(claveInput.value);
-  claveGuardadaExito.value = true;
-  setTimeout(() => {
-    modalClaveAbierto.value = false;
-    claveGuardadaExito.value = false;
-  }, 1000);
-}
-
-function limpiarClave() {
-  claveInput.value = '';
-  guardarClave('');
-}
-
-const modelosFallback = [
-  { id: 'auto', nombre: 'AUTO: Enrutador Inteligente', proveedor: 'gemini', icono: '🤖' },
-  { id: 'gemini-3-flash-preview', nombre: 'Gemini 3 Flash', proveedor: 'gemini', icono: '🟣' },
-  { id: 'deepseek/deepseek-chat', nombre: 'DeepSeek V3', proveedor: 'openrouter', icono: '⚡' },
-  { id: 'deepseek/deepseek-r1-0528', nombre: 'DeepSeek R1', proveedor: 'openrouter', icono: '🧠' },
-  { id: 'openai/gpt-4o', nombre: 'GPT-4o', proveedor: 'openrouter', icono: '🟢' },
-  { id: 'anthropic/claude-3.5-sonnet', nombre: 'Claude 3.5', proveedor: 'openrouter', icono: '🟠' },
-];
-
-const listaModelos = computed(() => {
-  return chatStore.modelosDisponibles.length > 0 ? chatStore.modelosDisponibles : modelosFallback;
-});
-
-function handleKeydown(e: KeyboardEvent) {
-  // Atajo Ctrl + ` o Ctrl + ~ para alternar la terminal táctica
-  if (e.ctrlKey && (e.key === '`' || e.key === '~' || e.code === 'Backquote')) {
-    e.preventDefault();
-    uiStore.toggleTerminal();
+async function save() {
+  saving.value = true;
+  guardarClave(key.value, remember.value);
+  await connection.check();
+  saving.value = false;
+  if (connection.state === 'online') {
+    await chat.cargarConversaciones();
+    dialog.value?.close();
+    key.value = '';
   }
 }
-
-onMounted(() => {
-  chatStore.cargarModelos();
-  window.addEventListener('keydown', handleKeydown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
-});
-
-function onSelectModelo(id: string) {
-  const mod = listaModelos.value.find((m: any) => m.id === id);
-  const prov = mod?.proveedor || (id.startsWith('gemini') ? 'gemini' : 'openrouter');
-  chatStore.cambiarModelo(id, prov as any);
+function selectModel(event: Event) {
+  const id = (event.target as HTMLSelectElement).value;
+  const model = catalogue.value.find((m) => m.id === id);
+  chat.cambiarModelo(
+    id,
+    (model?.proveedor === 'auto' ? 'gemini' : model?.proveedor || 'gemini') as
+      'gemini' | 'openrouter',
+  );
 }
+function shortcut(event: KeyboardEvent) {
+  if ((event.ctrlKey || event.metaKey) && event.code === 'Backquote') {
+    event.preventDefault();
+    ui.toggleTerminal();
+  }
+}
+onMounted(() => {
+  connection.check();
+  window.addEventListener('keydown', shortcut);
+  window.addEventListener('ares:open-connection', openSettings);
+});
+onUnmounted(() => {
+  window.removeEventListener('keydown', shortcut);
+  window.removeEventListener('ares:open-connection', openSettings);
+});
 </script>
-
 <template>
-  <header class="h-14 border-b border-[#132a4a] bg-[#091326] px-4 flex items-center justify-between select-none gap-2">
-    <!-- Identidad del Agente -->
-    <div class="flex items-center gap-3 shrink-0">
-      <div class="w-8 h-8 rounded border border-[#00ffaa]/50 bg-[#040914] flex items-center justify-center text-lg shadow-sm">
-        🛡️
-      </div>
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 class="font-orbitron font-bold text-sm tracking-widest text-slate-100">
-            A.R.E.S. <span class="text-[#00ffaa] text-xs font-normal">v4.5.1 SOVEREIGN RELEASE</span>
-          </h1>
-          <span class="px-1.5 py-0.2 rounded text-[10px] font-mono bg-cyan-950/60 border border-cyan-800 text-cyan-300">
-            SOVEREIGN CORE
-          </span>
-        </div>
-        <p class="text-[10px] font-mono text-slate-400 hidden sm:block">
-          Autonomous Resilient Engineering & Software-Doc God
-        </p>
-      </div>
-    </div>
-
-    <!-- Selector Táctico de Modelo LLM (Gemini / OpenRouter) -->
-    <div class="flex items-center gap-1.5 bg-[#040914] px-2.5 py-1 rounded border border-cyan-500/40 text-xs font-mono shadow-[0_0_10px_rgba(0,229,255,0.1)]">
-      <span class="text-slate-400 text-[10px] hidden md:inline">NÚCLEO IA:</span>
-      <select
-        :value="chatStore.modeloSeleccionado"
-        @change="(e: any) => onSelectModelo(e.target.value)"
-        class="bg-transparent text-cyan-300 font-bold outline-none cursor-pointer text-xs"
-        title="Cambiar motor de Inteligencia Artificial"
-      >
-        <option
-          v-for="m in listaModelos"
-          :key="m.id"
-          :value="m.id"
-          class="bg-[#091326] text-slate-200"
-        >
-          {{ m.icono }} {{ m.nombre }}
-        </option>
-      </select>
-    </div>
-
-    <!-- Indicador Táctico Central: Postura FSM -->
-    <div class="hidden lg:flex items-center gap-2 bg-[#040914] px-3 py-1.5 rounded border border-[#132a4a]">
-      <span class="text-xs font-mono text-slate-400">POSTURA:</span>
-      <span class="font-orbitron text-xs font-bold text-glow-neon text-[#00ffaa]">
-        {{ fsm.etiquetaHUD }}
-      </span>
-      <span class="text-xs font-mono text-cyan-400 border-l border-[#132a4a] pl-2 ml-1">
-        P-{{ fsm.poseActual.id }}
-      </span>
-    </div>
-
-    <!-- Controles Rápidos -->
-    <div class="flex items-center gap-2 shrink-0">
-      <!-- Clave API Táctica Modal Trigger -->
-      <button
-        type="button"
-        @click="abrirModalClave"
-        class="px-2.5 py-1.5 rounded border transition cursor-pointer flex items-center gap-1.5 text-xs font-mono"
-        :class="claveInput ? 'border-amber-400/80 bg-amber-950/40 text-amber-300 font-bold' : 'border-[#132a4a] bg-[#040914] text-slate-300 hover:border-amber-400 hover:text-amber-300'"
-        title="Configurar clave táctica ARES_API_KEY para autenticación en la nube"
-      >
-        <span>🔑</span>
-        <span class="hidden sm:inline">CLAVE</span>
-      </button>
-
-      <!-- Terminal Táctica Shell Trigger (v2.8) -->
-      <button
-        type="button"
-        @click="uiStore.toggleTerminal"
-        class="px-2.5 py-1.5 rounded border transition cursor-pointer flex items-center gap-1.5 text-xs font-mono"
-        :class="uiStore.terminalAbierta ? 'border-[#00ffaa] bg-[#00ffaa]/20 text-[#00ffaa] font-bold shadow-[0_0_10px_rgba(0,255,170,0.4)]' : 'border-[#132a4a] bg-[#040914] text-slate-300 hover:border-cyan-400 hover:text-cyan-300'"
-        title="Abrir/Cerrar Terminal Táctica Shell (Atajo: Ctrl + \`)"
-      >
-        <span class="text-[#00ffaa] font-bold">>_</span>
-        <span class="hidden sm:inline">TERMINAL</span>
-      </button>
-
-      <!-- Voz Táctica TTS Toggle -->
-      <button
-        @click="toggleVoz"
-        class="px-2.5 py-1.5 rounded border border-[#132a4a] bg-[#040914] hover:border-cyan-400 text-xs font-mono transition-colors cursor-pointer flex items-center gap-1.5"
-        :title="vozHabilitada ? 'Voz táctica de A.R.E.S. activa' : 'Voz táctica desactivada'"
-      >
-        <span>🎙️</span>
-        <span :class="vozHabilitada ? 'text-cyan-300 font-bold' : 'text-slate-500'">
-          {{ vozHabilitada ? 'VOZ: ON' : 'VOZ: OFF' }}
-        </span>
-      </button>
-
-      <!-- Mute SFX Toggle -->
-      <button
-        @click="toggleSilencio"
-        class="px-2.5 py-1.5 rounded border border-[#132a4a] bg-[#040914] hover:border-slate-500 text-slate-300 text-xs font-mono transition-colors cursor-pointer"
-        :title="audioSilenciado ? 'Activar efectos de sonido' : 'Silenciar sonido'"
-      >
-        <span v-if="audioSilenciado">🔇 SFX OFF</span>
-        <span v-else class="text-[#00ffaa]">🔊 SFX ON</span>
-      </button>
-
-      <!-- Indicador de Enlace -->
-      <div class="flex items-center gap-1.5 bg-[#040914] px-2.5 py-1.5 rounded border border-[#132a4a] text-xs font-mono text-emerald-400">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        <span class="hidden sm:inline">ONLINE</span>
-      </div>
-    </div>
-
-    <!-- Modal Táctico para Clave API -->
-    <div
-      v-if="modalClaveAbierto"
-      class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-      @click.self="modalClaveAbierto = false"
+  <header class="workspace-header">
+    <a class="brand" href="#main-content" aria-label="ARES, ir al espacio de trabajo"
+      ><span class="brand-mark"><AppIcon name="shield" :size="25" /></span
+      ><span><strong>A.R.E.S.</strong><span class="brand-caption">AI INNOVATION</span></span></a
     >
-      <div class="bg-[#091326] border border-cyan-500/50 rounded-lg p-5 max-w-md w-full shadow-2xl font-mono text-xs">
-        <div class="flex items-center justify-between mb-3 border-b border-cyan-900/60 pb-2">
-          <span class="text-cyan-300 font-bold flex items-center gap-2">
-            🔐 AUTENTICACIÓN TÁCTICA A.R.E.S.
-          </span>
-          <button @click="modalClaveAbierto = false" class="text-slate-400 hover:text-white">✕</button>
-        </div>
-        <p class="text-slate-300 text-[11px] mb-3 leading-relaxed">
-          Ingresa la clave <code class="text-cyan-400 bg-cyan-950 px-1 py-0.5 rounded">ARES_API_KEY</code> de tu servidor en Render para autorizar peticiones protegidas.
-        </p>
-        <div class="mb-3">
-          <label class="block text-slate-400 text-[10px] uppercase mb-1">Clave Táctica (x-api-key)</label>
-          <input
-            v-model="claveInput"
-            type="text"
-            placeholder="Pega aquí tu clave ARES_API_KEY..."
-            class="w-full bg-[#040914] border border-cyan-700/60 rounded px-2.5 py-1.5 text-cyan-200 outline-none focus:border-cyan-400"
-          />
-        </div>
-        <div v-if="claveGuardadaExito" class="text-emerald-400 text-[11px] mb-3 font-bold">
-          ✓ Clave táctica sincronizada correctamente.
-        </div>
-        <div class="flex items-center justify-between pt-2">
-          <button
-            type="button"
-            @click="limpiarClave"
-            class="text-rose-400 hover:text-rose-300 hover:underline"
-          >
-            Borrar clave
-          </button>
-          <div class="flex gap-2">
-            <button
-              type="button"
-              @click="modalClaveAbierto = false"
-              class="px-3 py-1 rounded border border-slate-700 hover:bg-slate-800 text-slate-300"
-            >
-              Cerrar
-            </button>
-            <button
-              type="button"
-              @click="aplicarClave"
-              class="px-3 py-1 rounded bg-cyan-500 hover:bg-cyan-400 text-black font-bold"
-            >
-              Guardar Clave
-            </button>
-          </div>
-        </div>
+    <div class="workspace-breadcrumb">
+      <span class="breadcrumb-divider">/</span><AppIcon name="layers" :size="15" /><span
+        >Espacio de ingeniería</span
+      ><span class="outline-badge">EQUIPO</span>
+    </div>
+    <div class="header-actions">
+      <div class="model-picker">
+        <label for="active-model" class="eyebrow">MODELO</label
+        ><select
+          id="active-model"
+          :value="chat.modeloSeleccionado"
+          :disabled="connection.state !== 'online'"
+          @change="selectModel"
+        >
+          <option v-for="model in catalogue" :key="model.id" :value="model.id">
+            {{ model.nombre.replace(/^[^\p{L}\p{N}]+/u, '') }}
+          </option>
+        </select>
       </div>
+      <button
+        class="connection-button"
+        :class="`connection-${connection.state}`"
+        @click="openSettings"
+      >
+        <span class="status-dot" /><span>{{ connection.label }}</span
+        ><AppIcon name="chevronDown" :size="14" />
+      </button>
+      <button
+        class="icon-button header-settings"
+        aria-label="Abrir configuración"
+        @click="openSettings"
+      >
+        <AppIcon name="settings" />
+      </button>
     </div>
   </header>
+  <dialog
+    ref="dialog"
+    class="workspace-dialog"
+    aria-labelledby="connection-title"
+    @close="key = ''"
+  >
+    <form @submit.prevent="save">
+      <div class="dialog-heading">
+        <span class="dialog-icon"><AppIcon name="key" :size="23" /></span
+        ><button
+          type="button"
+          class="icon-button"
+          aria-label="Cerrar configuración"
+          @click="dialog?.close()"
+        >
+          <AppIcon name="close" />
+        </button>
+      </div>
+      <span class="eyebrow">CONFIGURACIÓN PERSONAL</span>
+      <h2 id="connection-title">Conecta tu espacio.</h2>
+      <p class="dialog-description">
+        Usa la clave de acceso de tu servidor ARES para conversar y recuperar tus misiones.
+      </p>
+      <label for="access-key" class="field-label">Clave de acceso ARES</label
+      ><input
+        id="access-key"
+        v-model="key"
+        type="password"
+        autocomplete="off"
+        placeholder="Introduce tu clave de acceso"
+        :disabled="saving"
+      />
+      <p class="helper-text">
+        Es la ARES_API_KEY del servidor, distinta de las claves de Gemini u OpenRouter. Las claves
+        de los proveedores permanecen en el backend.
+      </p>
+      <label class="checkbox-field"
+        ><input v-model="remember" type="checkbox" />Recordar en este navegador</label
+      >
+      <p class="connection-result" role="status">
+        {{ connection.label }}<span v-if="connection.server"> · {{ connection.server }}</span>
+      </p>
+      <button type="submit" class="primary-button" :disabled="saving">
+        <AppIcon :name="saving ? 'refresh' : 'arrow'" :size="18" />{{
+          saving ? 'Comprobando…' : 'Guardar y conectar'
+        }}
+      </button>
+      <div class="settings-divider" />
+      <label v-if="connection.state === 'online'" for="settings-model" class="field-label"
+        >Modelo activo</label
+      ><select
+        v-if="connection.state === 'online'"
+        id="settings-model"
+        class="settings-model"
+        :value="chat.modeloSeleccionado"
+        @change="selectModel"
+      >
+        <option v-for="model in catalogue" :key="model.id" :value="model.id">
+          {{ model.nombre.replace(/^[^\p{L}\p{N}]+/u, '') }}
+        </option>
+      </select>
+      <div class="settings-row">
+        <span>Voz de respuesta</span
+        ><button type="button" class="text-button" :aria-pressed="vozHabilitada" @click="toggleVoz">
+          <AppIcon name="mic" :size="17" />{{ vozHabilitada ? 'Activada' : 'Desactivada' }}
+        </button>
+      </div>
+      <div class="settings-row">
+        <span>Efectos de sonido</span
+        ><button
+          type="button"
+          class="text-button"
+          :aria-pressed="!audioSilenciado"
+          @click="toggleSilencio"
+        >
+          <AppIcon :name="audioSilenciado ? 'mute' : 'sound'" :size="17" />{{
+            audioSilenciado ? 'Desactivados' : 'Activados'
+          }}
+        </button>
+      </div>
+      <div class="settings-row">
+        <span>Terminal web</span
+        ><button
+          type="button"
+          class="text-button"
+          @click="
+            ui.toggleTerminal();
+            dialog?.close();
+          "
+        >
+          <AppIcon name="terminal" :size="17" />Abrir
+        </button>
+      </div>
+    </form>
+  </dialog>
 </template>

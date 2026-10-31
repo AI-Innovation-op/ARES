@@ -1,95 +1,148 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useFsmStore } from '../../stores/fsm.store.js';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { POSES_16, useFsmStore } from '../../stores/fsm.store.js';
+import type { NumeroPose } from '../../types/ares.types.js';
 import AvatarCanvas3D from './AvatarCanvas3D.vue';
-import AvatarCanvas2D from './AvatarCanvas2D.vue';
-import MatrixRainCanvas from '../common/MatrixRainCanvas.vue';
-import TechSpecModule from '../modules/TechSpecModule.vue';
-import AudioWaveformVisualizer from '../hud/AudioWaveformVisualizer.vue';
-
+import AppIcon from '../common/AppIcon.vue';
+import poster from '../../assets/avatar/ares-poster.png';
+import staticModel from '../../assets/avatar/ares-static.glb?url';
 const fsm = useFsmStore();
-const mostrarFichaTecnica = ref(false);
+const canvas = ref<InstanceType<typeof AvatarCanvas3D> | null>(null);
+const ready = ref(false),
+  unavailable = ref(false),
+  motion = ref(true),
+  reduced = ref(false);
+let preference: MediaQueryList | undefined;
+const images = import.meta.glob('../../assets/avatar/pose-*.png', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+const image = computed(
+  () =>
+    (Object.entries(images).find(([name]) =>
+      name.includes(`/pose-${String(fsm.poseActual.id).padStart(2, '0')}-`),
+    )?.[1] as string) || poster,
+);
+const label = computed(
+  () => `${String(fsm.poseActual.id).padStart(2, '0')} / ${fsm.poseActual.code}`,
+);
+const updatePreference = () => {
+  reduced.value = preference?.matches ?? false;
+};
+onMounted(() => {
+  preference = matchMedia('(prefers-reduced-motion: reduce)');
+  updatePreference();
+  preference.addEventListener('change', updatePreference);
+});
+onUnmounted(() => preference?.removeEventListener('change', updatePreference));
+function fallback() {
+  unavailable.value = true;
+  fsm.modo3DActivo = false;
+}
+function selectPose(event: Event) {
+  fsm.fijarPoseDirecta(Number((event.target as HTMLSelectElement).value) as NumeroPose);
+}
 </script>
-
 <template>
-  <div class="h-full flex flex-col bg-[#040914] border-r border-[#132a4a] relative">
-    <!-- Header del Avatar -->
-    <div class="p-3 border-b border-[#132a4a] bg-[#091326]/60 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-3 h-3 rounded-full bg-[#00ffaa] animate-pulse"></div>
-        <span class="font-orbitron text-xs font-bold tracking-wider text-slate-200">
-          A.R.E.S. AVATAR CORE
-        </span>
+  <section class="companion-panel" aria-label="Compañero ARES">
+    <div class="companion-heading">
+      <div>
+        <span class="eyebrow">TU COMPAÑERO DE INGENIERÍA</span>
+        <h2>A.R.E.S.<span class="live-dot" /></h2>
       </div>
-      <button
-        @click="fsm.toggleModoGrafico"
-        class="text-[11px] font-mono px-2 py-0.5 rounded border border-[#132a4a] bg-[#040914] hover:border-[#00ffaa] text-cyan-300 transition-colors cursor-pointer"
-        :title="fsm.modo3DActivo ? 'Cambiar a modo 2D Canvas' : 'Cambiar a modo 3D Three.js'"
-      >
-        {{ fsm.modo3DActivo ? 'MODO: 3D' : 'MODO: 2D' }}
-      </button>
+      <span class="outline-badge">VOXEL CORE</span>
     </div>
-
-    <!-- Visor Gráfico con Lluvia Matrix de Fondo -->
-    <div class="flex-1 relative overflow-hidden bg-grid-tactical">
-      <MatrixRainCanvas />
-      <AvatarCanvas3D v-if="fsm.modo3DActivo" />
-      <AvatarCanvas2D v-else />
-    </div>
-
-    <!-- Panel de Estado de Pose Inferior y Ficha Técnica -->
-    <div class="p-3 border-t border-[#132a4a] bg-[#091326]/80 text-xs font-mono space-y-2">
-      <div class="flex items-center justify-between text-slate-400">
-        <span>POSE #{{ fsm.poseActual.id }} // {{ fsm.poseActual.code }}</span>
-        <span class="text-[#00ffaa] font-semibold">{{ fsm.poseActual.eyes }}</span>
+    <div class="companion-stage" :data-pose="fsm.poseActual.id">
+      <div class="stage-grid" aria-hidden="true" />
+      <span class="stage-coordinate" aria-hidden="true">SYS / AVATAR.01</span>
+      <img
+        v-if="!fsm.modo3DActivo || !ready"
+        :src="image"
+        :alt="`ARES: ${fsm.poseActual.name}`"
+        class="companion-poster"
+        width="768"
+        height="960"
+      />
+      <AvatarCanvas3D
+        v-if="fsm.modo3DActivo"
+        ref="canvas"
+        :motion="motion && !reduced"
+        @fallback="fallback"
+        @ready="ready = true"
+      />
+      <div class="stage-caption">
+        <span class="status-dot" />{{ fsm.modo3DActivo ? 'MODELO 3D ARTICULADO' : 'VISTA LIGERA' }}
       </div>
-      <div class="text-cyan-300 font-bold truncate">
-        {{ fsm.poseActual.name }}
-      </div>
-      <div class="text-[11px] text-slate-400 line-clamp-2">
-        {{ fsm.poseActual.description }}
-      </div>
-
-      <!-- Visualizador de Ondas Holográficas de Oído Digital (v2.9) -->
-      <AudioWaveformVisualizer />
-
-      <!-- Botón Táctico Ficha Técnica debajo del Avatar -->
-      <div class="pt-1">
+      <div v-if="fsm.modo3DActivo" class="stage-controls">
         <button
-          type="button"
-          @click="mostrarFichaTecnica = true"
-          class="w-full py-1.5 px-3 rounded border border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/50 hover:border-cyan-400 text-cyan-300 font-mono text-[11px] font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-[0_0_8px_rgba(0,229,255,0.15)]"
-          title="Consultar especificaciones, arquitectura y datos técnicos de A.R.E.S."
+          class="icon-button"
+          aria-label="Girar avatar a la izquierda"
+          @click="canvas?.turn(-1)"
         >
-          <span>📋</span>
-          <span>FICHA TÉCNICA MAESTRA</span>
+          <AppIcon name="chevron" class="turn-left" />
+        </button>
+        <button
+          class="icon-button"
+          aria-label="Restablecer vista del avatar"
+          @click="canvas?.resetView()"
+        >
+          <AppIcon name="rotate" />
+        </button>
+        <button class="icon-button" aria-label="Girar avatar a la derecha" @click="canvas?.turn(1)">
+          <AppIcon name="chevron" />
         </button>
       </div>
     </div>
-
-    <!-- Modal Ficha Técnica Maestra -->
-    <div
-      v-if="mostrarFichaTecnica"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-      @click.self="mostrarFichaTecnica = false"
-    >
-      <div class="bg-[#071329] border border-cyan-500/60 rounded-xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-[0_10px_40px_rgba(0,0,0,0.9)] overflow-hidden">
-        <div class="p-3 border-b border-[#132a4a] bg-[#091326] flex items-center justify-between">
-          <div class="flex items-center gap-2 font-orbitron font-bold text-slate-100 text-sm">
-            <span>📋</span>
-            <span>FICHA TÉCNICA MAESTRA // J.A.R.V.I.S. CORE</span>
-          </div>
-          <button
-            @click="mostrarFichaTecnica = false"
-            class="text-slate-400 hover:text-white px-2.5 py-1 text-xs font-mono cursor-pointer rounded hover:bg-rose-950/50 hover:text-rose-300 transition"
-          >
-            ✕ CERRAR
-          </button>
-        </div>
-        <div class="flex-1 overflow-y-auto p-4">
-          <TechSpecModule />
-        </div>
-      </div>
+    <div class="companion-state">
+      <span class="eyebrow">ESTADO VISUAL</span><span class="pose-code">{{ label }}</span>
+      <h3>{{ fsm.poseActual.name }}</h3>
+      <p>El avatar acompaña el estado de la conversación.</p>
     </div>
-  </div>
+    <div class="companion-options">
+      <label class="field-label" for="avatar-pose">Explorar las 16 poses</label>
+      <select id="avatar-pose" :value="fsm.poseActual.id" @change="selectPose">
+        <option v-for="pose in POSES_16" :key="pose.id" :value="pose.id">
+          {{ String(pose.id).padStart(2, '0') }} · {{ pose.name }}
+        </option>
+      </select>
+      <div class="companion-toggles">
+        <button
+          class="text-button"
+          :aria-pressed="fsm.modo3DActivo"
+          @click="
+            fsm.toggleModoGrafico();
+            ready = false;
+          "
+        >
+          <AppIcon name="layers" :size="16" />{{ fsm.modo3DActivo ? 'Vista 3D' : 'Vista ligera' }}
+        </button>
+        <button
+          class="text-button"
+          :disabled="reduced || !fsm.modo3DActivo"
+          :aria-pressed="motion && !reduced"
+          @click="motion = !motion"
+        >
+          <AppIcon :name="motion && !reduced ? 'pause' : 'play'" :size="16" />{{
+            reduced ? 'Movimiento reducido' : motion ? 'Pausar' : 'Animar'
+          }}
+        </button>
+      </div>
+      <p v-if="unavailable" class="helper-text" role="status">
+        WebGL no está disponible. La vista ligera conserva el diseño y las 16 expresiones.
+      </p>
+      <p v-else class="helper-text">La vista previa de poses no ejecuta tareas.</p>
+    </div>
+    <div class="companion-signature">
+      <AppIcon name="shield" :size="15" /><span>CREATED BY <strong>AI INNOVATION</strong></span
+      ><a
+        :href="staticModel"
+        download="ARES-avatar-estatico.glb"
+        class="icon-button avatar-download"
+        aria-label="Descargar modelo estático GLB"
+        title="Descargar modelo estático GLB"
+        ><AppIcon name="download" :size="17"
+      /></a>
+    </div>
+  </section>
 </template>

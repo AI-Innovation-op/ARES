@@ -1,64 +1,48 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useFsmStore } from '../../stores/fsm.store.js';
-import { crearAvatarVoxel, type VoxelAvatarController } from '../../composables/useVoxelAvatar.js';
-
+import { visualPose } from '../../domain/avatar-pose.js';
+import type { AvatarScene } from '../../avatar/scene.js';
+const props = defineProps<{ motion: boolean }>();
+const emit = defineEmits<{ fallback: []; ready: [] }>();
 const fsm = useFsmStore();
-const contenedor = ref<HTMLDivElement | null>(null);
-let controlador: VoxelAvatarController | null = null;
-
-onMounted(() => {
-  if (contenedor.value) {
-    controlador = crearAvatarVoxel(contenedor.value);
-    // Aplicar pose inicial
-    controlador.actualizarPose(
-      fsm.poseActual.id,
-      fsm.poseActual.action3d,
-      fsm.poseActual.eyes,
-      fsm.poseActual.shield
-    );
+const host = ref<HTMLDivElement | null>(null);
+let controller: AvatarScene | undefined;
+let disposed = false;
+onMounted(async () => {
+  try {
+    const { mountAvatarScene } = await import('../../avatar/scene.js');
+    if (disposed || !host.value) return;
+    controller = mountAvatarScene(host.value, visualPose(fsm.poseActual), () => emit('fallback'));
+    controller.setMotion(props.motion);
+    emit('ready');
+  } catch {
+    if (!disposed) emit('fallback');
   }
 });
-
 watch(
-  () => [fsm.poseActual.id, fsm.poseActual.action3d, fsm.poseActual.eyes, fsm.poseActual.shield],
-  () => {
-    if (controlador) {
-      controlador.actualizarPose(
-        fsm.poseActual.id,
-        fsm.poseActual.action3d,
-        fsm.poseActual.eyes,
-        fsm.poseActual.shield
-      );
-    }
-  }
+  () => fsm.poseActual,
+  (pose) => controller?.setPose(visualPose(pose)),
 );
-
-function handleDblClick() {
-  if (controlador) {
-    controlador.resetRotacion();
-  }
-}
-
+watch(
+  () => props.motion,
+  (enabled) => controller?.setMotion(enabled),
+);
 onUnmounted(() => {
-  if (controlador) {
-    controlador.destruir();
-    controlador = null;
-  }
+  disposed = true;
+  controller?.dispose();
+});
+defineExpose({
+  resetView: () => controller?.resetView(),
+  turn: (direction: number) => controller?.turn(direction),
 });
 </script>
-
 <template>
   <div
-    ref="contenedor"
-    class="w-full h-full relative cursor-grab active:cursor-grabbing select-none"
-    @dblclick="handleDblClick"
-    title="Arrastra para rotar en 360° | Doble clic para restablecer vista"
-  >
-    <!-- Overlay de control táctico -->
-    <div class="absolute bottom-3 left-3 bg-[#091326]/80 border border-[#132a4a] rounded px-2.5 py-1 text-xs font-mono text-cyan-400 pointer-events-none flex items-center gap-1.5 shadow">
-      <span class="w-2 h-2 rounded-full bg-[#00ffaa] animate-pulse"></span>
-      3D VOXEL // THREE.JS
-    </div>
-  </div>
+    ref="host"
+    class="avatar-webgl"
+    role="img"
+    aria-label="Avatar 3D de ARES. Usa los botones de giro para cambiar la vista."
+    @dblclick="controller?.resetView()"
+  />
 </template>

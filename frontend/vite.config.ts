@@ -10,11 +10,11 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: process.env.ARES_DEV_API_URL || 'http://localhost:3000',
         changeOrigin: true,
       },
       '/health': {
-        target: 'http://localhost:3000',
+        target: process.env.ARES_DEV_API_URL || 'http://localhost:3000',
         changeOrigin: true,
       },
     },
