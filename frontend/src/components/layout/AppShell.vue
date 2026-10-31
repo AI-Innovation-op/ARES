@@ -21,14 +21,26 @@ onUnmounted(() => media.removeEventListener('change', resize));
     <a class="skip-link" href="#main-content">Ir a la conversación</a>
     <TacticalHUD />
     <div class="workspace-layout">
-      <aside class="workspace-companion" :class="{ 'mobile-companion-open': showCompanion }">
+      <aside
+        id="ares-companion"
+        class="workspace-companion"
+        :class="{ 'mobile-companion-open': showCompanion }"
+      >
         <AvatarManager v-if="desktop || showCompanion" />
       </aside>
-      <main id="main-content" class="workspace-main" tabindex="-1"><ChatConsole /></main>
+      <main
+        id="main-content"
+        class="workspace-main"
+        :inert="!desktop && showCompanion"
+        tabindex="-1"
+      >
+        <ChatConsole />
+      </main>
     </div>
     <button
       class="mobile-companion-toggle"
       :aria-expanded="showCompanion"
+      aria-controls="ares-companion"
       @click="showCompanion = !showCompanion"
     >
       <AppIcon :name="showCompanion ? 'close' : 'shield'" :size="18" />{{
