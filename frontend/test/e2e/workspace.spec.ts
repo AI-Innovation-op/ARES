@@ -263,8 +263,18 @@ for (const width of [375, 768, 1024, 1440])
     if (width <= 820) {
       await expect(page.locator('canvas[data-renderer="three"]')).toHaveCount(0);
       await page.getByRole('button', { name: 'Ver a ARES', exact: true }).click();
+      await expect(page.locator('#main-content')).toHaveAttribute('inert', '');
+      await page
+        .getByLabel('Tu mensaje para ARES')
+        .evaluate((element) => (element as HTMLTextAreaElement).focus());
+      expect(
+        await page
+          .getByLabel('Tu mensaje para ARES')
+          .evaluate((element) => document.activeElement === element),
+      ).toBe(false);
       await expect(page.getByLabel('Explorar las 16 poses')).toBeVisible();
       await page.getByRole('button', { name: 'Volver a la conversación' }).click();
+      await expect(page.locator('#main-content')).not.toHaveAttribute('inert');
       await expect(page.getByLabel('Tu mensaje para ARES')).toBeInViewport();
     }
   });
