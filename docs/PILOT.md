@@ -24,7 +24,7 @@ Elegir una tarea pequeña con criterio verificable antes de preguntar a IA: una 
 
 1. Abrir el proyecto con `ares --project RUTA` y revisar fuentes con `context --content`.
 2. Pedir una explicación o preparar `propose`. Revisar alcance y diff.
-3. Aplicar solamente una propuesta revisada; ejecutar `verify SCRIPT --proposal ID` y el criterio de aceptación independiente.
+3. Aplicar solamente una propuesta revisada; ejecutar `ares verify ID --script SCRIPT` y el criterio de aceptación independiente.
 4. Exportar mediante `handoff export`; otra persona importa en un clon compatible, revisa y ejecuta sus propias pruebas.
 5. Confirmar que `restore` recupera el contenido esperado cuando corresponda.
 6. Registrar motor/modelo, resultado, omisiones relevantes, defectos, tiempos observados y métricas. No afirmar éxito basándose solo en el resumen del modelo.
