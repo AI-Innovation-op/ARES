@@ -16,6 +16,30 @@
 
 ---
 
+### 🌐 ARES Web — entrar desde el navegador
+
+<div align="center">
+
+[![Entrar a ARES Web](https://img.shields.io/badge/Entrar-ARES_Web-149c83?style=for-the-badge&logoColor=white)](https://ares-frontend-y8e6.onrender.com)
+[![Abrir desde GitHub Pages](https://img.shields.io/badge/Abrir-GitHub_Pages-144e75?style=for-the-badge&logo=github&logoColor=white)](https://ai-innovation-op.github.io/ARES/)
+
+</div>
+
+1. **[Abre ARES Web](https://ares-frontend-y8e6.onrender.com)** y pulsa **Configurar acceso**.
+2. Introduce la **ARES_API_KEY** del servidor. El responsable del backend facilita esta clave al equipo por un canal privado. Las claves de Gemini y OpenRouter se configuran en el backend.
+3. Pulsa **Guardar y conectar** y espera a que aparezca **API conectada**. Si ves **Iniciando servidor…**, deja que termine la comprobación del servidor gratuito.
+4. Elige un modelo y escribe tu consulta. **Enter** envía; **Shift + Enter** añade una línea. Las tarjetas iniciales preparan un borrador y **Detener** cancela una generación en curso.
+
+> 🔐 La clave de acceso queda en la sesión del navegador por defecto. **Recordar en este navegador** la conserva entre sesiones; úsalo en un equipo de confianza.
+>
+> 🛡️ En móvil, **Ver a ARES** abre el avatar. Puedes explorar sus 16 poses, girar la cámara, pausar la animación y alternar con la vista ligera.
+>
+> 📂 Las dos direcciones web comparten el mismo backend e historial. En el alojamiento gratuito actual, **un redespliegue puede borrar ese historial**: exporta las conversaciones importantes con el botón de descarga de la conversación.
+
+📖 **[Guía completa de conexión, herramientas y avatar](docs/web-avatar.md)** · **[Piloto del equipo de cinco](docs/PILOT.md)**
+
+---
+
 ### ⚡ Acceso rápido & descarga oficial de la terminal
 
 <div align="center">
@@ -424,5 +448,14 @@ La web utiliza `backend/` y requiere su **ARES_API_KEY** en el panel de conexió
 `backend/`, `frontend/`, `mcp/` y `hooks/` se mantienen separados de la CLI 5. Esta no necesita esos servicios ni usa `ARES_API_URL`. Los proveedores y Ollama de la CLI no se trasladan automáticamente a la web. Comandos antiguos como `bio`, `route`, `benchmark`, `swarm` y `setup-git` no forman parte de esta nueva CLI. `chat` continúa como alias de `ask`; `forge` ahora crea la plantilla local descrita arriba.
 
 La [documentación de la web v4](docs/legacy-web-v4.md) es un archivo histórico; sus capacidades y resultados no se presentan como verificación de la nueva CLI.
+
+## Qué sigue para el equipo
+
+1. **Historial web persistente y copias recuperables:** conservar conversaciones y memoria al redesplegar, y comprobar su restauración.
+2. **Accesos y consumo por persona:** cuentas individuales, visibilidad de conversaciones y presupuestos de IA en la web. Hoy se utiliza una clave compartida para el servidor.
+3. **Piloto con ustedes cinco:** registrar tareas reales, errores y tiempos en Windows/macOS, equipos de casa y trabajo, incluida la voz y la vista ligera del avatar.
+4. **Alinear la web con la CLI:** compartir gradualmente reglas, proveedores y métricas compatibles. La CLI ya dispone de capacidades que la API web todavía no incorpora.
+
+Estos puntos son trabajo pendiente. El detalle está en el [roadmap](docs/ROADMAP.md) y la [guía del piloto](docs/PILOT.md).
 
 Creado por Kevin / AI Innovation. Licencia [MIT](LICENSE).
