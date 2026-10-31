@@ -1,4 +1,69 @@
-# ARES — ingeniería desde terminal
+# 🛡️ A.R.E.S. Ecosystem (v5.4 Terminal CLI // Created by AI Innovation)
+
+> **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo. Y un proyecto sin tu autoría es una batalla ganada sin honor."**
+>
+> *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), tu copiloto táctico de ingeniería y documentación. Mi centro de operaciones es tu terminal.*
+>
+> 🏷️ **Versión actual: [v5.4.0 — Release oficial](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.4.0)** · Terminal independiente · Proyectos DDD · Cambios revisables · Historial local.
+
+[![Node.js](https://img.shields.io/badge/Node.js-24%2B-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![Terminal CLI](https://img.shields.io/badge/CLI-CMD_%7C_PowerShell_%7C_Unix-111827?style=flat)](#empezar-en-cmd)
+[![SQLite](https://img.shields.io/badge/SQLite-Historial_local-003B57?style=flat&logo=sqlite)](#arquitectura-e-historial-sin-ia)
+[![Proveedores de IA](https://img.shields.io/badge/IA-5_proveedores_%2B_servidores_compatibles-6366F1?style=flat)](#configurar-la-ia)
+[![CI](https://github.com/AI-Innovation-op/ARES/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AI-Innovation-op/ARES/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+---
+
+### ⚡ Acceso rápido & descarga oficial de la terminal
+
+<div align="center">
+
+[![Descargar ARES v5.4.0 ZIP portable](https://img.shields.io/badge/Descargar-ARES_v5.4.0_ZIP_portable-007ACC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.4.0/ARES-5.4.0-portable.zip)
+[![Ver release v5.4.0 en GitHub](https://img.shields.io/badge/GitHub-Release_v5.4.0-2EA44F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.4.0)
+[![Descargar código fuente ZIP](https://img.shields.io/badge/Descargar-Codigo_fuente_ZIP-9333EA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.4.0/ARES-5.4.0-source.zip)
+
+</div>
+
+> 🚀 **¿Quieres empezar directamente en tu PC?**
+>
+> 1. Instala [Node.js 24 o superior](https://nodejs.org/).
+> 2. **[⬇️ Descarga el ZIP portable de ARES](https://github.com/AI-Innovation-op/ARES/releases/download/v5.4.0/ARES-5.4.0-portable.zip)** y extrae el archivo completo en tu disco, por ejemplo en `C:\ARES` o `D:\ARES`.
+> 3. Si quieres usar IA, abre CMD en la carpeta que contiene `ares.cmd` y ejecuta **`ares.cmd setup`** para configurar proveedor, modelo y clave. Las funciones locales funcionan sin claves.
+> 4. Haz doble clic en **`INICIAR_ARES.bat`** para abrir la terminal y escribe **`help`** para ver los comandos. El portable incluye las dependencias; no necesita `npm install`.
+>
+> 📖 **¿Prefieres instalar desde el código fuente y tener el comando global `ares`?** Descarga el ZIP de fuentes y sigue [Empezar en CMD](#empezar-en-cmd).
+>
+> 🔎 [Ver hashes SHA-256 de la descarga](https://github.com/AI-Innovation-op/ARES/releases/download/v5.4.0/SHA256SUMS-5.4.0.txt).
+
+---
+
+## 🏛️ 1. ¿Quién soy? Manifiesto de identidad
+
+Soy **A.R.E.S.**, un proyecto personal creado por **Kevin / AI Innovation**, con la disciplina de un guardián de código y una misión concreta: acompañarte a entender, documentar y mejorar tus proyectos desde la terminal.
+
+Conservo mi identidad táctica: el logo original, los colores cian y blanco y el prompt `ares@standalone:~$`. En esta versión, mi núcleo es una CLI independiente con reglas de dominio, casos de uso, puertos y adaptadores. Puedo inspeccionar tus fuentes, conversar con el proveedor que elijas y preparar cambios para que revises el diff antes de aplicarlos.
+
+La web y el personaje 3D forman parte de la historia del ecosistema y se conservan por separado. Puedes consultar su [presentación original](docs/legacy-web-v4.md); para usar la CLI actual basta con tu terminal y Node.js.
+
+## ⚔️ 2. ¿Qué puedo hacer por ti?
+
+| Área | Qué ofrece la CLI actual |
+| --- | --- |
+| **💬 Conversación sobre tu código** | Respuestas con streaming y contexto del proyecto mediante OpenRouter, Gemini, Mistral, Groq, Cohere o un servidor compatible. Tú eliges proveedor y modelo. |
+| **🔎 Inspección y arquitectura** | Selección de fuentes, señales de auditoría y análisis AST de imports, capas y ciclos, sin llamar a IA. |
+| **🛡️ Escudo de documentación** | Propuestas de README, ADR, RFC, OpenAPI y C4 con IA a partir del contexto seleccionado. |
+| **⚒️ Forja DDD** | Plantilla local de seguimiento de tareas con dominio, casos de uso, SQLite, CLI y tests, sin necesitar IA. |
+| **⚔️ Cambios revisables** | Proponer, revisar diferencias, aplicar, ejecutar el script de verificación elegido y restaurar el contenido original. |
+| **📂 Proyectos y memoria local** | Abrir carpetas, vincular conversaciones a su proyecto y buscar o exportar el historial guardado en SQLite. |
+| **📦 Exportación** | Crear ZIP de fuentes filtradas y redactadas para compartir el trabajo. |
+
+Los requisitos, comandos, límites y comprobaciones de estas funciones se explican en la guía completa que sigue.
+
+---
+
+## 📚 ARES — ingeniería desde terminal
 
 CLI independiente para conversar sobre código, inspeccionar proyectos, generar documentación y aplicar cambios revisables. Funciona desde **CMD, PowerShell y terminales Unix**, sin levantar un backend o abrir un navegador.
 
