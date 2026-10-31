@@ -4,7 +4,7 @@
 >
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), tu copiloto táctico de ingeniería y documentación. Mi centro de operaciones es tu terminal.*
 >
-> 🏷️ **Versión actual: [v5.7.0 — Release oficial](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.7.0)** · Terminal independiente · Proyectos DDD · Cambios revisables · Historial local.
+> 🏷️ **Versión actual: [v5.7.1 — Release oficial](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.7.1)** · Terminal independiente · Proyectos DDD · Cambios revisables · Historial local.
 
 [![Node.js](https://img.shields.io/badge/Node.js-24%2B-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -20,22 +20,22 @@
 
 <div align="center">
 
-[![Descargar ARES v5.7.0 ZIP portable](https://img.shields.io/badge/Descargar-ARES_v5.7.0_ZIP_portable-007ACC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.0/ARES-5.7.0-portable.zip)
-[![Ver release v5.7.0 en GitHub](https://img.shields.io/badge/GitHub-Release_v5.7.0-2EA44F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.7.0)
-[![Descargar código fuente ZIP](https://img.shields.io/badge/Descargar-Codigo_fuente_ZIP-9333EA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.0/ARES-5.7.0-source.zip)
+[![Descargar ARES v5.7.1 ZIP portable](https://img.shields.io/badge/Descargar-ARES_v5.7.1_ZIP_portable-007ACC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.1/ARES-5.7.1-portable.zip)
+[![Ver release v5.7.1 en GitHub](https://img.shields.io/badge/GitHub-Release_v5.7.1-2EA44F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.7.1)
+[![Descargar código fuente ZIP](https://img.shields.io/badge/Descargar-Codigo_fuente_ZIP-9333EA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.1/ARES-5.7.1-source.zip)
 
 </div>
 
 > 🚀 **¿Quieres empezar directamente en tu PC?**
 >
 > 1. Instala [Node.js 24 o superior](https://nodejs.org/).
-> 2. **[⬇️ Descarga el ZIP portable de ARES](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.0/ARES-5.7.0-portable.zip)** y extrae el archivo completo en tu disco, por ejemplo en `C:\ARES` o `D:\ARES`.
+> 2. **[⬇️ Descarga el ZIP portable de ARES](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.1/ARES-5.7.1-portable.zip)** y extrae el archivo completo en tu disco, por ejemplo en `C:\ARES` o `D:\ARES`.
 > 3. Si quieres usar IA, abre CMD en la carpeta que contiene `ares.cmd` y ejecuta **`ares.cmd setup`** para configurar proveedor, modelo y clave. Las funciones locales funcionan sin claves.
 > 4. Haz doble clic en **`INICIAR_ARES.bat`** para abrir la terminal y escribe **`help`** para ver los comandos. El portable incluye las dependencias; no necesita `npm install`.
 >
 > 📖 **¿Prefieres instalar desde el código fuente y tener el comando global `ares`?** Descarga el ZIP de fuentes y sigue [Empezar en CMD](#empezar-en-cmd).
 >
-> 🔎 [Ver hashes SHA-256 de la descarga](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.0/SHA256SUMS-5.7.0.txt).
+> 🔎 [Ver hashes SHA-256 de la descarga](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.1/SHA256SUMS-5.7.1.txt).
 
 ---
 
@@ -69,7 +69,7 @@ CLI independiente para conversar sobre código, inspeccionar proyectos, generar 
 
 La versión 5 reconstruye el núcleo de terminal con dominio puro, casos de uso, puertos y adaptadores. Las conversaciones y las propuestas tienen invariantes y persistencia SQLite. El diseño usa DDD en las reglas que lo necesitan y conserva una aplicación local pequeña.
 
-**Versión CLI: 5.7.0. Requisito: Node.js 24 o superior.** Git es necesario para clonar el repositorio; la ejecución del CLI no lo requiere.
+**Versión CLI: 5.7.1. Requisito: Node.js 24 o superior.** Git es necesario para clonar el repositorio; la ejecución del CLI no lo requiere.
 
 También puedes descargar el ZIP portable desde [Releases](https://github.com/AI-Innovation-op/ARES/releases), extraerlo y ejecutar `ares.cmd doctor`. Incluye las dependencias de ejecución; no requiere `npm install`.
 
