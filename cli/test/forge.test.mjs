@@ -64,7 +64,7 @@ test('CLI fails clearly for missing configuration, invalid flags and empty piped
   assert.equal(run(['ask', '--json'], home, { input: '' }).status, 2);
   assert.equal(run(['not-a-command'], home).status, 2);
   assert.equal(JSON.parse(run(['not-a-command', '--json'], home).stderr).error.code, 'VALIDATION');
-  assert.equal(run(['--version'], home).stdout.trim(), '5.3.0');
+  assert.equal(run(['--version'], home).stdout.trim(), '5.4.0');
   const initialized = run(
     ['config', 'init', '--provider', 'compatible', '--model', 'local-model', '--json'],
     home,

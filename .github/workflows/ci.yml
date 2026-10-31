@@ -90,6 +90,8 @@ jobs:
         run: |
           npm run portable
           npm run smoke:portable
+          npm run package:npm
+          npm run smoke:npm
 
   mcp:
     name: MCP histórico (build)

@@ -4,7 +4,7 @@ CLI independiente para conversar sobre código, inspeccionar proyectos, generar 
 
 La versión 5 reconstruye el núcleo de terminal con dominio puro, casos de uso, puertos y adaptadores. Las conversaciones y las propuestas tienen invariantes y persistencia SQLite. El diseño usa DDD en las reglas que lo necesitan y conserva una aplicación local pequeña.
 
-**Versión CLI: 5.3.0. Requisito: Node.js 24 o superior.** Git es necesario para clonar el repositorio; la ejecución del CLI no lo requiere.
+**Versión CLI: 5.4.0. Requisito: Node.js 24 o superior.** Git es necesario para clonar el repositorio; la ejecución del CLI no lo requiere.
 
 También puedes descargar el ZIP portable desde [Releases](https://github.com/AI-Innovation-op/ARES/releases), extraerlo y ejecutar `ares.cmd doctor`. Incluye las dependencias de ejecución; no requiere `npm install`.
 
@@ -30,9 +30,30 @@ install.bat
 ares doctor
 ```
 
-`install.bat --local --no-pause` instala y compila sin registrar un comando global. El instalador comprueba errores y no cambia la política de ejecución de PowerShell. También puedes instalar manualmente: `cd cli`, `npm ci --ignore-scripts`, `npm run build`, `npm link --ignore-scripts`.
+`install.bat --local --no-pause` instala y compila sin registrar un comando global. El instalador comprueba errores y no cambia la política de ejecución de PowerShell. La instalación global copia un paquete compilado con dependencias fijadas mediante `npm-shrinkwrap.json`: puede seguir ejecutándose al mover o retirar el checkout. Instalación manual desde `cli/`: `npm ci --ignore-scripts` y `npm run install:global`.
 
 Los ejemplos siguientes usan `ares`; si trabajas sin instalación global, sustituye ese nombre por `ares.cmd` desde la raíz del repositorio.
+
+## Abrir un proyecto
+
+```cmd
+ares.cmd --project "D:\proyectos\mi-app"
+```
+
+La carpeta seleccionada determina las rutas relativas y el contexto de las consultas. Puedes inspeccionar la selección con `ares.cmd --project RUTA context --content` antes de llamar a IA. Las opciones explícitas de ruta o contexto permiten elegir otro objetivo para ese comando.
+
+Dentro del REPL:
+
+```text
+/open "D:\proyectos\mi-app"
+/analyze
+/propose "Describe el cambio requerido"
+/close
+```
+
+Abrir otro proyecto inicia una conversación nueva. Las sesiones nuevas guardan su proyecto y rechazan continuaciones desde otra carpeta antes de llamar al modelo; reabre la carpeta correcta para usar `/resume ID`. Las sesiones anteriores sin proyecto siguen disponibles. El vínculo usa la ruta canónica: los alias y la reubicación de proyectos quedan en el [roadmap](docs/ROADMAP.md).
+
+`/context` sin ruta retira el contexto automático de esa conversación. `/close` vuelve a la carpeta desde la que se inició ARES. El directorio del terminal padre permanece igual. La configuración `.env` del proyecto mantiene la precedencia documentada.
 
 ## Útil sin claves ni conexión
 
@@ -83,13 +104,13 @@ El modelo se elige explícitamente: ARES no fija nombres de modelos que pueden r
 
 La CLI admite **OpenRouter, Gemini, Mistral, Groq y Cohere**, además de servidores compatibles. Cada proveedor usa su propia clave y un endpoint oficial fijo. `ares providers` muestra perfiles y presencia de credenciales, sin mostrarlas ni realizar consultas de IA.
 
-| Proveedor | Clave local | Modelo del perfil |
-|---|---|---|
-| OpenRouter | `OPENROUTER_API_KEY` | `OPENROUTER_MODEL` |
-| Gemini | `GEMINI_API_KEY` | `GEMINI_MODEL` |
-| Mistral | `MISTRAL_API_KEY` | `MISTRAL_MODEL` |
-| Groq | `GROQ_API_KEY` | `GROQ_MODEL` |
-| Cohere | `COHERE_API_KEY` | `COHERE_MODEL` |
+| Proveedor  | Clave local                     | Modelo del perfil  |
+| ---------- | ------------------------------- | ------------------ |
+| OpenRouter | `OPENROUTER_API_KEY`            | `OPENROUTER_MODEL` |
+| Gemini     | `GEMINI_API_KEY`                | `GEMINI_MODEL`     |
+| Mistral    | `MISTRAL_API_KEY`               | `MISTRAL_MODEL`    |
+| Groq       | `GROQ_API_KEY`                  | `GROQ_MODEL`       |
+| Cohere     | `COHERE_API_KEY`                | `COHERE_MODEL`     |
 | Compatible | `COMPATIBLE_API_KEY` (opcional) | `COMPATIBLE_MODEL` |
 
 ```cmd
@@ -155,7 +176,10 @@ El mismo flujo funciona sin IA importando un JSON local:
 {
   "summary": "Añadir una nota de arquitectura",
   "changes": [
-    { "path": "docs/nota.md", "content": "# Decisión\n\nEl dominio no depende de SQLite.\n" }
+    {
+      "path": "docs/nota.md",
+      "content": "# Decisión\n\nEl dominio no depende de SQLite.\n"
+    }
   ]
 }
 ```
@@ -168,28 +192,28 @@ ares propose --from cambios.json --path "D:\mi-proyecto"
 
 ## Comandos
 
-| Comando | Resultado |
-|---|---|
-| `ares` / `ares repl` | Conversación interactiva con historial local. |
-| `ares ask "consulta" --context RUTA` | Respuesta con streaming real; `--session ID` continúa una conversación. |
-| `ares doctor [--probe]` | Diagnóstico; la consulta de IA es explícita. |
-| `ares models [--filter TEXTO]` | Catálogo actual del proveedor, sin fijar IDs en el código. |
-| `ares providers` | Perfiles locales y presencia de claves, sin exponer valores ni comprobar conexión. |
-| `ares setup` | Asistente de configuración con entrada oculta para la clave. |
-| `ares config init` / `show` / `set` | Crear, consultar y actualizar configuración local sin mostrar claves. |
-| `ares context RUTA [--content]` | Archivos seleccionados; contenido redactado opcional. No llama a IA. |
-| `ares audit RUTA [--ai]` | Señales estáticas con ruta y línea; revisión de IA opcional. |
-| `ares analyze RUTA [--fail-on any]` | Grafo de imports mediante AST, límites de capas y ciclos; sin IA. |
-| `ares doc adr "instrucción" --context RUTA -o salida.md` | Documento de IA: `readme`, `adr`, `rfc`, `openapi` o `c4`. |
-| `ares test archivo.ts -f node:test -o propuesta.test.ts` | Tests propuestos por IA; no se ejecutan automáticamente. |
-| `ares forge NUEVA_CARPETA` | Plantilla CLI DDD de tareas, sin IA. |
-| `ares zip CARPETA salida.zip` | ZIP de fuentes filtradas y redactadas; no es copia exacta ni incluye binarios. |
-| `ares sessions list` / `show ID` / `export ID -o historial.md` | Consulta y exportación de sesiones. |
-| `ares sessions search "palabras" --limit 10` | Búsqueda local de texto completo con SQLite FTS5. |
-| `ares propose`, `diff ID`, `apply ID`, `restore ID` | Flujo de cambios revisables con recuperación. |
-| `ares proposals` | Últimas 50 propuestas y sus estados. |
-| `ares verify [ID] --path RUTA --script test` | Ejecuta un script explícito y guarda evidencia asociada a fuentes y propuesta. |
-| `ares verifications list` / `show ID` | Consulta resultados reales y su correspondencia con el estado actual. |
+| Comando                                                        | Resultado                                                                          |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `ares` / `ares repl`                                           | Conversación interactiva con historial local.                                      |
+| `ares ask "consulta" --context RUTA`                           | Respuesta con streaming real; `--session ID` continúa una conversación.            |
+| `ares doctor [--probe]`                                        | Diagnóstico; la consulta de IA es explícita.                                       |
+| `ares models [--filter TEXTO]`                                 | Catálogo actual del proveedor, sin fijar IDs en el código.                         |
+| `ares providers`                                               | Perfiles locales y presencia de claves, sin exponer valores ni comprobar conexión. |
+| `ares setup`                                                   | Asistente de configuración con entrada oculta para la clave.                       |
+| `ares config init` / `show` / `set`                            | Crear, consultar y actualizar configuración local sin mostrar claves.              |
+| `ares context RUTA [--content]`                                | Archivos seleccionados; contenido redactado opcional. No llama a IA.               |
+| `ares audit RUTA [--ai]`                                       | Señales estáticas con ruta y línea; revisión de IA opcional.                       |
+| `ares analyze RUTA [--fail-on any]`                            | Grafo de imports mediante AST, límites de capas y ciclos; sin IA.                  |
+| `ares doc adr "instrucción" --context RUTA -o salida.md`       | Documento de IA: `readme`, `adr`, `rfc`, `openapi` o `c4`.                         |
+| `ares test archivo.ts -f node:test -o propuesta.test.ts`       | Tests propuestos por IA; no se ejecutan automáticamente.                           |
+| `ares forge NUEVA_CARPETA`                                     | Plantilla CLI DDD de tareas, sin IA.                                               |
+| `ares zip CARPETA salida.zip`                                  | ZIP de fuentes filtradas y redactadas; no es copia exacta ni incluye binarios.     |
+| `ares sessions list` / `show ID` / `export ID -o historial.md` | Consulta y exportación de sesiones.                                                |
+| `ares sessions search "palabras" --limit 10`                   | Búsqueda local de texto completo con SQLite FTS5.                                  |
+| `ares propose`, `diff ID`, `apply ID`, `restore ID`            | Flujo de cambios revisables con recuperación.                                      |
+| `ares proposals`                                               | Últimas 50 propuestas y sus estados.                                               |
+| `ares verify [ID] --path RUTA --script test`                   | Ejecuta un script explícito y guarda evidencia asociada a fuentes y propuesta.     |
+| `ares verifications list` / `show ID`                          | Consulta resultados reales y su correspondencia con el estado actual.              |
 
 `--json` produce salida estructurada sin banners y errores JSON en stderr. Los archivos de salida existentes no se sobrescriben. Se puede enviar texto por stdin:
 
@@ -220,7 +244,7 @@ Las pruebas cubren invariantes, dirección de dependencias, persistencia real, c
 
 Para crear la distribución portable con dependencias de ejecución fijadas: `npm run portable`. Para extraerla y comprobar arranque, wrapper, configuración, análisis AST y tests del proyecto generado: `npm run smoke:portable`. El ZIP requiere Node.js 24 o superior y no requiere `npm install` en el equipo de destino.
 
-La CI incluye Windows y Ubuntu con Node 24 y 26; Node 24 también construye y ejecuta el portable. Sentinel comprueba la arquitectura con AST y publica el informe en el resumen de Actions, sin claves de IA ni comentarios automáticos. Consulta el resultado de cada ejecución en GitHub Actions. La configuración de una matriz no equivale a sus resultados. Detalles: [arquitectura y límites](docs/ARCHITECTURE.md), [decisiones](docs/adr/0001-cli-first.md) y [validación 5.2](docs/VALIDATION-5.2.md).
+La CI incluye Windows y Ubuntu con Node 24 y 26; Node 24 también construye y ejecuta el portable y el paquete npm en instalaciones aisladas. Sentinel comprueba la arquitectura con AST y publica el informe en el resumen de Actions, sin claves de IA ni comentarios automáticos. Consulta el resultado de cada ejecución en GitHub Actions. La configuración de una matriz no equivale a sus resultados. Detalles: [arquitectura y límites](docs/ARCHITECTURE.md), [decisiones](docs/adr/0001-cli-first.md), [validación 5.4](docs/VALIDATION-5.4.md) y [trabajo pendiente](docs/ROADMAP.md).
 
 ## Componentes históricos
 

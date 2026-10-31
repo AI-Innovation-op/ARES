@@ -1,4 +1,4 @@
-# ARES CLI 5.3
+# ARES CLI 5.4
 
 Asistente de ingeniería para CMD, PowerShell y terminales Unix. Node.js 24 o superior. Funciona sin servidor web.
 
@@ -57,5 +57,9 @@ Cada proveedor usa su propia variable de clave: `OPENROUTER_API_KEY`, `GEMINI_AP
 Consulta `ares models --provider NOMBRE` y guarda un perfil con `ares config set --provider NOMBRE --model ID`. `config set --provider NOMBRE` recupera un perfil guardado. El catálogo de Cohere usa su API nativa paginada; el transporte de texto usa su API de compatibilidad. Los endpoints nativos están fijados para aislar credenciales; las URLs personalizadas requieren `compatible`.
 
 La presencia de claves no acredita cuota. `doctor --probe` hace una consulta real que puede consumirla; errores como HTTP 429 se muestran sin cambiar a otro proveedor. La redacción de streams, mensajes y evidencia de scripts contempla todas las claves configuradas. El archivo personal contiene texto legible: protégelo con permisos del sistema operativo y exclúyelo de sincronización y Git.
+
+`ares --project RUTA` abre una carpeta y usa sus rutas relativas y fuentes como contexto. En el REPL: `/open RUTA` y `/close`. Abrir otro proyecto inicia una conversación nueva; las sesiones creadas en un proyecto rechazan continuaciones desde otra carpeta. El vínculo se basa en la ruta canónica y las sesiones anteriores sin proyecto se conservan.
+
+Desde el checkout, `npm run package:npm` crea un tarball compilado con lockfile publicable. `npm run smoke:npm` lo instala en un prefijo temporal y comprueba versiones y ejecución. `npm run install:global` instala una copia estable en el prefijo global de npm. Para instalar un tarball descargado: `npm install --global --ignore-scripts RUTA_AL_TGZ`. Se necesita acceso al registro o una caché de dependencias; el ZIP portable ya incluye el runtime.
 
 Kevin / AI Innovation. MIT.

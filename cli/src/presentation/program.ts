@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { Command, CommanderError } from 'commander';
 import JSZip from 'jszip';
 import { createTwoFilesPatch } from 'diff';
@@ -35,10 +36,35 @@ import { providerNames, redactCredentials } from '../infrastructure/providers.js
 const identity = { next: randomUUID, now: () => new Date().toISOString() };
 const version = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url), 'utf8'))
   .version as string;
-type GlobalOptions = { json?: boolean; provider?: string; model?: string };
+type GlobalOptions = { json?: boolean; provider?: string; model?: string; project?: string };
 
 export async function run(argv = process.argv, externalSignal?: AbortSignal): Promise<void> {
   const program = new Command();
+  const originalDirectory = process.cwd();
+  let projectRoot: string | undefined;
+  const openProject = (target: string): string => {
+    if (!target.trim()) throw new AresError('VALIDATION', 'Indica la carpeta del proyecto.');
+    const absolute = path.resolve(target);
+    if (!fs.existsSync(absolute))
+      throw new AresError('NOT_FOUND', `No existe el proyecto: ${absolute}`);
+    const root = fs.realpathSync(absolute);
+    if (!fs.statSync(root).isDirectory())
+      throw new AresError('VALIDATION', 'El proyecto debe ser una carpeta.');
+    const previousDirectory = process.cwd();
+    process.chdir(root);
+    try {
+      config();
+    } catch (error) {
+      process.chdir(previousDirectory);
+      throw error;
+    }
+    projectRoot = root;
+    return root;
+  };
+  const closeProject = () => {
+    process.chdir(originalDirectory);
+    projectRoot = undefined;
+  };
   let store: SqliteStore | undefined;
   const workspace = new LocalWorkspace();
   let interactiveModel: string | undefined;
@@ -61,8 +87,10 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     return new SecretSafeModel(new CompatibleLanguageModel(c), c.secrets);
   };
   const changes = () => new ChangeCode(database().proposals, new LocalChangeWorkspace(), identity);
-  const context = (target?: string) =>
-    target ? contextText(workspace.scan(path.resolve(target))) : '';
+  const context = (target?: string) => {
+    const selected = target ?? projectRoot;
+    return selected ? contextText(workspace.scan(path.resolve(selected))) : '';
+  };
   const output = (value: unknown, text?: string) => print(value, Boolean(options().json), text);
   const session = (id: string) => {
     const result = database().conversations.get(id);
@@ -107,6 +135,8 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     const data = {
       version,
       node: process.version,
+      cliPath: fileURLToPath(new URL('../../', import.meta.url)),
+      project: projectRoot || null,
       ...publicConfiguration(c),
       aiReady,
       connectionVerified: probe,
@@ -136,6 +166,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     const safePrompt = redactCredentials(redact(prompt), current.secrets);
     const result = await new Ask(database().conversations, ai, identity).execute({
       prompt: safePrompt,
+      project: projectRoot,
       sessionId,
       context: target ? contextText(workspace.scan(path.resolve(target)), 100_000, prompt) : '',
       signal,
@@ -159,7 +190,18 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
         ask,
         history,
         sessions,
-        exists: (id) => Boolean(database().conversations.get(id)),
+        exists: (id) => {
+          const saved = database().conversations.get(id);
+          saved?.assertProject(projectRoot);
+          return Boolean(saved);
+        },
+        project: () => projectRoot,
+        openProject,
+        closeProject,
+        selection: () => {
+          const selected = config();
+          return { provider: selected.provider, model: selected.model };
+        },
         doctor,
         setModel: (id) => {
           const selected = loadConfiguration({
@@ -186,6 +228,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
                 '--provider',
                 current.provider,
                 ...(current.model ? ['--model', current.model] : []),
+                ...(projectRoot ? ['--project', projectRoot] : []),
                 ...args,
               ],
               signal,
@@ -210,8 +253,15 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     .option('--json', 'Salida JSON sin banners; errores JSON en stderr')
     .option('-p, --provider <proveedor>', providerNames.join(', '))
     .option('-m, --model <modelo>', 'ID del modelo disponible en tu proveedor')
+    .option(
+      '-C, --project <carpeta>',
+      'Abrir proyecto; rutas relativas y contexto usan esta carpeta',
+    )
     .showHelpAfterError()
     .exitOverride();
+  program.hook('preAction', () => {
+    if (options().project !== undefined) openProject(options().project!);
+  });
   program.configureOutput({
     writeErr: (text) => {
       if (!argv.includes('--json')) process.stderr.write(text);
@@ -272,7 +322,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     .option('-c, --context <ruta>', 'Adjuntar contexto local filtrado')
     .action(async (parts: string[], opts) => {
       const prompt = parts.length ? parts.join(' ') : await readStdin();
-      await operation((signal) => ask(prompt, opts.session, opts.context, signal));
+      await operation((signal) => ask(prompt, opts.session, opts.context ?? projectRoot, signal));
     });
   program
     .command('repl')
@@ -283,7 +333,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     if (process.stdin.isTTY) await shell();
     else
       await operation((signal) =>
-        readStdin().then((prompt) => ask(prompt, undefined, undefined, signal)),
+        readStdin().then((prompt) => ask(prompt, undefined, projectRoot, signal)),
       );
   });
 
@@ -788,5 +838,6 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     await program.parseAsync(argv);
   } finally {
     store?.close();
+    if (fs.existsSync(originalDirectory)) process.chdir(originalDirectory);
   }
 }
