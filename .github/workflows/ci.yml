@@ -38,7 +38,7 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
 
   frontend:
-    name: Frontend (tipos y build)
+    name: Frontend (tipos, avatar y navegador)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -56,6 +56,14 @@ jobs:
       - run: npm ci
       - name: Compilar (incluye vue-tsc)
         run: npm run build
+      - name: Pruebas del avatar y protocolo SSE
+        run: npm test
+      - name: Chromium para las pruebas de interfaz
+        run: npx playwright install --with-deps chromium
+      - name: Flujos de escritorio y móvil
+        run: npm run test:e2e
+      - name: Auditoría de dependencias de producción
+        run: npm audit --omit=dev --audit-level=high
 
   cli:
     name: CLI (${{ matrix.os }}, Node ${{ matrix.node }})

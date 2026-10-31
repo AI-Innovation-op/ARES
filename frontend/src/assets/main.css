@@ -1,4 +1,5 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import './workspace.css';
 
 @theme {
   --color-ares-cyber-blue: #0284c7;
@@ -53,7 +54,7 @@
 
 /* Cuadrícula táctica de fondo */
 .bg-grid-tactical {
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(19, 42, 74, 0.35) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(19, 42, 74, 0.35) 1px, transparent 1px);
   background-size: 32px 32px;

@@ -13,22 +13,150 @@ import { useAudio } from '../composables/useAudio.js';
  * Catálogo canónico de las 16 Poses de A.R.E.S. v2.6
  */
 export const POSES_16: InfoPose[] = [
-  { id: 1, code: 'IDLE', name: 'Centinela Documental', eyes: 'NORMAL', shield: 'DOC', action3d: 'STAND', description: 'Guardia en espera de órdenes tácticas.' },
-  { id: 2, code: 'ERROR', name: 'Alerta de Excepción', eyes: 'DEAD', shield: 'CODE', action3d: 'STAND', description: 'Bug crítico, error de compilación o fallo de API.' },
-  { id: 3, code: 'FOCUS', name: 'Compilación Profunda', eyes: 'SQUINT', shield: 'CREST', action3d: 'STAND', description: 'Razonamiento complejo y resolución de conflictos.' },
-  { id: 4, code: 'HAPPY', name: 'Build Exitoso', eyes: 'HAPPY_SQUINT', shield: 'CREST', action3d: 'STAND', description: 'Tests en verde y cobertura completa.' },
-  { id: 5, code: 'SPRINT_1', name: 'Patrulla CI/CD', eyes: 'NORMAL', shield: 'NONE', action3d: 'RUN_1', description: 'Escaneo de archivos en segundo plano.' },
-  { id: 6, code: 'SPRINT', name: 'Sprint de Emergencia', eyes: 'SQUINT', shield: 'NONE', action3d: 'RUN_2', description: 'Consulta con Grounding o sprint de foco.' },
-  { id: 7, code: 'SPRINT_HAPPY', name: 'Velocidad Full-Stack', eyes: 'HAPPY_SQUINT', shield: 'NONE', action3d: 'RUN_3', description: 'Scaffolding completo de proyecto nuevo.' },
-  { id: 8, code: 'SPRINT_DETERMINED', name: 'Caza de Latencia', eyes: 'DETERMINED', shield: 'NONE', action3d: 'RUN_4', description: 'Optimización SQL y reducción Big-O.' },
-  { id: 9, code: 'COMBAT_READY', name: 'Postura Anti-Deuda', eyes: 'ANGRY', shield: 'CODE', action3d: 'SWORD_LOW', description: 'Detección de código espagueti y vulnerabilidades.' },
-  { id: 10, code: 'COMBAT_CHARGE', name: 'Carga de Refactor', eyes: 'ANGRY', shield: 'CREST', action3d: 'SWORD_HIGH', description: 'Carga de la Espada Binaria con principios SOLID.' },
-  { id: 11, code: 'SLASH', name: 'Corte Anime Binario', eyes: 'SQUINT', shield: 'CREST', action3d: 'ANIME_SLASH', description: 'Tajo verde neón que refactoriza el código.' },
-  { id: 12, code: 'COMBAT_GUARD', name: 'Guardia Post-Corte', eyes: 'DETERMINED', shield: 'CREST', action3d: 'SWORD_GUARD', description: 'Verificación de que el refactor no tiene regresiones.' },
-  { id: 13, code: 'WALL_CREST', name: 'Firewall Espartano', eyes: 'NORMAL', shield: 'CREST', action3d: 'SHIELD_WALL', description: 'Bloqueo de inyecciones SQL y fugas de secretos.' },
-  { id: 14, code: 'WALL_FOCUS', name: 'Blindaje de Producción', eyes: 'SQUINT', shield: 'CREST', action3d: 'SHIELD_WALL', description: 'Protección de base de datos y Bio-Armadura.' },
-  { id: 15, code: 'SHIELD', name: 'Santuario Documental', eyes: 'ARC_HAPPY', shield: 'DOC', action3d: 'SHIELD_WALL', description: 'Generación de README, ADR y contratos OpenAPI.' },
-  { id: 16, code: 'VICTORY', name: 'Auditoría Perfecta', eyes: 'CYBER_SCAN', shield: 'CODE', action3d: 'SHIELD_WALL', description: 'Código y documentación sincronizados al 100%.' },
+  {
+    id: 1,
+    code: 'IDLE',
+    name: 'Centinela Documental',
+    eyes: 'NORMAL',
+    shield: 'DOC',
+    action3d: 'STAND',
+    description: 'Guardia en espera de órdenes tácticas.',
+  },
+  {
+    id: 2,
+    code: 'ERROR',
+    name: 'Alerta de Excepción',
+    eyes: 'DEAD',
+    shield: 'CODE',
+    action3d: 'STAND',
+    description: 'Bug crítico, error de compilación o fallo de API.',
+  },
+  {
+    id: 3,
+    code: 'FOCUS',
+    name: 'Compilación Profunda',
+    eyes: 'SQUINT',
+    shield: 'CREST',
+    action3d: 'STAND',
+    description: 'Razonamiento complejo y resolución de conflictos.',
+  },
+  {
+    id: 4,
+    code: 'HAPPY',
+    name: 'Build Exitoso',
+    eyes: 'HAPPY_SQUINT',
+    shield: 'CREST',
+    action3d: 'STAND',
+    description: 'Tests en verde y cobertura completa.',
+  },
+  {
+    id: 5,
+    code: 'SPRINT_1',
+    name: 'Patrulla CI/CD',
+    eyes: 'NORMAL',
+    shield: 'NONE',
+    action3d: 'RUN_1',
+    description: 'Escaneo de archivos en segundo plano.',
+  },
+  {
+    id: 6,
+    code: 'SPRINT',
+    name: 'Sprint de Emergencia',
+    eyes: 'SQUINT',
+    shield: 'NONE',
+    action3d: 'RUN_2',
+    description: 'Consulta con Grounding o sprint de foco.',
+  },
+  {
+    id: 7,
+    code: 'SPRINT_HAPPY',
+    name: 'Velocidad Full-Stack',
+    eyes: 'HAPPY_SQUINT',
+    shield: 'NONE',
+    action3d: 'RUN_3',
+    description: 'Scaffolding completo de proyecto nuevo.',
+  },
+  {
+    id: 8,
+    code: 'SPRINT_DETERMINED',
+    name: 'Caza de Latencia',
+    eyes: 'DETERMINED',
+    shield: 'NONE',
+    action3d: 'RUN_4',
+    description: 'Optimización SQL y reducción Big-O.',
+  },
+  {
+    id: 9,
+    code: 'COMBAT_READY',
+    name: 'Postura Anti-Deuda',
+    eyes: 'ANGRY',
+    shield: 'CODE',
+    action3d: 'SWORD_LOW',
+    description: 'Detección de código espagueti y vulnerabilidades.',
+  },
+  {
+    id: 10,
+    code: 'COMBAT_CHARGE',
+    name: 'Carga de Refactor',
+    eyes: 'ANGRY',
+    shield: 'CREST',
+    action3d: 'SWORD_HIGH',
+    description: 'Carga de la Espada Binaria con principios SOLID.',
+  },
+  {
+    id: 11,
+    code: 'SLASH',
+    name: 'Corte Anime Binario',
+    eyes: 'SQUINT',
+    shield: 'CREST',
+    action3d: 'ANIME_SLASH',
+    description: 'Tajo verde neón que refactoriza el código.',
+  },
+  {
+    id: 12,
+    code: 'COMBAT_GUARD',
+    name: 'Guardia Post-Corte',
+    eyes: 'DETERMINED',
+    shield: 'CREST',
+    action3d: 'SWORD_GUARD',
+    description: 'Verificación de que el refactor no tiene regresiones.',
+  },
+  {
+    id: 13,
+    code: 'WALL_CREST',
+    name: 'Firewall Espartano',
+    eyes: 'NORMAL',
+    shield: 'CREST',
+    action3d: 'SHIELD_WALL',
+    description: 'Bloqueo de inyecciones SQL y fugas de secretos.',
+  },
+  {
+    id: 14,
+    code: 'WALL_FOCUS',
+    name: 'Blindaje de Producción',
+    eyes: 'SQUINT',
+    shield: 'CREST',
+    action3d: 'SHIELD_WALL',
+    description: 'Protección de base de datos y Bio-Armadura.',
+  },
+  {
+    id: 15,
+    code: 'SHIELD',
+    name: 'Santuario Documental',
+    eyes: 'ARC_HAPPY',
+    shield: 'DOC',
+    action3d: 'SHIELD_WALL',
+    description: 'Generación de README, ADR y contratos OpenAPI.',
+  },
+  {
+    id: 16,
+    code: 'VICTORY',
+    name: 'Auditoría Perfecta',
+    eyes: 'CYBER_SCAN',
+    shield: 'CODE',
+    action3d: 'SHIELD_WALL',
+    description: 'Código y documentación sincronizados al 100%.',
+  },
 ];
 
 export const MAPA_POSTURAS: Record<Postura, { poseId: NumeroPose; label: string; sound: any }> = {
@@ -57,6 +185,9 @@ export const useFsmStore = defineStore('fsm', () => {
   });
 
   function cambiarPostura(nuevaPostura: Postura, poseExplicita?: NumeroPose) {
+    if (!MAPA_POSTURAS[nuevaPostura]) nuevaPostura = 'IDLE';
+    if (poseExplicita !== undefined && !POSES_16.some((pose) => pose.id === poseExplicita))
+      poseExplicita = undefined;
     if (timerRetornoGuardia) {
       clearTimeout(timerRetornoGuardia);
       timerRetornoGuardia = null;
@@ -80,6 +211,7 @@ export const useFsmStore = defineStore('fsm', () => {
   }
 
   function fijarPoseDirecta(id: NumeroPose) {
+    if (!POSES_16.some((pose) => pose.id === id)) return;
     if (timerRetornoGuardia) {
       clearTimeout(timerRetornoGuardia);
       timerRetornoGuardia = null;
@@ -89,7 +221,7 @@ export const useFsmStore = defineStore('fsm', () => {
     if (pose) {
       // Deducir postura aproximada
       if (id === 11) posturaActual.value = 'SLASH';
-      else if (id === 15 || id === 14) posturaActual.value = 'SHIELD';
+      else if (id === 15 || id === 14 || id === 13) posturaActual.value = 'SHIELD';
       else if (id === 2) posturaActual.value = 'ERROR';
       else if (id === 16) posturaActual.value = 'VICTORY';
       else if (id >= 5 && id <= 8) posturaActual.value = 'SPRINT';

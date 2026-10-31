@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, defineAsyncComponent } from 'vue';
 import type { MensajeChat } from '../../types/ares.types.js';
-import MermaidViewer from '../common/MermaidViewer.vue';
-import ProjectZipForge from '../common/ProjectZipForge.vue';
-import LivePreviewModal from '../common/LivePreviewModal.vue';
+const MermaidViewer = defineAsyncComponent(() => import('../common/MermaidViewer.vue'));
+const ProjectZipForge = defineAsyncComponent(() => import('../common/ProjectZipForge.vue'));
+const LivePreviewModal = defineAsyncComponent(() => import('../common/LivePreviewModal.vue'));
 import { zipService, type ArchivoProyecto } from '../../services/zip.service.js';
 import { previewCompilerService } from '../../services/preview-compiler.service.js';
 import { useUiStore } from '../../stores/ui.store.js';
 
 const uiStore = useUiStore();
-
 
 const props = defineProps<{
   message: MensajeChat;
@@ -42,7 +41,11 @@ const nombreSugeridoProyecto = computed(() => {
 
 function descargarProyectoZipDirecto() {
   if (archivosProyecto.value.length === 0) return;
-  zipService.descargarProyectoZip(archivosProyecto.value, `${nombreSugeridoProyecto.value}.zip`, true);
+  zipService.descargarProyectoZip(
+    archivosProyecto.value,
+    `${nombreSugeridoProyecto.value}.zip`,
+    true,
+  );
 }
 
 // Detección táctica para Live Preview Sandbox (v2.8)
@@ -90,7 +93,7 @@ const tieneVistaPreviaVisual = computed(() => {
         a.ruta.endsWith('.vue') ||
         a.contenido.includes('<!DOCTYPE') ||
         a.contenido.includes('<html') ||
-        a.contenido.includes('<template>')
+        a.contenido.includes('<template>'),
     )
   );
 });
@@ -98,11 +101,11 @@ const tieneVistaPreviaVisual = computed(() => {
 const modalPreviewAbierto = ref(false);
 const mostrarPreviewInline = ref(
   props.message.content.toLowerCase().includes('vista previa') ||
-  props.message.content.toLowerCase().includes('tienda de café') ||
-  props.message.content.toLowerCase().includes('café') ||
-  props.message.content.toLowerCase().includes('ensalada') ||
-  props.message.content.toLowerCase().includes('salad') ||
-  props.message.content.toLowerCase().includes('live preview')
+    props.message.content.toLowerCase().includes('tienda de café') ||
+    props.message.content.toLowerCase().includes('café') ||
+    props.message.content.toLowerCase().includes('ensalada') ||
+    props.message.content.toLowerCase().includes('salad') ||
+    props.message.content.toLowerCase().includes('live preview'),
 );
 const versionMiniRender = ref(0);
 
@@ -115,7 +118,7 @@ const srcdocCompilado = computed(() => {
   versionMiniRender.value;
   return previewCompilerService.compilarProyectoParaPreview(
     archivosParaPreview.value,
-    nombreSugeridoProyecto.value
+    nombreSugeridoProyecto.value,
   );
 });
 
@@ -135,7 +138,11 @@ const esDocumentacion = computed(() => {
 
 const esCodigo = computed(() => {
   const c = props.message.content;
-  return /```(typescript|javascript|python|go|rust|java|sql)\n/i.test(c) || c.includes('Big-O') || c.includes('SOLID');
+  return (
+    /```(typescript|javascript|python|go|rust|java|sql)\n/i.test(c) ||
+    c.includes('Big-O') ||
+    c.includes('SOLID')
+  );
 });
 
 const esMermaid = computed(() => {
@@ -158,73 +165,140 @@ const intuicionModulo = computed(() => {
   if (esUsuario.value || !props.message.content) return null;
   const c = props.message.content.toLowerCase();
 
-  if (c.includes('benchmark') || c.includes('stryker') || c.includes('k6') || c.includes('mutación') || c.includes('concurrencia') || c.includes('prueba de carga') || c.includes('msi') || c.includes('e2e')) {
+  if (
+    c.includes('benchmark') ||
+    c.includes('stryker') ||
+    c.includes('k6') ||
+    c.includes('mutación') ||
+    c.includes('concurrencia') ||
+    c.includes('prueba de carga') ||
+    c.includes('msi') ||
+    c.includes('e2e')
+  ) {
     return {
       tipo: 'benchmark',
       icono: '🧪',
       etiqueta: 'Abrir Suite E2E & Benchmarks k6',
-      accion: () => { uiStore.modalBenchmarkAbierto = true; },
-      color: 'border-amber-400/80 bg-amber-950/40 text-amber-300 hover:bg-amber-900/60 shadow-[0_0_12px_rgba(245,158,11,0.3)]',
+      accion: () => {
+        uiStore.modalBenchmarkAbierto = true;
+      },
+      color:
+        'border-amber-400/80 bg-amber-950/40 text-amber-300 hover:bg-amber-900/60 shadow-[0_0_12px_rgba(245,158,11,0.3)]',
     };
   }
 
-  if (c.includes('bounded context') || c.includes('forja') || c.includes('enunciado') || c.includes('ejercicio') || c.includes('domain-driven') || c.includes('ddd') || c.includes('commits atómicos') || c.includes('matriz de equipo')) {
+  if (
+    c.includes('bounded context') ||
+    c.includes('forja') ||
+    c.includes('enunciado') ||
+    c.includes('ejercicio') ||
+    c.includes('domain-driven') ||
+    c.includes('ddd') ||
+    c.includes('commits atómicos') ||
+    c.includes('matriz de equipo')
+  ) {
     return {
       tipo: 'forge',
       icono: '📋',
       etiqueta: 'Abrir Forja Soberana Git & DDD',
-      accion: () => { uiStore.modalForgeAbierto = true; },
-      color: 'border-emerald-400/80 bg-emerald-950/40 text-[#00ffaa] hover:bg-emerald-900/60 shadow-[0_0_12px_rgba(0,255,170,0.3)]',
+      accion: () => {
+        uiStore.modalForgeAbierto = true;
+      },
+      color:
+        'border-emerald-400/80 bg-emerald-950/40 text-[#00ffaa] hover:bg-emerald-900/60 shadow-[0_0_12px_rgba(0,255,170,0.3)]',
     };
   }
 
-  if (c.includes('c4') || c.includes('radar') || c.includes('topología') || c.includes('arquitectura de sistemas') || c.includes('inyección de caos')) {
+  if (
+    c.includes('c4') ||
+    c.includes('radar') ||
+    c.includes('topología') ||
+    c.includes('arquitectura de sistemas') ||
+    c.includes('inyección de caos')
+  ) {
     return {
       tipo: 'radar',
       icono: '🌐',
       etiqueta: 'Abrir Radar de Arquitectura C4',
-      accion: () => { uiStore.modalRadarAbierto = true; },
-      color: 'border-cyan-400/80 bg-cyan-950/40 text-cyan-300 hover:bg-cyan-900/60 shadow-[0_0_12px_rgba(0,229,255,0.3)]',
+      accion: () => {
+        uiStore.modalRadarAbierto = true;
+      },
+      color:
+        'border-cyan-400/80 bg-cyan-950/40 text-cyan-300 hover:bg-cyan-900/60 shadow-[0_0_12px_rgba(0,229,255,0.3)]',
     };
   }
 
-  if (c.includes('enjambre') || c.includes('swarm') || (c.includes('atenea') && c.includes('vulcano'))) {
+  if (
+    c.includes('enjambre') ||
+    c.includes('swarm') ||
+    (c.includes('atenea') && c.includes('vulcano'))
+  ) {
     return {
       tipo: 'swarm',
       icono: '🐝',
       etiqueta: 'Abrir Monitor de Enjambre Multi-Agente',
-      accion: () => { uiStore.modalSwarmAbierto = true; },
-      color: 'border-purple-400/80 bg-purple-950/40 text-purple-300 hover:bg-purple-900/60 shadow-[0_0_12px_rgba(168,85,247,0.3)]',
+      accion: () => {
+        uiStore.modalSwarmAbierto = true;
+      },
+      color:
+        'border-purple-400/80 bg-purple-950/40 text-purple-300 hover:bg-purple-900/60 shadow-[0_0_12px_rgba(168,85,247,0.3)]',
     };
   }
 
-  if (c.includes('pipeline') || c.includes('ci/cd') || c.includes('despliegue') || c.includes('docker') || c.includes('github actions')) {
+  if (
+    c.includes('pipeline') ||
+    c.includes('ci/cd') ||
+    c.includes('despliegue') ||
+    c.includes('docker') ||
+    c.includes('github actions')
+  ) {
     return {
       tipo: 'cicd',
       icono: '🚀',
       etiqueta: 'Abrir Orquestador CI/CD',
-      accion: () => { uiStore.modalCicdAbierto = true; },
-      color: 'border-cyan-400/80 bg-cyan-950/40 text-cyan-300 hover:bg-cyan-900/60 shadow-[0_0_12px_rgba(0,229,255,0.3)]',
+      accion: () => {
+        uiStore.modalCicdAbierto = true;
+      },
+      color:
+        'border-cyan-400/80 bg-cyan-950/40 text-cyan-300 hover:bg-cyan-900/60 shadow-[0_0_12px_rgba(0,229,255,0.3)]',
     };
   }
 
-  if (c.includes('memoria vectorial') || c.includes('oráculo') || c.includes('rag') || c.includes('búsqueda semántica') || c.includes('cosine similarity')) {
+  if (
+    c.includes('memoria vectorial') ||
+    c.includes('oráculo') ||
+    c.includes('rag') ||
+    c.includes('búsqueda semántica') ||
+    c.includes('cosine similarity')
+  ) {
     return {
       tipo: 'memory',
       icono: '🧠',
       etiqueta: 'Consultar Oráculo de Memoria Vectorial',
-      accion: () => { uiStore.modalMemoriaAbierto = true; },
-      color: 'border-purple-400/80 bg-purple-950/40 text-purple-300 hover:bg-purple-900/60 shadow-[0_0_12px_rgba(168,85,247,0.3)]',
+      accion: () => {
+        uiStore.modalMemoriaAbierto = true;
+      },
+      color:
+        'border-purple-400/80 bg-purple-950/40 text-purple-300 hover:bg-purple-900/60 shadow-[0_0_12px_rgba(168,85,247,0.3)]',
     };
   }
 
-  if (c.includes('auditoría') || c.includes('github audit') || c.includes('owasp') || c.includes('big-o') || c.includes('vulnerabilidades')) {
+  if (
+    c.includes('auditoría') ||
+    c.includes('github audit') ||
+    c.includes('owasp') ||
+    c.includes('big-o') ||
+    c.includes('vulnerabilidades')
+  ) {
     return {
       tipo: 'audit',
       icono: '🔍',
       etiqueta: 'Abrir Auditoría de GitHub & OWASP',
-      accion: () => { uiStore.modalGithubAuditAbierto = true; },
-      color: 'border-[#00ffaa]/80 bg-emerald-950/40 text-[#00ffaa] hover:bg-emerald-900/60 shadow-[0_0_12px_rgba(0,255,170,0.3)]',
+      accion: () => {
+        uiStore.modalGithubAuditAbierto = true;
+      },
+      color:
+        'border-[#00ffaa]/80 bg-emerald-950/40 text-[#00ffaa] hover:bg-emerald-900/60 shadow-[0_0_12px_rgba(0,255,170,0.3)]',
     };
   }
 
@@ -247,7 +321,10 @@ function descargarDocMD() {
   a.href = url;
   const matchTitulo = props.message.content.match(/^#+\s*(.+)$/m);
   const nombre = matchTitulo
-    ? matchTitulo[1].toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-')
+    ? matchTitulo[1]
+        .toLowerCase()
+        .replace(/[^a-z0-9-_]/g, '-')
+        .replace(/-+/g, '-')
     : 'documento-ares';
   a.download = `${nombre}.md`;
   a.click();
@@ -272,10 +349,7 @@ interface SegmentoMensaje {
 
 function renderizarMarkdownBasico(txt: string): string {
   // Escapar HTML peligroso
-  let res = txt
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  let res = txt.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   // Bloques de código normales ```lenguaje ... ```
   res = res.replace(/```([a-z0-9_-]*)\n([\s\S]*?)```/gi, (_match, lang, code) => {
@@ -286,12 +360,24 @@ function renderizarMarkdownBasico(txt: string): string {
   });
 
   // Código inline `código`
-  res = res.replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-[#040914] text-[#00ffaa] font-mono text-xs border border-[#132a4a]">$1</code>');
+  res = res.replace(
+    /`([^`]+)`/g,
+    '<code class="px-1 py-0.5 rounded bg-[#040914] text-[#00ffaa] font-mono text-xs border border-[#132a4a]">$1</code>',
+  );
 
   // Títulos
-  res = res.replace(/^### (.*$)/gim, '<h3 class="text-sm font-orbitron font-bold text-cyan-300 mt-2 mb-1">$1</h3>');
-  res = res.replace(/^## (.*$)/gim, '<h2 class="text-base font-orbitron font-bold text-[#00ffaa] mt-3 mb-1">$1</h2>');
-  res = res.replace(/^# (.*$)/gim, '<h1 class="text-lg font-orbitron font-bold text-slate-100 mt-3 mb-2">$1</h1>');
+  res = res.replace(
+    /^### (.*$)/gim,
+    '<h3 class="text-sm font-orbitron font-bold text-cyan-300 mt-2 mb-1">$1</h3>',
+  );
+  res = res.replace(
+    /^## (.*$)/gim,
+    '<h2 class="text-base font-orbitron font-bold text-[#00ffaa] mt-3 mb-1">$1</h2>',
+  );
+  res = res.replace(
+    /^# (.*$)/gim,
+    '<h1 class="text-lg font-orbitron font-bold text-slate-100 mt-3 mb-2">$1</h1>',
+  );
 
   // Negrita
   res = res.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-slate-100">$1</strong>');
@@ -369,7 +455,10 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
       ]"
     >
       <!-- Encabezado de Turno de A.R.E.S. -->
-      <div v-if="!esUsuario" class="flex flex-wrap items-center justify-between gap-1 pb-2 mb-2 border-b border-[#132a4a] text-xs font-mono text-slate-400">
+      <div
+        v-if="!esUsuario"
+        class="flex flex-wrap items-center justify-between gap-1 pb-2 mb-2 border-b border-[#132a4a] text-xs font-mono text-slate-400"
+      >
         <div class="flex items-center gap-2">
           <span class="font-orbitron font-bold text-[#00ffaa]">A.R.E.S. TACTICAL</span>
           <!-- Badge de Enrutamiento o Failover IA (v3.9) -->
@@ -387,8 +476,12 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
             :title="message.conmutacion.motivoConmutacion"
           >
             <span>🤖 Auto-IA:</span>
-            <span class="font-bold">{{ message.conmutacion.nombreModelo || message.conmutacion.modeloFinal }}</span>
-            <span v-if="message.conmutacion.categoria" class="text-[9px] text-cyan-400 opacity-80">[{{ message.conmutacion.categoria }}]</span>
+            <span class="font-bold">{{
+              message.conmutacion.nombreModelo || message.conmutacion.modeloFinal
+            }}</span>
+            <span v-if="message.conmutacion.categoria" class="text-[9px] text-cyan-400 opacity-80"
+              >[{{ message.conmutacion.categoria }}]</span
+            >
           </span>
           <span
             v-else-if="message.modeloUsado"
@@ -412,35 +505,45 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
             <span class="animate-bounce">🐝</span>
             <span>ENJAMBRE TÁCTICO MULTI-AGENTE SOBERANO (v3.1)</span>
           </div>
-          <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-bold">
+          <span
+            class="text-[10px] px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-bold"
+          >
             CONSENSO 100% ALCANZADO
           </span>
         </div>
 
         <!-- Píldoras de los 4 Subagentes -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[10px]">
-          <div class="p-1.5 rounded bg-[#130d29] border border-purple-500/30 flex items-center gap-1.5 text-purple-300">
+          <div
+            class="p-1.5 rounded bg-[#130d29] border border-purple-500/30 flex items-center gap-1.5 text-purple-300"
+          >
             <span>🏛️</span>
             <div>
               <div class="font-bold">Atenea</div>
               <div class="text-[9px] text-slate-400">Arquitectura & DDD</div>
             </div>
           </div>
-          <div class="p-1.5 rounded bg-[#09152b] border border-cyan-500/30 flex items-center gap-1.5 text-cyan-300">
+          <div
+            class="p-1.5 rounded bg-[#09152b] border border-cyan-500/30 flex items-center gap-1.5 text-cyan-300"
+          >
             <span>⚔️</span>
             <div>
               <div class="font-bold">Vulcano</div>
               <div class="text-[9px] text-slate-400">Backend Clean</div>
             </div>
           </div>
-          <div class="p-1.5 rounded bg-[#041d14] border border-[#00ffaa]/30 flex items-center gap-1.5 text-[#00ffaa]">
+          <div
+            class="p-1.5 rounded bg-[#041d14] border border-[#00ffaa]/30 flex items-center gap-1.5 text-[#00ffaa]"
+          >
             <span>🎨</span>
             <div>
               <div class="font-bold">Mercurio</div>
               <div class="text-[9px] text-slate-400">Vue 3 / Live UI</div>
             </div>
           </div>
-          <div class="p-1.5 rounded bg-[#1e1405] border border-amber-500/30 flex items-center gap-1.5 text-amber-300">
+          <div
+            class="p-1.5 rounded bg-[#1e1405] border border-amber-500/30 flex items-center gap-1.5 text-amber-300"
+          >
             <span>🧪</span>
             <div>
               <div class="font-bold">Némesis</div>
@@ -457,7 +560,10 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
           <MermaidViewer v-else-if="seg.tipo === 'mermaid'" :code="seg.contenido" />
         </template>
         <!-- Indicador de procesamiento mientras razona el modelo -->
-        <div v-if="!message.content" class="flex items-center gap-2 text-cyan-400 py-1 text-xs font-mono animate-pulse">
+        <div
+          v-if="!message.content"
+          class="flex items-center gap-2 text-cyan-400 py-1 text-xs font-mono animate-pulse"
+        >
           <span class="w-2 h-2 rounded-full bg-[#00ffaa] animate-ping"></span>
           <span>A.R.E.S. procesando respuesta táctica...</span>
         </div>
@@ -471,9 +577,13 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
         <div class="flex items-center gap-2.5">
           <span class="text-xl">🎨</span>
           <div>
-            <div class="font-orbitron font-bold text-[#00ffaa] text-xs sm:text-sm flex items-center gap-2">
+            <div
+              class="font-orbitron font-bold text-[#00ffaa] text-xs sm:text-sm flex items-center gap-2"
+            >
               <span>VISTA PREVIA VISUAL INTERACTIVA</span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] bg-cyan-950 border border-cyan-500/50 text-cyan-300 font-bold">
+              <span
+                class="px-2 py-0.5 rounded-full text-[10px] bg-cyan-950 border border-cyan-500/50 text-cyan-300 font-bold"
+              >
                 EN VIVO
               </span>
             </div>
@@ -510,7 +620,9 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
         v-if="!esUsuario && tieneVistaPreviaVisual && mostrarPreviewInline"
         class="my-3 rounded-lg border border-cyan-500/60 overflow-hidden bg-white shadow-2xl transition-all"
       >
-        <div class="bg-[#091326] px-3 py-1.5 border-b border-[#132a4a] flex items-center justify-between text-xs font-mono">
+        <div
+          class="bg-[#091326] px-3 py-1.5 border-b border-[#132a4a] flex items-center justify-between text-xs font-mono"
+        >
           <span class="text-[#00ffaa] font-bold flex items-center gap-1.5">
             <span>🌐</span> INTERFAZ WEB RENDERIZADA
           </span>
@@ -549,8 +661,22 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
       />
 
       <!-- Derivación Táctica Automática de Artefactos -->
-      <div v-if="!esUsuario && message.content && (esDocumentacion || esCodigo || esMermaid || archivosProyecto.length > 0 || tieneVistaPreviaVisual || intuicionModulo)" class="mt-3 pt-2.5 border-t border-[#132a4a] flex flex-wrap items-center gap-2">
-        <span class="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1">
+      <div
+        v-if="
+          !esUsuario &&
+          message.content &&
+          (esDocumentacion ||
+            esCodigo ||
+            esMermaid ||
+            archivosProyecto.length > 0 ||
+            tieneVistaPreviaVisual ||
+            intuicionModulo)
+        "
+        class="mt-3 pt-2.5 border-t border-[#132a4a] flex flex-wrap items-center gap-2"
+      >
+        <span
+          class="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1"
+        >
           <span>⚡</span> Acciones:
         </span>
 
@@ -627,7 +753,10 @@ const segmentos = computed<SegmentoMensaje[]>(() => {
       </div>
 
       <!-- Fuentes de Grounding (Google Search) -->
-      <div v-if="message.sources && message.sources.length > 0" class="mt-3 pt-2 border-t border-[#132a4a] text-xs font-mono">
+      <div
+        v-if="message.sources && message.sources.length > 0"
+        class="mt-3 pt-2 border-t border-[#132a4a] text-xs font-mono"
+      >
         <div class="text-[11px] text-slate-400 mb-1 flex items-center gap-1">
           <span>🔍</span> FUENTES DE GROUNDING VERIFICADAS:
         </div>

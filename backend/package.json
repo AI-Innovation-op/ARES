@@ -1,6 +1,6 @@
 {
   "name": "@ares-ecosystem/backend",
-  "version": "4.5.1",
+  "version": "4.6.0",
   "description": "Backend del ecosistema A.R.E.S. — Agente Autónomo de Ingeniería de Software y Documentación Técnica",
   "type": "module",
   "main": "dist/app.js",
@@ -11,7 +11,12 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
-  "keywords": ["ares", "gemini", "backend", "typescript"],
+  "keywords": [
+    "ares",
+    "gemini",
+    "backend",
+    "typescript"
+  ],
   "license": "MIT",
   "dependencies": {
     "@google/genai": "^2.31.0",

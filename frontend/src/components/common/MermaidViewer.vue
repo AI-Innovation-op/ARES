@@ -6,7 +6,6 @@ const props = defineProps<{
   code: string;
 }>();
 
-const contenedorRef = ref<HTMLDivElement | null>(null);
 const svgRenderizado = ref<string>('');
 const errorRender = ref<string | null>(null);
 const verCodigoCrudo = ref(false);

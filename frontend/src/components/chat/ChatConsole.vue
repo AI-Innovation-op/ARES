@@ -1,511 +1,374 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onMounted, ref, watch } from 'vue';
 import { useChatStore } from '../../stores/chat.store.js';
 import { useUiStore } from '../../stores/ui.store.js';
-import ChatMessage from './ChatMessage.vue';
+import { useConnectionStore } from '../../stores/connection.store.js';
 import ChatInput from './ChatInput.vue';
-import GithubAuditModal from '../audit/GithubAuditModal.vue';
-import SwarmMonitorModal from '../swarm/SwarmMonitorModal.vue';
-import PipelineMonitorModal from '../cicd/PipelineMonitorModal.vue';
-import MemoryOracleModal from '../memory/MemoryOracleModal.vue';
-import ArchitectureRadarModal from '../architecture/ArchitectureRadarModal.vue';
-import AssignmentForgeModal from '../forge/AssignmentForgeModal.vue';
-import BenchmarkSuiteModal from '../benchmark/BenchmarkSuiteModal.vue';
-
-const chatStore = useChatStore();
-const uiStore = useUiStore();
-const scrollContainer = ref<HTMLDivElement | null>(null);
-const mostrarHistorial = ref(false);
-const exportado = ref(false);
-const menuModulosAbierto = ref(false);
-
-function abrirModulo(modulo: string) {
-  menuModulosAbierto.value = false;
-  if (modulo === 'forge') uiStore.modalForgeAbierto = true;
-  else if (modulo === 'benchmark') uiStore.modalBenchmarkAbierto = true;
-  else if (modulo === 'radar') uiStore.modalRadarAbierto = true;
-  else if (modulo === 'memory') uiStore.modalMemoriaAbierto = true;
-  else if (modulo === 'cicd') uiStore.modalCicdAbierto = true;
-  else if (modulo === 'swarm') uiStore.modalSwarmAbierto = true;
-  else if (modulo === 'audit') uiStore.modalGithubAuditAbierto = true;
-}
-
-const menuModoAbierto = ref(false);
-
-const modosDisponibles = [
+import AppIcon from '../common/AppIcon.vue';
+const ChatMessage = defineAsyncComponent(() => import('./ChatMessage.vue'));
+const BioPanel = defineAsyncComponent(() => import('../hud/BioPanel.vue'));
+const GithubAuditModal = defineAsyncComponent(() => import('../audit/GithubAuditModal.vue'));
+const SwarmMonitorModal = defineAsyncComponent(() => import('../swarm/SwarmMonitorModal.vue'));
+const PipelineMonitorModal = defineAsyncComponent(() => import('../cicd/PipelineMonitorModal.vue'));
+const MemoryOracleModal = defineAsyncComponent(() => import('../memory/MemoryOracleModal.vue'));
+const ArchitectureRadarModal = defineAsyncComponent(
+  () => import('../architecture/ArchitectureRadarModal.vue'),
+);
+const AssignmentForgeModal = defineAsyncComponent(
+  () => import('../forge/AssignmentForgeModal.vue'),
+);
+const BenchmarkSuiteModal = defineAsyncComponent(
+  () => import('../benchmark/BenchmarkSuiteModal.vue'),
+);
+const chat = useChatStore(),
+  ui = useUiStore(),
+  connection = useConnectionStore();
+const composer = ref<InstanceType<typeof ChatInput> | null>(null);
+const scroll = ref<HTMLDivElement | null>(null),
+  history = ref<HTMLDialogElement | null>(null),
+  tools = ref<HTMLDialogElement | null>(null);
+const wellbeing = ref<HTMLDialogElement | null>(null);
+const wellbeingOpen = ref(false);
+const visibleMessages = computed(() =>
+  chat.mensajes.filter(
+    (message) =>
+      message.id !== 'bienvenida' &&
+      !message.id.startsWith('new-') &&
+      !message.id.startsWith('init-'),
+  ),
+);
+const welcome = computed(() => visibleMessages.value.length === 0);
+const exported = ref(false),
+  historyError = ref('');
+const starters = [
   {
-    id: 'centinela',
-    nombre: 'Centinela',
-    icono: '🛡️',
-    descripcion: 'Rigor formal, DDD y blindaje OWASP',
-    badgeColor: 'border-[#00ffaa]/60 text-[#00ffaa] bg-[#00ffaa]/10 shadow-[0_0_8px_rgba(0,255,170,0.25)]',
+    icon: 'code',
+    label: 'Revisar mi código',
+    text: 'Encuentra problemas y oportunidades de mejora.',
+    prompt:
+      'Quiero revisar mi código. Ayúdame a identificar defectos verificables y a definir pruebas antes de proponer cambios.',
   },
   {
-    id: 'blitzkrieg',
-    nombre: 'Blitzkrieg',
-    icono: '⚡',
-    descripcion: 'Prototipado rápido y Live Preview',
-    badgeColor: 'border-cyan-400/60 text-cyan-300 bg-cyan-950/30 shadow-[0_0_8px_rgba(0,229,255,0.25)]',
+    icon: 'layers',
+    label: 'Pensar la arquitectura',
+    text: 'Define límites, reglas y decisiones con claridad.',
+    prompt:
+      'Ayúdame a definir los contextos de mi proyecto y las invariantes de sus agregados. Primero identifica qué información necesitas.',
   },
   {
-    id: 'arquitecto',
-    nombre: 'Arquitecto',
-    icono: '🏛️',
-    descripcion: 'RFCs profundos, diagramas C4 y ADRs',
-    badgeColor: 'border-purple-400/60 text-purple-300 bg-purple-950/30 shadow-[0_0_8px_rgba(168,85,247,0.25)]',
-  },
-  {
-    id: 'enjambre',
-    nombre: 'Enjambre',
-    icono: '🐝',
-    descripcion: 'Swarm multi-agente: 4 especialistas',
-    badgeColor: 'border-amber-400/60 text-amber-300 bg-amber-950/30 shadow-[0_0_8px_rgba(245,158,11,0.25)]',
+    icon: 'document',
+    label: 'Documentar una decisión',
+    text: 'Convierte el contexto en un ADR útil.',
+    prompt:
+      'Quiero documentar una decisión de arquitectura en un ADR. Guíame para describir contexto, alternativas y consecuencias.',
   },
 ];
-
-const modoActualInfo = computed(() => {
-  return modosDisponibles.find((m) => m.id === uiStore.modoTactico) || modosDisponibles[0];
-});
-
-function seleccionarModo(id: any) {
-  uiStore.setModoTactico(id);
-  menuModoAbierto.value = false;
+const modules = [
+  {
+    id: 'wellbeing',
+    icon: 'pause',
+    name: 'Pausa y bienestar',
+    description: 'Recordatorios de agua y sesiones de foco.',
+  },
+  {
+    id: 'forge',
+    icon: 'code',
+    name: 'Forja de proyectos',
+    description: 'Preparar estructura, ejercicios y archivos.',
+  },
+  {
+    id: 'audit',
+    icon: 'shield',
+    name: 'Revisión de repositorio',
+    description: 'Analizar fuentes de GitHub.',
+  },
+  {
+    id: 'memory',
+    icon: 'history',
+    name: 'Memoria',
+    description: 'Consultar el conocimiento guardado.',
+  },
+  {
+    id: 'radar',
+    icon: 'layers',
+    name: 'Radar de arquitectura',
+    description: 'Explorar y simular topologías.',
+  },
+  {
+    id: 'swarm',
+    icon: 'spark',
+    name: 'Especialistas',
+    description: 'Solicitar perspectivas de varios agentes.',
+  },
+  {
+    id: 'cicd',
+    icon: 'terminal',
+    name: 'Simulador de pipeline',
+    description: 'Explorar etapas de CI/CD simuladas.',
+  },
+  {
+    id: 'benchmark',
+    icon: 'code',
+    name: 'Laboratorio de pruebas',
+    description: 'Generar suites y consultar simulaciones.',
+  },
+];
+function openModule(id: string) {
+  tools.value?.close();
+  if (id === 'wellbeing') {
+    wellbeingOpen.value = true;
+    wellbeing.value?.showModal();
+  } else if (id === 'forge') ui.modalForgeAbierto = true;
+  else if (id === 'audit') ui.modalGithubAuditAbierto = true;
+  else if (id === 'memory') ui.modalMemoriaAbierto = true;
+  else if (id === 'radar') ui.modalRadarAbierto = true;
+  else if (id === 'swarm') ui.modalSwarmAbierto = true;
+  else if (id === 'cicd') ui.modalCicdAbierto = true;
+  else if (id === 'benchmark') ui.modalBenchmarkAbierto = true;
 }
-
-function cerrarMenuSiClickFuera(e: MouseEvent) {
-  const target = e.target as HTMLElement;
-  if (!target.closest('.dropdown-arsenal-tactico')) {
-    menuModulosAbierto.value = false;
+function send(payload: { texto: string; imagenBase64?: string }) {
+  if (chat.cargando) return;
+  if (connection.state !== 'online') {
+    window.dispatchEvent(new Event('ares:open-connection'));
+    return;
   }
-  if (!target.closest('.dropdown-modo-tactico')) {
-    menuModoAbierto.value = false;
-  }
+  chat.enviarMensaje(payload.texto, payload.imagenBase64);
 }
-
-function handleInsertarEnChat(prompt: string) {
-  chatStore.enviarMensaje(prompt);
+function openConnection() {
+  window.dispatchEvent(new Event('ares:open-connection'));
 }
-
-function exportarMisionActual() {
-  if (chatStore.mensajes.length === 0) return;
-  const fecha = new Date().toLocaleString();
-  let doc = `# 🛡️ INFORME DE MISIÓN TÁCTICA A.R.E.S. (v2.9 J.A.R.V.I.S. Core)\n\n`;
-  doc += `> **Fecha de Misión:** ${fecha}\n`;
-  doc += `> **ID de Conversación:** ${chatStore.conversacionIdActual || 'sesion-activa'}\n`;
-  doc += `> **Total de Intercambios:** ${chatStore.mensajes.length}\n`;
-  doc += `> **Modo Táctico Activo:** ${uiStore.modoTactico.toUpperCase()}\n\n`;
-  doc += `---\n\n`;
-
-  for (const msg of chatStore.mensajes) {
-    const rol = msg.role === 'user' ? '👤 COMANDANTE' : '🛡️ A.R.E.S. TACTICAL';
-    const hora = new Date(msg.timestamp).toLocaleTimeString();
-    doc += `### ${rol} [${hora}]\n\n${msg.content}\n\n---\n\n`;
-  }
-
-  const blob = new Blob([doc], { type: 'text/markdown;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `Mision_ARES_${Date.now()}.md`;
-  a.click();
+async function openHistory() {
+  history.value?.showModal();
+  historyError.value = '';
+  await chat.cargarConversaciones();
+  historyError.value = chat.errorHistorial || '';
+  if (connection.state !== 'online')
+    historyError.value = 'Conecta tu servidor para recuperar las misiones guardadas.';
+}
+async function selectSession(id: string) {
+  await chat.seleccionarConversacion(id);
+  history.value?.close();
+}
+async function newSession() {
+  if (chat.cargando) return;
+  await chat.nuevaSesion();
+}
+function exportSession() {
+  const text =
+    '# Conversación ARES\n\n' +
+    visibleMessages.value
+      .map((message) => `## ${message.role === 'user' ? 'Tú' : 'ARES'}\n\n${message.content}`)
+      .join('\n\n');
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown;charset=utf-8' }));
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = 'conversacion-ares.md';
+  anchor.click();
   URL.revokeObjectURL(url);
-
-  exportado.value = true;
-  setTimeout(() => {
-    exportado.value = false;
-  }, 2500);
+  exported.value = true;
+  setTimeout(() => (exported.value = false), 2000);
 }
-
-function scrollToBottom() {
-  nextTick(() => {
-    if (scrollContainer.value) {
-      scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight;
-    }
-  });
+let follow = true;
+function trackScroll() {
+  if (scroll.value)
+    follow = scroll.value.scrollHeight - scroll.value.scrollTop - scroll.value.clientHeight < 100;
 }
-
+watch(
+  () => chat.mensajes.at(-1)?.content,
+  async () => {
+    await nextTick();
+    if (follow && scroll.value) scroll.value.scrollTop = scroll.value.scrollHeight;
+  },
+);
+watch(
+  () => connection.state,
+  (state) => {
+    if (state === 'online') chat.cargarConversaciones();
+  },
+);
 onMounted(() => {
-  scrollToBottom();
-  chatStore.cargarConversaciones();
-  window.addEventListener('click', cerrarMenuSiClickFuera);
+  if (connection.state === 'online') chat.cargarConversaciones();
 });
-
-onUnmounted(() => {
-  window.removeEventListener('click', cerrarMenuSiClickFuera);
-});
-
-watch(
-  () => chatStore.mensajes.length,
-  () => {
-    scrollToBottom();
-  }
-);
-
-// Auto-scroll táctico durante el streaming token a token
-watch(
-  () => chatStore.mensajes[chatStore.mensajes.length - 1]?.content,
-  () => {
-    scrollToBottom();
-  }
-);
-
-function handleEnviar(payload: { texto: string; imagenBase64?: string }) {
-  chatStore.enviarMensaje(payload.texto, payload.imagenBase64);
-}
-
-function toggleHistorial() {
-  mostrarHistorial.value = !mostrarHistorial.value;
-  if (mostrarHistorial.value) {
-    chatStore.cargarConversaciones();
-  }
-}
-
-function seleccionarMision(id: string) {
-  chatStore.seleccionarConversacion(id);
-  mostrarHistorial.value = false;
-}
 </script>
-
 <template>
-  <div class="h-full flex flex-col bg-[#040914] relative">
-    <!-- Barra superior de la consola con acciones rápidas y selector de sesión persistente -->
-    <div class="px-3 py-2 border-b border-[#132a4a] bg-[#091326]/75 flex items-center justify-between text-xs font-mono gap-2">
-      <!-- Selector de Misiones SQLite -->
-      <div class="flex items-center gap-2 shrink-0">
-        <button
-          @click="toggleHistorial"
-          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#0b1b36] border border-cyan-500/40 hover:border-cyan-400 text-cyan-300 text-[11px] cursor-pointer transition shadow-[0_0_8px_rgba(0,229,255,0.15)]"
-          title="Ver misiones y sesiones guardadas en SQLite"
-        >
-          <span>📜</span>
-          <span class="font-bold">MISIONES</span>
-          <span class="bg-cyan-950/80 text-cyan-400 px-1 rounded text-[10px]">{{ chatStore.conversaciones.length }}</span>
-        </button>
-
-        <button
-          @click="chatStore.nuevaSesion()"
-          class="flex items-center gap-1 px-2 py-1 rounded bg-[#0b1b36] border border-[#132a4a] hover:border-emerald-400 text-emerald-300 text-[11px] cursor-pointer transition"
-          title="Iniciar nueva misión táctica con memoria limpia"
-        >
-          <span>➕</span>
-          <span class="hidden sm:inline">Nueva Misión</span>
-        </button>
-
-        <!-- Barra de Selección Táctica: Menú Desplegable de Arsenal de Módulos (v3.8) -->
-        <div class="relative dropdown-arsenal-tactico">
-          <button
-            type="button"
-            @click.stop="menuModulosAbierto = !menuModulosAbierto"
-            class="flex items-center gap-1.5 px-3 py-1 rounded bg-[#0b1b36] border border-cyan-400/60 hover:border-cyan-300 hover:bg-cyan-900/30 text-cyan-300 text-[11px] font-bold font-mono cursor-pointer transition shadow-[0_0_12px_rgba(0,229,255,0.2)]"
-            title="Desplegar Arsenal Táctico de Módulos de Ingeniería A.R.E.S."
-          >
-            <span>⚡</span>
-            <span>ARSENAL TÁCTICO</span>
-            <span class="text-[9px] bg-cyan-950/90 px-1 py-0.2 rounded border border-cyan-700 text-cyan-300 font-bold">7</span>
-            <span class="text-[9px] text-cyan-400 font-bold transition-transform duration-200" :class="menuModulosAbierto ? 'rotate-180' : ''">▼</span>
-          </button>
-
-          <!-- Menú Flotante Cyberpunk -->
-          <div
-            v-if="menuModulosAbierto"
-            class="absolute left-0 mt-1.5 w-72 bg-[#061022] border border-cyan-500/60 rounded-lg shadow-2xl py-1 z-50 divide-y divide-[#132a4a] animate-fade-in font-mono text-xs backdrop-blur-md"
-          >
-            <div class="px-3 py-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider bg-[#09152b] rounded-t">
-              Módulos Especializados A.R.E.S.
-            </div>
-
-            <!-- 1. Forja Git DDD -->
-            <button
-              type="button"
-              @click="abrirModulo('forge')"
-              class="w-full px-3 py-2 text-left hover:bg-emerald-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-[#00ffaa] group cursor-pointer"
-            >
-              <span class="text-base group-hover:scale-110 transition">📋</span>
-              <div>
-                <div class="font-bold text-[11px]">Forja Soberana Git (v3.5)</div>
-                <div class="text-[10px] text-slate-400">Desofuscador de PDF, Squad Matrix & Commits</div>
-              </div>
-            </button>
-
-            <!-- 2. Suite E2E & Benchmarks -->
-            <button
-              type="button"
-              @click="abrirModulo('benchmark')"
-              class="w-full px-3 py-2 text-left hover:bg-amber-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-amber-300 group cursor-pointer"
-            >
-              <span class="text-base group-hover:scale-110 transition">🧪</span>
-              <div>
-                <div class="font-bold text-[11px]">Suite E2E & Benchmarks (v3.8)</div>
-                <div class="text-[10px] text-slate-400">Mutación Stryker (MSI) & Grafana k6</div>
-              </div>
-            </button>
-
-            <!-- 3. Radar de Arquitectura C4 -->
-            <button
-              type="button"
-              @click="abrirModulo('radar')"
-              class="w-full px-3 py-2 text-left hover:bg-cyan-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-cyan-300 group cursor-pointer"
-            >
-              <span class="text-base group-hover:scale-110 transition">🌐</span>
-              <div>
-                <div class="font-bold text-[11px]">Radar de Arquitectura C4 (v3.4)</div>
-                <div class="text-[10px] text-slate-400">Topología distribuida, caos y tracing</div>
-              </div>
-            </button>
-
-            <!-- 4. Memoria Vectorial -->
-            <button
-              type="button"
-              @click="abrirModulo('memory')"
-              class="w-full px-3 py-2 text-left hover:bg-purple-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-purple-300 group cursor-pointer"
-            >
-              <span class="text-base group-hover:scale-110 transition">🧠</span>
-              <div>
-                <div class="font-bold text-[11px]">Oráculo de Memoria Vectorial (v3.3)</div>
-                <div class="text-[10px] text-slate-400">128D Cosine Similarity & RAG local</div>
-              </div>
-            </button>
-
-            <!-- 5. CI/CD Pipeline Engine -->
-            <button
-              type="button"
-              @click="abrirModulo('cicd')"
-              class="w-full px-3 py-2 text-left hover:bg-cyan-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-cyan-300 group cursor-pointer"
-            >
-              <span class="text-base group-hover:scale-110 transition">🚀</span>
-              <div>
-                <div class="font-bold text-[11px]">CI/CD Pipeline Engine (v3.2)</div>
-                <div class="text-[10px] text-slate-400">Orquestador de 6 etapas & Despliegues</div>
-              </div>
-            </button>
-
-            <!-- 6. Enjambre Multi-Agente -->
-            <button
-              type="button"
-              @click="abrirModulo('swarm')"
-              class="w-full px-3 py-2 text-left hover:bg-purple-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-purple-300 group cursor-pointer"
-            >
-              <span class="text-base group-hover:scale-110 transition">🐝</span>
-              <div>
-                <div class="font-bold text-[11px]">Enjambre Multi-Agente Swarm (v3.1)</div>
-                <div class="text-[10px] text-slate-400">Atenea, Vulcano, Mercurio, Némesis</div>
-              </div>
-            </button>
-
-            <!-- 7. Ingesta GitHub -->
-            <button
-              type="button"
-              @click="abrirModulo('audit')"
-              class="w-full px-3 py-2 text-left hover:bg-emerald-950/40 flex items-center gap-2.5 transition text-slate-200 hover:text-[#00ffaa] group cursor-pointer"
-            >
-              <span class="text-base group-hover:scale-110 transition">🔍</span>
-              <div>
-                <div class="font-bold text-[11px]">Auditoría de GitHub & OWASP (v3.0)</div>
-                <div class="text-[10px] text-slate-400">Análisis AST de repositorios remotos</div>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        <!-- Acceso Rápido Directo a la Forja Soberana -->
-        <button
-          type="button"
-          @click="uiStore.toggleModalForge"
-          class="hidden xl:flex items-center gap-1 px-2.5 py-1 rounded bg-[#07241c] border border-emerald-400/70 hover:border-[#00ffaa] hover:bg-[#00ffaa]/20 text-[#00ffaa] text-[11px] font-bold cursor-pointer transition shadow-[0_0_10px_rgba(0,255,170,0.2)]"
-          title="Abrir Forja Soberana de Ejercicios DDD"
-        >
-          <span>📋</span>
-          <span>FORJA GIT</span>
-        </button>
+  <section class="conversation-panel" aria-label="Conversación con ARES">
+    <div class="conversation-toolbar">
+      <div class="conversation-title">
+        <AppIcon name="chat" :size="19" /><span>Conversación</span
+        ><span class="muted-separator">/</span
+        ><span class="conversation-context">{{
+          chat.conversacionIdActual ? 'Misión guardada' : 'Nueva misión'
+        }}</span>
       </div>
-
-      <!-- Selector Compacto de Modo Táctico: Barra de Selección Dropdown (v3.8) -->
-      <div class="relative dropdown-modo-tactico hidden sm:block">
-        <button
-          type="button"
-          @click.stop="menuModoAbierto = !menuModoAbierto"
-          class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#040914] border text-[11px] font-mono font-bold cursor-pointer transition select-none"
-          :class="modoActualInfo.badgeColor"
-          :title="`Modo Táctico Actual: ${modoActualInfo.nombre}. Clic para cambiar de postura táctica.`"
-        >
-          <span class="text-xs">{{ modoActualInfo.icono }}</span>
-          <span>{{ modoActualInfo.nombre }}</span>
-          <span class="text-[9px] opacity-75 font-bold transition-transform duration-200" :class="menuModoAbierto ? 'rotate-180' : ''">▼</span>
+      <div class="conversation-actions">
+        <button class="text-button" :disabled="chat.cargando" @click="newSession">
+          <AppIcon name="plus" :size="17" /><span>Nueva</span>
         </button>
-
-        <!-- Menú Flotante Cyberpunk de Modos Tácticos -->
-        <div
-          v-if="menuModoAbierto"
-          class="absolute right-0 mt-1.5 w-64 bg-[#061022] border border-[#132a4a] rounded-lg shadow-2xl py-1 z-50 divide-y divide-[#132a4a] animate-fade-in font-mono text-xs backdrop-blur-md"
-        >
-          <div class="px-3 py-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider bg-[#09152b] rounded-t flex items-center justify-between">
-            <span>Postura / Modo Táctico</span>
-            <span class="text-[9px] text-[#00ffaa]">FSM ACTIVE</span>
-          </div>
-
-          <button
-            v-for="m in modosDisponibles"
-            :key="m.id"
-            type="button"
-            @click="seleccionarModo(m.id)"
-            class="w-full px-3 py-2 text-left flex items-center justify-between transition cursor-pointer group"
-            :class="uiStore.modoTactico === m.id ? 'bg-[#00ffaa]/15 text-[#00ffaa]' : 'text-slate-300 hover:bg-[#0b1b36] hover:text-slate-100'"
-          >
-            <div class="flex items-center gap-2">
-              <span class="text-sm group-hover:scale-110 transition">{{ m.icono }}</span>
-              <div>
-                <div class="font-bold text-[11px]">{{ m.nombre }}</div>
-                <div class="text-[10px] text-slate-400">{{ m.descripcion }}</div>
-              </div>
-            </div>
-            <span v-if="uiStore.modoTactico === m.id" class="text-xs text-[#00ffaa] font-bold">✓</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Acciones de Cabecera: Exportar Misión y Limpiar -->
-      <div class="flex items-center gap-2 shrink-0 ml-auto">
         <button
-          @click="exportarMisionActual"
-          class="flex items-center gap-1 px-2.5 py-1 rounded bg-[#0b1b36] border border-cyan-500/40 hover:border-cyan-400 text-cyan-300 text-[11px] cursor-pointer transition shadow"
-          :title="exportado ? '¡Misión exportada con éxito!' : 'Exportar el historial completo de la misión en Markdown (.md)'"
+          class="icon-button"
+          aria-label="Abrir historial de misiones"
+          :disabled="chat.cargando"
+          @click="openHistory"
         >
-          <span>{{ exportado ? '✓' : '📥' }}</span>
-          <span class="hidden sm:inline">{{ exportado ? 'Exportado' : 'Exportar Misión' }}</span>
+          <AppIcon name="history" :size="19" />
         </button>
-
         <button
-          @click="chatStore.limpiarConsola"
-          class="text-slate-500 hover:text-slate-300 text-[11px] cursor-pointer transition"
-          title="Limpiar vista de consola"
+          class="icon-button"
+          aria-label="Explorar herramientas de ingeniería"
+          @click="tools?.showModal()"
         >
-          Limpiar
+          <AppIcon name="layers" :size="19" />
+        </button>
+        <button
+          v-if="!welcome"
+          class="icon-button"
+          :aria-label="exported ? 'Conversación exportada' : 'Exportar conversación'"
+          @click="exportSession"
+        >
+          <AppIcon :name="exported ? 'check' : 'download'" :size="19" />
         </button>
       </div>
     </div>
-
-    <!-- Menú Desplegable / Drawer de Historial de Misiones (SQLite) -->
-    <div
-      v-if="mostrarHistorial"
-      class="absolute top-10 left-3 z-30 w-80 max-h-96 bg-[#071329] border border-cyan-500/50 rounded-lg shadow-[0_10px_30px_rgba(0,0,0,0.85)] p-3 font-mono flex flex-col backdrop-blur-md"
-    >
-      <div class="flex items-center justify-between border-b border-[#132a4a] pb-2 mb-2">
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-bold text-cyan-300 tracking-wider">💾 HISTORIAL SQLITE</span>
-          <span class="text-[10px] text-slate-400">({{ chatStore.conversaciones.length }})</span>
-        </div>
-        <button
-          @click="mostrarHistorial = false"
-          class="text-slate-400 hover:text-white text-xs cursor-pointer p-0.5"
-        >
-          ✕
-        </button>
-      </div>
-
-      <div class="overflow-y-auto flex-1 space-y-1.5 pr-1 max-h-72">
-        <div
-          v-if="chatStore.conversaciones.length === 0"
-          class="text-xs text-slate-500 text-center py-4"
-        >
-          Sin misiones previas guardadas aún.
-        </div>
-
-        <div
-          v-for="c in chatStore.conversaciones"
-          :key="c.id"
-          class="group flex items-center justify-between p-2 rounded border transition text-left cursor-pointer"
-          :class="[
-            chatStore.conversacionIdActual === c.id
-              ? 'bg-cyan-950/60 border-cyan-400 text-cyan-200'
-              : 'bg-[#040914]/80 border-[#132a4a] hover:border-cyan-500/50 text-slate-300'
-          ]"
-          @click="seleccionarMision(c.id)"
-        >
-          <div class="overflow-hidden pr-2">
-            <div class="text-[11px] font-semibold truncate">{{ c.title || 'Misión Táctica' }}</div>
-            <div class="text-[9px] text-slate-500">
-              {{ new Date(c.created_at).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' }) }}
-            </div>
-          </div>
+    <div class="conversation-mode">
+      <span class="eyebrow">ENFOQUE</span
+      ><select v-model="ui.modoTactico" aria-label="Enfoque de la conversación">
+        <option value="centinela">Ingeniería y revisión</option>
+        <option value="arquitecto">Arquitectura y decisiones</option>
+        <option value="blitzkrieg">Prototipado</option>
+        <option value="enjambre">Perspectivas de especialistas</option></select
+      ><span class="mode-note">Contexto claro. Cambios revisables.</span>
+    </div>
+    <div ref="scroll" class="conversation-scroll" @scroll="trackScroll">
+      <div v-if="welcome" class="conversation-welcome">
+        <span class="welcome-symbol"><AppIcon name="spark" :size="24" /></span
+        ><span class="eyebrow">MENOS FRICCIÓN. MÁS INGENIERÍA.</span>
+        <h1>De una idea<br />a algo que <span>funciona.</span></h1>
+        <p>
+          Un espacio para pensar, construir y documentar.<br class="desktop-break" />
+          Tú marcas el rumbo. ARES te acompaña.
+        </p>
+        <div class="starter-cards">
           <button
-            @click.stop="chatStore.eliminarSesion(c.id)"
-            class="opacity-0 group-hover:opacity-100 text-rose-400 hover:text-rose-200 text-xs px-1.5 py-0.5 rounded hover:bg-rose-950/50 transition cursor-pointer"
-            title="Eliminar sesión permanentemente"
+            v-for="starter in starters"
+            :key="starter.label"
+            @click="composer?.setText(starter.prompt)"
           >
-            🗑️
+            <span class="starter-icon"><AppIcon :name="starter.icon" :size="21" /></span
+            ><strong>{{ starter.label }}</strong
+            ><span>{{ starter.text }}</span
+            ><AppIcon name="arrow" :size="16" class="starter-arrow" />
           </button>
         </div>
+        <span class="welcome-footnote"
+          ><span class="status-dot" />Tu siguiente paso empieza con una buena pregunta.</span
+        >
+      </div>
+      <div v-else class="message-list" role="log" aria-label="Mensajes de la conversación">
+        <ChatMessage v-for="message in visibleMessages" :key="message.id" :message="message" />
+        <p v-if="chat.cargando" class="generation-state" role="status">
+          <span class="thinking-dots" aria-hidden="true">•••</span>ARES está preparando una
+          respuesta.
+        </p>
       </div>
     </div>
-
-    <!-- Indicador de carga de historial -->
-    <div
-      v-if="chatStore.cargandoHistorial"
-      class="bg-cyan-950/40 border-b border-cyan-500/30 text-cyan-300 text-xs font-mono py-1 px-4 flex items-center gap-2"
-    >
-      <div class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></div>
-      <span>Cargando memoria táctica de la misión desde SQLite...</span>
-    </div>
-
-    <!-- Área de Mensajes Desplazable -->
-    <div ref="scrollContainer" class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
-      <ChatMessage
-        v-for="msg in chatStore.mensajes"
-        :key="msg.id"
-        :message="msg"
+    <div class="composer-area">
+      <div v-if="connection.state === 'locked'" class="access-notice">
+        <AppIcon name="key" :size="16" /><span>Configura el acceso para empezar a conversar.</span
+        ><button @click="openConnection">Conectar<AppIcon name="arrow" :size="14" /></button>
+      </div>
+      <ChatInput
+        ref="composer"
+        :cargando="chat.cargando"
+        :conectado="connection.state === 'online'"
+        @conectar="openConnection"
+        @enviar="send"
+        @detener="chat.cancelarGeneracion()"
       />
-
-      <!-- Indicador de razonamiento de A.R.E.S. -->
-      <div v-if="chatStore.cargando" class="flex items-center gap-2 py-3 text-cyan-400 font-mono text-xs animate-pulse">
-        <div class="w-2 h-2 rounded-full bg-[#00ffaa]"></div>
-        <span>A.R.E.S. procesando con espada y escudo táctico...</span>
+      <div class="composer-disclaimer">
+        <AppIcon name="shield" :size="12" /><span
+          >ARES puede equivocarse. Revisa el código y verifica los cambios.</span
+        ><span class="workspace-version">ARES / WEB</span>
       </div>
     </div>
-
-    <!-- Barra de Entrada -->
-    <ChatInput :cargando="chatStore.cargando" @enviar="handleEnviar" />
-
-    <!-- Modal Táctico de Ingesta y Auditoría de GitHub (v2.9) -->
+    <dialog ref="history" class="workspace-dialog history-dialog" aria-labelledby="history-title">
+      <div class="dialog-heading">
+        <span class="dialog-icon"><AppIcon name="history" :size="22" /></span
+        ><button class="icon-button" aria-label="Cerrar historial" @click="history?.close()">
+          <AppIcon name="close" />
+        </button>
+      </div>
+      <span class="eyebrow">TU TRABAJO, CON CONTEXTO</span>
+      <h2 id="history-title">Misiones guardadas.</h2>
+      <p v-if="historyError" class="dialog-description">{{ historyError }}</p>
+      <p v-else-if="chat.cargandoHistorial" class="dialog-description" role="status">
+        Recuperando tus misiones…
+      </p>
+      <div v-else-if="chat.conversaciones.length" class="session-list">
+        <button
+          v-for="session in chat.conversaciones"
+          :key="session.id"
+          @click="selectSession(session.id)"
+        >
+          <AppIcon name="chat" :size="18" /><span>{{ session.title || 'Sin título' }}</span
+          ><AppIcon name="chevron" :size="16" />
+        </button>
+      </div>
+      <p v-else class="dialog-description">
+        Todavía no hay misiones guardadas. Tu primera conversación aparecerá aquí.
+      </p>
+    </dialog>
+    <dialog ref="tools" class="workspace-dialog tools-dialog" aria-labelledby="tools-title">
+      <div class="dialog-heading">
+        <span class="dialog-icon"><AppIcon name="layers" :size="22" /></span
+        ><button class="icon-button" aria-label="Cerrar herramientas" @click="tools?.close()">
+          <AppIcon name="close" />
+        </button>
+      </div>
+      <span class="eyebrow">ELIGE TU SIGUIENTE PASO</span>
+      <h2 id="tools-title">Tu caja de herramientas.</h2>
+      <div class="tool-list">
+        <button v-for="module in modules" :key="module.id" @click="openModule(module.id)">
+          <AppIcon :name="module.icon" :size="21" /><span
+            ><strong>{{ module.name }}</strong
+            ><small>{{ module.description }}</small></span
+          ><AppIcon name="chevron" :size="16" />
+        </button>
+      </div>
+      <p class="helper-text">
+        Las simulaciones representan escenarios; no acreditan ejecuciones reales de CI o benchmarks.
+      </p>
+    </dialog>
+    <dialog
+      ref="wellbeing"
+      class="workspace-dialog tools-dialog wellbeing-dialog"
+      aria-labelledby="wellbeing-title"
+      @close="wellbeingOpen = false"
+    >
+      <div class="dialog-heading">
+        <span class="dialog-icon"><AppIcon name="pause" :size="22" /></span
+        ><button class="icon-button" aria-label="Cerrar bienestar" @click="wellbeing?.close()">
+          <AppIcon name="close" />
+        </button>
+      </div>
+      <h2 id="wellbeing-title">Haz espacio para una pausa.</h2>
+      <p class="dialog-description">
+        Recordatorios personales y temporizador de foco. Los indicadores no son mediciones de salud.
+      </p>
+      <BioPanel v-if="wellbeingOpen" />
+    </dialog>
     <GithubAuditModal
-      v-if="uiStore.modalGithubAuditAbierto"
-      @cerrar="uiStore.modalGithubAuditAbierto = false"
-      @insertarEnChat="handleInsertarEnChat"
+      v-if="ui.modalGithubAuditAbierto"
+      @cerrar="ui.modalGithubAuditAbierto = false"
+      @insertar-en-chat="(prompt: string) => composer?.setText(prompt)"
     />
-
-    <!-- Modal Táctico de Enjambre Multi-Agente (v3.1) -->
-    <SwarmMonitorModal
-      v-if="uiStore.modalSwarmAbierto"
-      @cerrar="uiStore.modalSwarmAbierto = false"
-    />
-
-    <!-- Modal Táctico de CI/CD & Despliegues Autónomos (v3.2) -->
-    <PipelineMonitorModal
-      v-if="uiStore.modalCicdAbierto"
-      @cerrar="uiStore.modalCicdAbierto = false"
-    />
-
-    <!-- Modal Oráculo de Memoria Semántica Vectorial (v3.3) -->
-    <MemoryOracleModal
-      v-if="uiStore.modalMemoriaAbierto"
-      @cerrar="uiStore.modalMemoriaAbierto = false"
-    />
-
-    <!-- Modal Radar de Arquitectura C4 & Tracing de Eventos (v3.4) -->
-    <ArchitectureRadarModal
-      v-if="uiStore.modalRadarAbierto"
-      @cerrar="uiStore.modalRadarAbierto = false"
-    />
-
-    <!-- Modal Forja Soberana de Ejercicios & Git DDD (v3.5) -->
-    <AssignmentForgeModal
-      v-if="uiStore.modalForgeAbierto"
-      @cerrar="uiStore.modalForgeAbierto = false"
-    />
-
-    <!-- Modal Suite de Pruebas E2E & Benchmarks DDD (v3.8) -->
+    <SwarmMonitorModal v-if="ui.modalSwarmAbierto" @cerrar="ui.modalSwarmAbierto = false" />
+    <PipelineMonitorModal v-if="ui.modalCicdAbierto" @cerrar="ui.modalCicdAbierto = false" />
+    <MemoryOracleModal v-if="ui.modalMemoriaAbierto" @cerrar="ui.modalMemoriaAbierto = false" />
+    <ArchitectureRadarModal v-if="ui.modalRadarAbierto" @cerrar="ui.modalRadarAbierto = false" />
+    <AssignmentForgeModal v-if="ui.modalForgeAbierto" @cerrar="ui.modalForgeAbierto = false" />
     <BenchmarkSuiteModal
-      v-if="uiStore.modalBenchmarkAbierto"
-      @cerrar="uiStore.modalBenchmarkAbierto = false"
+      v-if="ui.modalBenchmarkAbierto"
+      @cerrar="ui.modalBenchmarkAbierto = false"
     />
-  </div>
+  </section>
 </template>

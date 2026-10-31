@@ -24,6 +24,9 @@
 [![Ver release v5.7.1 en GitHub](https://img.shields.io/badge/GitHub-Release_v5.7.1-2EA44F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.7.1)
 [![Descargar código fuente ZIP](https://img.shields.io/badge/Descargar-Codigo_fuente_ZIP-9333EA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.1/ARES-5.7.1-source.zip)
 
+[![Abrir ARES Web](https://img.shields.io/badge/Abrir-ARES_Web-149c83?style=for-the-badge&logoColor=white)](https://ares-frontend-y8e6.onrender.com)
+[![Guía de la web y del avatar](https://img.shields.io/badge/Guia-Web_y_Avatar_3D-144e75?style=for-the-badge)](docs/web-avatar.md)
+
 </div>
 
 > 🚀 **¿Quieres empezar directamente en tu PC?**
@@ -45,7 +48,7 @@ Soy **A.R.E.S.**, un proyecto creado por **Kevin / AI Innovation**, con la disci
 
 Conservo mi identidad táctica: el logo original, los colores cian y blanco y el prompt `ares@standalone:~$`. En esta versión, mi núcleo es una CLI independiente con reglas de dominio, casos de uso, puertos y adaptadores. Puedo inspeccionar tus fuentes, conversar con el proveedor que elijas y preparar cambios para que revises el diff antes de aplicarlos.
 
-La web y el personaje 3D forman parte de la historia del ecosistema y se conservan por separado. Puedes consultar su [presentación original](docs/legacy-web-v4.md); para usar la CLI actual basta con tu terminal y Node.js.
+La web y el personaje 3D también tienen su espacio: **[ARES Web](https://ares-frontend-y8e6.onrender.com)** ofrece conversación, herramientas y un avatar voxel articulado con 16 poses. La terminal sigue siendo independiente: para usar la CLI actual basta con tu terminal y Node.js. Se conserva la [presentación original](docs/legacy-web-v4.md) como parte de la historia del ecosistema.
 
 ## ⚔️ 2. ¿Qué puedo hacer por ti?
 
@@ -408,9 +411,17 @@ Para crear la distribución portable con dependencias de ejecución fijadas: `np
 
 La CI incluye Windows y Ubuntu con Node 24 y 26; Node 24 también construye y ejecuta el portable y el paquete npm en instalaciones aisladas. Sentinel comprueba la arquitectura con AST y publica el informe en el resumen de Actions, sin claves de IA ni comentarios automáticos. Consulta el resultado de cada ejecución en GitHub Actions. La configuración de una matriz no equivale a sus resultados. Detalles: [arquitectura y límites](docs/ARCHITECTURE.md), [decisiones](docs/adr/0001-cli-first.md), [validación 5.6](docs/VALIDATION-5.6.md) y [trabajo pendiente](docs/ROADMAP.md).
 
-## Componentes históricos
+## Web, avatar y componentes del ecosistema
 
-`backend/`, `frontend/`, `mcp/` y `hooks/` se conservan por separado. La CLI 5 no necesita esos servicios ni usa `ARES_API_URL`. Comandos antiguos como `bio`, `route`, `benchmark`, `swarm` y `setup-git` no forman parte de esta nueva CLI. `chat` continúa como alias de `ask`; `forge` ahora crea la plantilla local descrita arriba.
+**[Abrir ARES Web](https://ares-frontend-y8e6.onrender.com)** · [Guía de conexión, desarrollo y avatar](docs/web-avatar.md) · [Fuentes actuales en ZIP](https://github.com/AI-Innovation-op/ARES/archive/refs/heads/main.zip)
+
+La interfaz web 4.6 conserva la identidad azul, cian y verde del avatar aportado por Kevin. Incluye giro de cámara, selector de las 16 poses, pausa de animación y una vista ligera con las imágenes originales cuando WebGL no está disponible. El chat, el historial y las herramientas tienen un espacio adaptado a escritorio y móvil, con navegación por teclado y movimiento reducido.
+
+![ARES Web: espacio de ingeniería con el avatar voxel de AI Innovation](docs/assets/ares-web-desktop.png)
+
+La web utiliza `backend/` y requiere su **ARES_API_KEY** en el panel de conexión. Esa clave da acceso al servidor compartido del equipo; no es una clave de Gemini u OpenRouter. Las claves de los proveedores permanecen en el backend. La conexión se comprueba con el servidor real; las simulaciones del laboratorio y del pipeline se identifican como tales. El historial SQLite del plan gratuito de Render se pierde al redesplegar: aún no es almacenamiento persistente para el piloto.
+
+`backend/`, `frontend/`, `mcp/` y `hooks/` se mantienen separados de la CLI 5. Esta no necesita esos servicios ni usa `ARES_API_URL`. Los proveedores y Ollama de la CLI no se trasladan automáticamente a la web. Comandos antiguos como `bio`, `route`, `benchmark`, `swarm` y `setup-git` no forman parte de esta nueva CLI. `chat` continúa como alias de `ask`; `forge` ahora crea la plantilla local descrita arriba.
 
 La [documentación de la web v4](docs/legacy-web-v4.md) es un archivo histórico; sus capacidades y resultados no se presentan como verificación de la nueva CLI.
 

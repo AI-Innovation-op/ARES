@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { consumeChatStream, streamMetadata } from './chat-stream.js';
 import { API_BASE_ORIGIN, apiFetch, protegerAxios } from './http.js';
 import type {
   RespuestaChat,
@@ -13,6 +14,7 @@ import type {
   EstadoBio,
   Postura,
   NumeroPose,
+  InfoConmutacion,
 } from '../types/ares.types.js';
 
 export { API_BASE_ORIGIN };
@@ -32,19 +34,38 @@ export const apiService = {
    * Transmite tokens progresivamente conforme Gemini razona.
    */
   async enviarMensajeChatStream(params: {
+    signal?: AbortSignal;
     message: string;
     conversationId?: string;
     imageBase64?: string;
     provider?: 'gemini' | 'openrouter';
     model?: string;
     tacticalMode?: string;
-    onInit?: (data: { stance: Postura; poseNumber: NumeroPose; conversationId: string; model?: string; provider?: string }) => void;
+    onInit?: (data: {
+      stance: Postura;
+      poseNumber: NumeroPose;
+      conversationId: string;
+      model?: string;
+      provider?: string;
+    }) => void;
     onChunk?: (chunk: string, poseDetected?: NumeroPose) => void;
-    onDone?: (data: { reply: string; stance: Postura; poseNumber: NumeroPose; conversationId: string; conmutacion?: any; model?: string; provider?: string }) => void;
+    onDone?: (data: {
+      reply: string;
+      stance: Postura;
+      poseNumber: NumeroPose;
+      conversationId: string;
+      conmutacion?: any;
+      model?: string;
+      provider?: string;
+    }) => void;
     onError?: (error: Error) => void;
   }): Promise<void> {
     try {
       const response = await apiFetch('/api/chat/stream', {
+        signal: AbortSignal.any([
+          AbortSignal.timeout(120000),
+          ...(params.signal ? [params.signal] : []),
+        ]),
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,52 +84,28 @@ export const apiService = {
         throw new Error(`Falla HTTP al conectar flujo de stream (${response.status})`);
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() ?? '';
-
-        for (let line of lines) {
-          line = line.trim();
-          if (line.startsWith('data:')) {
-            const jsonStr = line.replace(/^data:\s*/, '').trim();
-            if (!jsonStr) continue;
-
-            try {
-              const data = JSON.parse(jsonStr);
-              if (data.type === 'init' && params.onInit) {
-                params.onInit(data);
-              } else if (data.type === 'chunk' && params.onChunk) {
-                params.onChunk(data.text, data.poseDetected);
-              } else if (data.type === 'done' && params.onDone) {
-                params.onDone(data);
-              } else if (data.type === 'error' && params.onError) {
-                params.onError(new Error(data.message));
-              }
-            } catch (err) {
-              console.warn('⚠️ [Stream SSE] Error al parsear paquete de datos:', err);
-            }
-          }
+      await consumeChatStream(response.body, (data) => {
+        if (data.type === 'init') params.onInit?.(streamMetadata(data));
+        else if (data.type === 'chunk') {
+          if (typeof data.text !== 'string')
+            throw new Error('El servidor devolvió un fragmento de texto no válido.');
+          const pose =
+            Number.isInteger(data.poseDetected) &&
+            Number(data.poseDetected) >= 1 &&
+            Number(data.poseDetected) <= 16
+              ? (data.poseDetected as NumeroPose)
+              : undefined;
+          params.onChunk?.(data.text, pose);
+        } else if (data.type === 'done') {
+          if (typeof data.reply !== 'string')
+            throw new Error('El servidor no confirmó el contenido de la respuesta.');
+          params.onDone?.({
+            ...streamMetadata(data),
+            reply: data.reply,
+            conmutacion: data.conmutacion as InfoConmutacion | undefined,
+          });
         }
-      }
-
-      if (buffer.trim().startsWith('data:')) {
-        try {
-          const data = JSON.parse(buffer.trim().replace(/^data:\s*/, '').trim());
-          if (data.type === 'chunk' && params.onChunk) {
-            params.onChunk(data.text, data.poseDetected);
-          } else if (data.type === 'done' && params.onDone) {
-            params.onDone(data);
-          }
-        } catch {}
-      }
+      });
     } catch (err: any) {
       if (params.onError) {
         params.onError(err);
@@ -191,7 +188,7 @@ export const apiService = {
   }): Promise<{ testCode: string; framework: string; summary: string }> {
     const { data } = await cliente.post<{ testCode: string; framework: string; summary: string }>(
       '/tests/generate',
-      params
+      params,
     );
     return data;
   },
@@ -227,6 +224,8 @@ export const apiService = {
     const { data } = await cliente.get<{ conversaciones: any[] }>('/conversations', {
       params: { limite },
     });
+    if (!Array.isArray(data.conversaciones))
+      throw new Error('El servidor devolvió un historial no válido.');
     return data.conversaciones;
   },
 
@@ -234,7 +233,9 @@ export const apiService = {
    * Obtiene los mensajes de una conversación específica.
    */
   async obtenerMensajesConversacion(id: string): Promise<{ conversacion: any; mensajes: any[] }> {
-    const { data } = await cliente.get<{ conversacion: any; mensajes: any[] }>(`/conversations/${id}/messages`);
+    const { data } = await cliente.get<{ conversacion: any; mensajes: any[] }>(
+      `/conversations/${id}/messages`,
+    );
     return data;
   },
 

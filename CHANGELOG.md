@@ -5,6 +5,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## Web [4.6.0] - 2026-10-31 — Espacio de ingeniería y avatar voxel
+
+- Interfaz Vue para escritorio y móvil: conversación, historial, catálogo de herramientas, conexión y selección real de modelos, con diálogos nativos y navegación por teclado.
+- Modelo articulado del ZIP aportado por Kevin, integrado con la máquina de estados existente y sus 16 poses. Respaldo por pose, descarga GLB estática, pausa, movimiento reducido y liberación de recursos WebGL.
+- Carga diferida del avatar, diagramas y herramientas. No se monta un canvas oculto en móvil; la animación se limita a 30 FPS y se detiene fuera de pantalla, con la pestaña oculta o al pausar.
+- Clave de acceso del servidor introducida en el panel: sesión por defecto y almacenamiento permanente solo si se elige. Se elimina el uso de claves de acceso dentro del bundle.
+- SSE con finalización explícita, validación y cancelación. Los fallos conservan el texto parcial y no provocan una segunda llamada de IA automática.
+- CORS de producción rechaza comodines, listas mixtas y orígenes inválidos. Recuperado Render mediante su lista explícita de orígenes, sin rotar credenciales ni cambiar planes.
+- CI incorpora pruebas del modelo, del protocolo y del navegador. La CLI 5.7.1 conserva su implementación e instalación.
+
 ## [5.6.0] - 2026-10-31 — Flujo de equipo por Git
 
 - Configuración compartida ares.team.json: comprobaciones y recomendación opcional de IA sin claves.

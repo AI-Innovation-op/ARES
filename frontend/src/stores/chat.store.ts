@@ -23,27 +23,25 @@ export const useChatStore = defineStore('chat', () => {
   const uiStore = useUiStore();
   const { hablar } = useTacticalVoice();
 
-  const mensajes = ref<MensajeChat[]>([
-    {
-      id: 'bienvenida',
-      role: 'model',
-      content:
-        '🛡️ **A.R.E.S. Core v4.5.1 en línea (Multi-Agent Swarm // Legión Soberana Activa).**\n\nSaludos, Comandante. Enjambre táctico de subagentes y protocolo de consenso operacional:\n- **🐝 Enjambre Multi-Agente:** Coordinación de Atenea (Arquitectura), Vulcano (Backend), Mercurio (Frontend) y Némesis (QA & Consenso).\n- **⚖️ Veredicto de Consenso Táctico:** Revisión cruzada obligatoria y validación estricta antes de consolidar el despliegue.\n- **🖥️ Live Sandbox & Forja .ZIP:** Previsualizaciones reactivas e interactividad en vivo listas para descarga modular DDD.\n- **🎙️ Oído Digital & Espectro:** Despacho verbal por comando de voz en caliente.\n\n¿Cuál es la primera orden táctica para la Legión?',
-      poseNumber: 1,
-      timestamp: new Date(),
-    },
-  ]);
+  const mensajes = ref<MensajeChat[]>([]);
 
   const cargando = ref(false);
   const conversacionIdActual = ref<string | undefined>(undefined);
   const conversaciones = ref<SesionConversacion[]>([]);
   const cargandoHistorial = ref(false);
   const errorMensaje = ref<string | null>(null);
+  const errorHistorial = ref<string | null>(null);
+  let generation: AbortController | undefined;
+  function cancelarGeneracion() {
+    generation?.abort();
+  }
 
   // Selector Multi-Modelo (Google Gemini + OpenRouter + Enrutador Auto v3.9)
   const modelosDisponibles = ref<any[]>([]);
   const modeloSeleccionado = ref<string>(localStorage.getItem('ares.selected_model') || 'auto');
-  const proveedorSeleccionado = ref<'gemini' | 'openrouter'>((localStorage.getItem('ares.selected_provider') as any) || 'gemini');
+  const proveedorSeleccionado = ref<'gemini' | 'openrouter'>(
+    (localStorage.getItem('ares.selected_provider') as any) || 'gemini',
+  );
 
   /**
    * Carga el catálogo de modelos disponibles desde la API.
@@ -53,7 +51,10 @@ export const useChatStore = defineStore('chat', () => {
       const modelos = await apiService.obtenerModelos();
       modelosDisponibles.value = modelos;
     } catch (err) {
-      console.warn('⚠️ [ChatStore] No se pudo cargar catálogo de modelos:', err);
+      console.warn(
+        '⚠️ [ChatStore] No se pudo cargar catálogo de modelos:',
+        err instanceof Error ? err.message : 'Error de comunicación.',
+      );
     }
   }
 
@@ -68,11 +69,12 @@ export const useChatStore = defineStore('chat', () => {
    * Carga la lista de sesiones de conversación previas desde SQLite.
    */
   async function cargarConversaciones() {
+    errorHistorial.value = null;
     try {
       const lista = await apiService.listarConversaciones(20);
       conversaciones.value = lista;
     } catch (err) {
-      console.warn('⚠️ [ChatStore] No se pudo cargar lista de sesiones:', err);
+      errorHistorial.value = 'No se pudo cargar el historial. Revisa el acceso o la conexión.';
     }
   }
 
@@ -80,6 +82,7 @@ export const useChatStore = defineStore('chat', () => {
    * Carga los mensajes de una sesión existente seleccionada por el Comandante.
    */
   async function seleccionarConversacion(id: string) {
+    if (cargando.value) return;
     if (conversacionIdActual.value === id) return;
     cargandoHistorial.value = true;
     errorMensaje.value = null;
@@ -110,7 +113,6 @@ export const useChatStore = defineStore('chat', () => {
       }
       fsm.cambiarPostura('IDLE', 1);
     } catch (err: any) {
-      console.error('Error cargando mensajes de sesión:', err);
       errorMensaje.value = 'No se pudo cargar la sesión seleccionada.';
     } finally {
       cargandoHistorial.value = false;
@@ -140,7 +142,10 @@ export const useChatStore = defineStore('chat', () => {
       await cargarConversaciones();
       fsm.cambiarPostura('IDLE', 1);
     } catch (err) {
-      console.warn('⚠️ [ChatStore] Creando sesión local provisional:', err);
+      console.warn(
+        '⚠️ [ChatStore] Creando sesión local provisional:',
+        err instanceof Error ? err.message : 'Error de comunicación.',
+      );
       conversacionIdActual.value = undefined;
       limpiarConsola();
     } finally {
@@ -161,7 +166,10 @@ export const useChatStore = defineStore('chat', () => {
       }
       await cargarConversaciones();
     } catch (err) {
-      console.error('Error eliminando sesión:', err);
+      console.error(
+        'Error eliminando sesión:',
+        err instanceof Error ? err.message : 'Error de comunicación.',
+      );
     }
   }
 
@@ -171,8 +179,10 @@ export const useChatStore = defineStore('chat', () => {
    * renderice de forma instantánea en la interfaz.
    */
   async function enviarMensaje(texto: string, imagenBase64?: string) {
-    if (!texto.trim() && !imagenBase64) return;
+    if (cargando.value || (!texto.trim() && !imagenBase64)) return;
 
+    generation = new AbortController();
+    const signal = generation.signal;
     // 1. Agregar mensaje del usuario al historial visual
     mensajes.value.push({
       id: `usr-${Date.now()}`,
@@ -200,6 +210,7 @@ export const useChatStore = defineStore('chat', () => {
     try {
       // 3. Ejecutar streaming en tiempo real vía SSE
       await apiService.enviarMensajeChatStream({
+        signal,
         message: texto,
         conversationId: conversacionIdActual.value,
         imageBase64: imagenBase64,
@@ -254,49 +265,26 @@ export const useChatStore = defineStore('chat', () => {
           throw err;
         },
       });
-    } catch (streamErr: any) {
-      console.warn('⚠️ [ChatStore] Error en streaming, activando respaldo HTTP directo:', streamErr);
-
-      // Si el streaming falla o se corta, fallback inmediato a petición normal para nunca dejar la burbuja vacía
-      try {
-        const data = await apiService.enviarMensajeChat({
-          message: texto,
-          conversationId: conversacionIdActual.value,
-          imageBase64: imagenBase64,
-          provider: proveedorSeleccionado.value,
-          model: modeloSeleccionado.value,
-          tacticalMode: uiStore.modoTactico,
-        });
-
-        conversacionIdActual.value = data.conversationId;
-        localStorage.setItem('ares.active_conv', data.conversationId);
-        if (mensajes.value[targetIdx]) {
-          mensajes.value[targetIdx].content = data.reply;
-          mensajes.value[targetIdx].poseNumber = data.poseNumber || 1;
-          if (data.conmutacion) mensajes.value[targetIdx].conmutacion = data.conmutacion;
-          if (data.model) mensajes.value[targetIdx].modeloUsado = data.model;
-          if (data.provider) mensajes.value[targetIdx].proveedorUsado = data.provider;
-        }
-        fsm.cambiarPostura(data.stance || 'IDLE', data.poseNumber || 1);
-
-        cargarConversaciones();
-        hablar(data.reply);
-        ejecutarAutoDerivacion(texto, data.reply);
-      } catch (err: any) {
-        console.error('💥 [ChatStore] Fallo en envío de orden táctica:', err);
-        fsm.cambiarPostura('ERROR', 2);
-        errorMensaje.value = err.message || 'Falla de comunicación con el Núcleo Táctico de A.R.E.S.';
-
-        if (mensajes.value[targetIdx]) {
-          if (err?.response?.status === 401 || String(err?.message || '').includes('401')) {
-            mensajes.value[targetIdx].content = `⚠️ **ALERTA DE AUTENTICACIÓN (HTTP 401):** El backend en Render requiere la clave táctica \`ARES_API_KEY\`.\n\n- 🔑 **Solución rápida:** Pulsa el botón **🔑 CLAVE** en la barra superior del HUD y pega tu clave (la encuentras en tu pestaña abierta de Render ➔ *Environment* ➔ \`ARES_API_KEY\`).\n- 🚀 **Solución permanente:** En tu pestaña abierta de Render, pulsa **Manual Deploy ➔ Deploy latest commit** para activar el pase libre por origen CORS verificado.`;
-          } else {
-            mensajes.value[targetIdx].content = `⚠️ **ALERTA DE EXCEPCIÓN:** ${errorMensaje.value}`;
-          }
-          mensajes.value[targetIdx].poseNumber = 2;
-        }
+    } catch (error: unknown) {
+      fsm.cambiarPostura(signal.aborted ? 'IDLE' : 'ERROR', signal.aborted ? 1 : 2);
+      const message = signal.aborted
+        ? 'Generación detenida por el usuario.'
+        : error instanceof Error
+          ? error.message
+          : 'No se pudo completar la respuesta.';
+      errorMensaje.value = signal.aborted ? null : message;
+      if (mensajes.value[targetIdx]) {
+        const partial = mensajes.value[targetIdx].content;
+        const notice = signal.aborted
+          ? message
+          : message.includes('401') || message.includes('403')
+            ? 'Configura la clave de acceso en el panel de conexión para continuar.'
+            : 'Respuesta incompleta: ' + message;
+        mensajes.value[targetIdx].content = (partial ? partial + '\n\n---\n\n' : '') + notice;
+        mensajes.value[targetIdx].poseNumber = signal.aborted ? 1 : 2;
       }
     } finally {
+      generation = undefined;
       cargando.value = false;
     }
   }
@@ -364,7 +352,8 @@ export const useChatStore = defineStore('chat', () => {
       p.includes('scaffold') ||
       p.includes('zip');
 
-    const tieneMultiplesArchivos = (respuesta.match(/(?:###|##|\*\*)\s*(?:File|Archivo):/gi) || []).length >= 2;
+    const tieneMultiplesArchivos =
+      (respuesta.match(/(?:###|##|\*\*)\s*(?:File|Archivo):/gi) || []).length >= 2;
 
     // Si es un proyecto multi-archivo solicitado (ej: café con DDD), permanecemos en el chat
     // para interactuar directamente con la caja de Forja de Proyecto y el botón .ZIP
@@ -412,27 +401,20 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function limpiarConsola() {
-    mensajes.value = [
-      {
-        id: 'bienvenida',
-        role: 'model',
-        content:
-          '🛡️ **A.R.E.S. Core v4.5.1 en línea (Multi-Agent Swarm // Legión Soberana Activa).**\n\nConsola reiniciada. Los 4 subagentes tácticos se encuentran listos para el combate. ¿Cuál es tu siguiente orden táctica, Comandante?',
-        poseNumber: 1,
-        timestamp: new Date(),
-      },
-    ];
+    mensajes.value = [];
     conversacionIdActual.value = undefined;
     fsm.cambiarPostura('IDLE', 1);
   }
 
   return {
+    cancelarGeneracion,
     mensajes,
     cargando,
     conversacionIdActual,
     conversaciones,
     cargandoHistorial,
     errorMensaje,
+    errorHistorial,
     cargarConversaciones,
     seleccionarConversacion,
     nuevaSesion,
