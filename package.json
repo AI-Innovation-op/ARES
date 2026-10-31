@@ -1,6 +1,6 @@
 {
   "name": "ares-ecosystem",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "private": true,
   "description": "ARES CLI first. El backend y la web históricos se conservan por separado.",
   "engines": { "node": ">=24.0.0" },

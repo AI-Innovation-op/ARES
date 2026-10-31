@@ -2,6 +2,8 @@
 
 Asistente de ingeniería para CMD, PowerShell y terminales Unix. Node.js 24 o superior. Funciona sin servidor web.
 
+La versión 5.2.1 recupera el banner original, la firma de AI Innovation, los colores cian/blanco y el prompt `ares@standalone:~$`. Dentro del REPL, `help` muestra el catálogo; `status` consulta la configuración y `clear`/`cls` redibuja el banner sin perder la conversación. Las órdenes con `/` siguen disponibles. El diseño se adapta al ancho del terminal, respeta `NO_COLOR` y mantiene JSON/tuberías sin colores ni controles de pantalla.
+
 Desde una instalación global: `ares --help`. Desde el repositorio: `npm run setup` en la raíz y `ares.cmd doctor` (PowerShell: `.\ares.cmd doctor`).
 
 ```cmd
