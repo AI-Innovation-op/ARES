@@ -9,6 +9,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 - Selección de carpeta con `--project`/`-C`, `/open` y `/close`: contexto y rutas relativas siguen el proyecto seleccionado.
 - Las sesiones nuevas conservan su proyecto y rechazan otra carpeta antes de contactar a la IA. Se preservan sesiones anteriores y el esquema SQLite.
+- Aplicación, restauración y verificación de propuestas protegidas frente a otro proyecto activo.
 - Instalación global mediante tarball compilado y dependencias fijadas, sin depender del checkout. Se añade comprobación del paquete instalado a CI.
 - Validación real del ciclo IA → propuesta → revisión → aplicación → tests independientes → restauración exacta en un proyecto aislado.
 

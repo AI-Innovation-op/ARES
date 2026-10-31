@@ -87,6 +87,13 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     return new SecretSafeModel(new CompatibleLanguageModel(c), c.secrets);
   };
   const changes = () => new ChangeCode(database().proposals, new LocalChangeWorkspace(), identity);
+  const assertProposalProject = (id: string) => {
+    if (projectRoot && changes().get(id).data.root !== projectRoot)
+      throw new AresError(
+        'CONFLICT',
+        'La propuesta pertenece a otro proyecto. Abre su carpeta con --project o /open.',
+      );
+  };
   const context = (target?: string) => {
     const selected = target ?? projectRoot;
     return selected ? contextText(workspace.scan(path.resolve(selected))) : '';
@@ -763,6 +770,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     .command('apply <id>')
     .description('Aplicar una propuesta con control de hash y diario de recuperación')
     .action((id) => {
+      assertProposalProject(id);
       const result = changes().apply(id);
       output(
         { id, status: result.status },
@@ -773,6 +781,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     .command('restore <id>')
     .description('Restaurar copias; detenerse si hay ediciones posteriores')
     .action((id) => {
+      assertProposalProject(id);
       const result = changes().restore(id);
       output({ id, status: result.status }, `Contenido original restaurado: ${id}`);
     });
@@ -786,6 +795,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     .option('--script <nombre>', 'Script exacto de package.json; sin hooks pre/post', 'test')
     .option('--timeout <ms>', 'Timeout de 100 a 600000 ms', '120000')
     .action(async (proposalId, opts) => {
+      if (proposalId) assertProposalProject(proposalId);
       const service = new VerifyProject(
         new NodeProjectChecks(config().secrets),
         database().verifications,

@@ -56,7 +56,25 @@ test('project selection targets proposal, apply and real verification rather tha
   };
   const proposal = invoke(['propose', '--from', json]);
   assert.equal(proposal.root, fs.realpathSync(project));
+  const rejectOtherProject = (command) => {
+    const result = run(['--project', outside, command, proposal.id, '--json'], home, {
+      cwd: outside,
+    });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /otro proyecto/);
+  };
+  rejectOtherProject('apply');
+  assert.equal(
+    fs.readFileSync(path.join(project, 'src/value.js'), 'utf8'),
+    'export const value = 1;\n',
+  );
   invoke(['apply', proposal.id]);
+  rejectOtherProject('restore');
+  rejectOtherProject('verify');
+  assert.equal(
+    fs.readFileSync(path.join(project, 'src/value.js'), 'utf8'),
+    'export const value = 2;\n',
+  );
   assert.equal(invoke(['verify', proposal.id]).status, 'passed');
   invoke(['restore', proposal.id]);
   assert.equal(

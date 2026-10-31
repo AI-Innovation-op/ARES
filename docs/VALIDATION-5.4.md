@@ -7,6 +7,7 @@ Fecha local: 2026-10-31, America/Lima. Windows, Node.js 24.21.0.
 - Formato, tipos, compilación y **84 pruebas aprobadas**, sin fallos ni omitidas.
 - Análisis de 34 módulos sin infracciones, ciclos, parseos inválidos o imports sin resolver.
 - Rutas con espacios, selección de proyecto, aplicación/restauración en la carpeta elegida y conservación de archivos de la carpeta desde la que se lanzó ARES.
+- Rechazo de aplicar, restaurar o verificar una propuesta desde otro proyecto activo, conservando sus archivos.
 - Contexto en solicitudes HTTP reales a un servidor de pruebas; sesiones vinculadas y rechazo de otra carpeta antes de generar una petición.
 - Apertura fallida sin cambiar el proyecto anterior, selección correcta del modelo del proyecto y reinicio de conversación al abrir/cerrar carpetas.
 - Tarball instalado en prefijo temporal como copia regular: versión, dependencias directas frente al lockfile, diagnóstico, proyecto generado y verificación real aprobados.

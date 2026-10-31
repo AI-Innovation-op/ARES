@@ -51,7 +51,7 @@ Dentro del REPL:
 /close
 ```
 
-Abrir otro proyecto inicia una conversación nueva. Las sesiones nuevas guardan su proyecto y rechazan continuaciones desde otra carpeta antes de llamar al modelo; reabre la carpeta correcta para usar `/resume ID`. Las sesiones anteriores sin proyecto siguen disponibles. El vínculo usa la ruta canónica: los alias y la reubicación de proyectos quedan en el [roadmap](docs/ROADMAP.md).
+Abrir otro proyecto inicia una conversación nueva. Las sesiones nuevas guardan su proyecto y rechazan continuaciones desde otra carpeta antes de llamar al modelo; reabre la carpeta correcta para usar `/resume ID`. Con un proyecto activo, `apply`, `restore` y `verify ID` también rechazan propuestas de otra raíz. Los IDs conservan su raíz original; `--project` no los reasigna. Las sesiones anteriores sin proyecto siguen disponibles. El vínculo usa la ruta canónica: los alias y la reubicación de proyectos quedan en el [roadmap](docs/ROADMAP.md).
 
 `/context` sin ruta retira el contexto automático de esa conversación. `/close` vuelve a la carpeta desde la que se inició ARES. El directorio del terminal padre permanece igual. La configuración `.env` del proyecto mantiene la precedencia documentada.
 

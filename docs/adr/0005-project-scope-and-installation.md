@@ -8,7 +8,7 @@ Cada comando requería repetir rutas. Al cambiar de carpeta era posible continua
 
 ## Decisión
 
-Presentación resuelve una raíz canónica con `--project` o `/open`, aplica los valores por defecto y restaura el directorio del proceso al cerrar. El agregado conserva una identidad opcional de proyecto y rechaza su cambio antes de llamar al modelo. No se incorporan APIs de archivos al dominio. Cambiar de raíz inicia otra conversación.
+Presentación resuelve una raíz canónica con `--project` o `/open`, aplica los valores por defecto y restaura el directorio del proceso al cerrar. El agregado conserva una identidad opcional de proyecto y rechaza su cambio antes de llamar al modelo. No se incorporan APIs de archivos al dominio. Cambiar de raíz inicia otra conversación. La presentación rechaza aplicar, restaurar o verificar propuestas de otra raíz mientras hay un proyecto activo; no se reasignan sus archivos.
 
 Se conserva el esquema SQLite 3 y la compatibilidad de sesiones sin proyecto. La identidad no cambia silenciosamente al mover una carpeta; una futura operación de reubicación deberá ser explícita.
 
