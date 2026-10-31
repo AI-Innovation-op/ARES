@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [5.3.0] - 2026-10-31 — Proveedores y perfiles privados
+
+- Soporte explícito de Mistral, Groq y Cohere junto a Gemini y OpenRouter, con claves aisladas y endpoints oficiales fijados.
+- Perfiles de modelo por proveedor, conservación de la configuración anterior y comandos `providers` y `/provider`.
+- Catálogo paginado de Cohere, normalización de IDs de Gemini y límites de lectura y paginación.
+- Redacción de todas las credenciales configuradas en mensajes salientes, streams, exportación de fuentes y evidencia de scripts, incluyendo claves repartidas entre chunks.
+- Asistente con reutilización de claves existentes, formato visual conservado y pruebas sin credenciales reales ni variables heredadas.
+
 ## [5.2.1] - 2026-10-31 — Identidad visual del terminal
 
 - Recuperados el logo original, la firma de AI Innovation, la paleta cian/blanco y el prompt `ares@standalone:~$`, con la versión actual.

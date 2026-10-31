@@ -11,6 +11,7 @@ import { LocalWorkspace, hash, readCurrent } from './workspace.js';
 import { redact, terminalText } from './text.js';
 
 export class NodeProjectChecks implements ProjectChecks {
+  constructor(private readonly configuredSecrets: readonly string[] = []) {}
   plan(target: string, script: string): CheckPlan {
     if (!/^[a-zA-Z0-9][a-zA-Z0-9:_-]{0,63}$/.test(script))
       throw new AresError('VALIDATION', 'Nombre de script inválido.');
@@ -125,7 +126,10 @@ export class NodeProjectChecks implements ProjectChecks {
         .map(([, value]) => value as string);
       const clean = (text: string) => {
         let output = terminalText(redact(text));
-        for (const secret of secrets) output = output.split(secret).join('[REDACTED]');
+        for (const secret of [...secrets, ...this.configuredSecrets].sort(
+          (a, b) => b.length - a.length,
+        ))
+          if (secret) output = output.split(secret).join('[REDACTED]');
         return output;
       };
       child.on('error', () => {

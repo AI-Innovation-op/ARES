@@ -17,6 +17,7 @@ export interface ShellActions {
   exists(id: string): boolean;
   doctor(): Promise<void>;
   setModel(id: string): void;
+  setProvider(id: string): Pick<Configuration, 'provider' | 'model'>;
   execute(args: string[], signal: AbortSignal): Promise<void>;
 }
 
@@ -62,7 +63,11 @@ export async function interactiveShell(
   const terminal = Boolean(process.stdin.isTTY && process.stdout.isTTY);
   const ui = new TerminalUi(version, () => terminalProfile(terminal));
   let selectedModel = config.model;
-  const banner = () => process.stdout.write(ui.banner({ ...config, model: selectedModel }));
+  let selectedProvider = config.provider;
+  const banner = () =>
+    process.stdout.write(
+      ui.banner({ ...config, provider: selectedProvider, model: selectedModel }),
+    );
   banner();
   try {
     requireAi(config);
@@ -83,6 +88,7 @@ export async function interactiveShell(
     'verify',
     'verifications',
     'models',
+    'providers',
     'search',
   ];
   const commands = [
@@ -94,6 +100,7 @@ export async function interactiveShell(
     '/context',
     '/doctor',
     '/model',
+    '/provider',
     '/exit',
     '/clear',
     '/cls',
@@ -172,7 +179,18 @@ export async function interactiveShell(
           context = args[1] || undefined;
           print(context ? `Contexto: ${context}` : 'Contexto retirado.', false);
         } else if (line === '/doctor') await actions.doctor();
-        else if (line.startsWith('/model ')) {
+        else if (line.startsWith('/provider ')) {
+          const args = commandArguments(line);
+          if (args.length !== 2)
+            throw new Error('Usa /provider ID. /providers muestra los disponibles.');
+          const selected = actions.setProvider(args[1]);
+          selectedProvider = selected.provider;
+          selectedModel = selected.model;
+          print(
+            `Proveedor: ${selected.provider} | Modelo: ${selected.model || 'sin configurar'}\nConexión sin verificar; /models consulta el catálogo.`,
+            false,
+          );
+        } else if (line.startsWith('/model ')) {
           const args = commandArguments(line);
           if (args.length !== 2 || !args[1]) throw new Error('Usa /model ID.');
           actions.setModel(args[1]);

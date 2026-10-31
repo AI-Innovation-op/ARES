@@ -30,6 +30,7 @@ import { NodeProjectChecks } from '../infrastructure/project-checks.js';
 import { listModels } from '../infrastructure/model-catalog.js';
 import { selectContext } from '../infrastructure/text.js';
 import { SecretSafeModel } from '../infrastructure/secret-safe-model.js';
+import { providerNames, redactCredentials } from '../infrastructure/providers.js';
 
 const identity = { next: randomUUID, now: () => new Date().toISOString() };
 const version = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url), 'utf8'))
@@ -41,15 +42,23 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
   let store: SqliteStore | undefined;
   const workspace = new LocalWorkspace();
   let interactiveModel: string | undefined;
+  let interactiveProvider: string | undefined;
   const options = () => program.opts<GlobalOptions>();
   const config = () =>
-    loadConfiguration({ ...options(), ...(interactiveModel ? { model: interactiveModel } : {}) });
+    loadConfiguration({
+      ...options(),
+      ...(interactiveProvider
+        ? { provider: interactiveProvider, model: interactiveModel }
+        : interactiveModel
+          ? { model: interactiveModel }
+          : {}),
+    });
   const operation = <T>(work: (signal: AbortSignal) => Promise<T>): Promise<T> =>
     externalSignal ? work(externalSignal) : cancellable(work);
   const database = () => (store ??= new SqliteStore(config().home));
   const model = (c = config()) => {
     requireAi(c);
-    return new SecretSafeModel(new CompatibleLanguageModel(c), c.apiKey);
+    return new SecretSafeModel(new CompatibleLanguageModel(c), c.secrets);
   };
   const changes = () => new ChangeCode(database().proposals, new LocalChangeWorkspace(), identity);
   const context = (target?: string) =>
@@ -124,9 +133,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
   const ask = async (prompt: string, sessionId?: string, target?: string, signal?: AbortSignal) => {
     const current = config();
     const ai = model(current);
-    const safePrompt = current.apiKey
-      ? redact(prompt).split(current.apiKey).join('[REDACTED]')
-      : redact(prompt);
+    const safePrompt = redactCredentials(redact(prompt), current.secrets);
     const result = await new Ask(database().conversations, ai, identity).execute({
       prompt: safePrompt,
       sessionId,
@@ -155,8 +162,18 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
         exists: (id) => Boolean(database().conversations.get(id)),
         doctor,
         setModel: (id) => {
-          const selected = loadConfiguration({ ...options(), model: id });
+          const selected = loadConfiguration({
+            ...options(),
+            provider: interactiveProvider || options().provider,
+            model: id,
+          });
           interactiveModel = selected.model;
+        },
+        setProvider: (id) => {
+          const selected = loadConfiguration({ provider: id });
+          interactiveProvider = selected.provider;
+          interactiveModel = selected.model;
+          return selected;
         },
         execute: async (args, signal) => {
           const current = config();
@@ -191,7 +208,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     )
     .version(version)
     .option('--json', 'Salida JSON sin banners; errores JSON en stderr')
-    .option('-p, --provider <proveedor>', 'openrouter, gemini o compatible')
+    .option('-p, --provider <proveedor>', providerNames.join(', '))
     .option('-m, --model <modelo>', 'ID del modelo disponible en tu proveedor')
     .showHelpAfterError()
     .exitOverride();
@@ -206,6 +223,31 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     .description('Diagnóstico local; --probe realiza una consulta real al proveedor')
     .option('--probe', 'Verificar la conexión con una consulta breve de IA')
     .action(async (opts) => doctor(Boolean(opts.probe)));
+  program
+    .command('providers')
+    .description('Proveedores y perfiles locales; no comprueba la conexión')
+    .action(() => {
+      const rows = providerNames.map((provider) => {
+        const c = loadConfiguration({ provider });
+        return {
+          provider,
+          active: config().provider === provider,
+          model: c.model || null,
+          credentialConfigured: Boolean(c.apiKey),
+          endpoint: c.baseUrl,
+        };
+      });
+      output(
+        rows,
+        rows
+          .map(
+            (row) =>
+              `${row.active ? '*' : ' '} ${row.provider.padEnd(11)} ${row.credentialConfigured ? 'clave guardada' : row.provider === 'compatible' ? 'clave opcional' : 'sin clave'} | ${row.model || 'modelo sin configurar'}`,
+          )
+          .join('\n') +
+          '\n* Proveedor activo. Las claves y perfiles no acreditan acceso o cuota; usa doctor --probe.',
+      );
+    });
   const configuration = program
     .command('config')
     .description('Configuración local, sin exponer claves');
@@ -564,7 +606,9 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
           'El proyecto supera el límite de lectura; no se creará un ZIP incompleto.',
         );
       const zip = new JSZip();
-      for (const file of snapshot.files) zip.file(file.path, redact(file.content));
+      const secrets = config().secrets;
+      for (const file of snapshot.files)
+        zip.file(file.path, redactCredentials(redact(file.content), secrets));
       const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
       const file = saveOutput(target || `${path.basename(snapshot.root)}-sources.zip`, buffer);
       output(
@@ -693,7 +737,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     .option('--timeout <ms>', 'Timeout de 100 a 600000 ms', '120000')
     .action(async (proposalId, opts) => {
       const service = new VerifyProject(
-        new NodeProjectChecks(),
+        new NodeProjectChecks(config().secrets),
         database().verifications,
         database().proposals,
         new LocalChangeWorkspace(),
@@ -731,7 +775,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     const record = database().verifications.get(id);
     if (!record) throw new AresError('NOT_FOUND', `Verificación no encontrada: ${id}`);
     const service = new VerifyProject(
-      new NodeProjectChecks(),
+      new NodeProjectChecks(config().secrets),
       database().verifications,
       database().proposals,
       new LocalChangeWorkspace(),

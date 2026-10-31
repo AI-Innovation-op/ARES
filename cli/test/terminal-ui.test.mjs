@@ -14,7 +14,7 @@ const profile =
   });
 
 test('terminal metadata cannot inject clipboard or cursor commands; JSON stays undecorated', (t) => {
-  const ui = new TerminalUi('5.2.1\x1b]52;c;clipboard\x07', profile(80, true));
+  const ui = new TerminalUi('5.3.0\x1b]52;c;clipboard\x07', profile(80, true));
   const output =
     ui.banner({
       provider: 'compatible',
@@ -26,19 +26,19 @@ test('terminal metadata cannot inject clipboard or cursor commands; JSON stays u
   assert.ok(!stripVTControlCharacters(output).includes('fake title'));
   const result = run(['doctor', '--json'], temporary(t));
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(JSON.parse(result.stdout).version, '5.2.1');
+  assert.equal(JSON.parse(result.stdout).version, '5.3.0');
   assert.ok(!result.stdout.includes('\x1b'));
 });
 
 test('banner and command catalogue fit wide and narrow terminal columns without color dependence', () => {
   for (const columns of [32, 48, 80, 120]) {
-    const ui = new TerminalUi('5.2.1', profile(columns));
+    const ui = new TerminalUi('5.3.0', profile(columns));
     const banner = ui.banner({ provider: 'compatible', model: 'fixture-model' });
     const catalogue = ui.help();
     for (const line of (banner + catalogue).split('\n'))
       assert.ok([...line].length <= columns, `Overflow at ${columns} columns: ${line}`);
     assert.ok(banner.includes('Created by AI Innovation'));
-    assert.ok((banner + catalogue).includes('5.2.1'));
+    assert.ok((banner + catalogue).includes('5.3.0'));
     assert.ok(!banner.includes('\x1b'));
     assert.ok(ui.prompt().includes('ares@standalone:~$'));
     assert.ok(catalogue.includes('/analyze'));

@@ -19,6 +19,8 @@ const COMMANDS = [
   ['/context RUTA', 'Adjuntar contexto; sin ruta, retirarlo.'],
   ['status / /doctor', 'Consultar configuración; conexión sin verificar.'],
   ['/models', 'Consultar el catálogo actual del proveedor.'],
+  ['/providers', 'Listar proveedores y perfiles locales.'],
+  ['/provider ID', 'Cambiar de proveedor usando su propio perfil.'],
   ['/model ID', 'Seleccionar modelo en esta terminal.'],
   ['/audit RUTA', 'Inspeccionar señales estáticas con ruta y línea.'],
   ['/analyze RUTA', 'Analizar imports, capas y ciclos mediante AST.'],
