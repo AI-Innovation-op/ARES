@@ -17,6 +17,8 @@ const COMMANDS = [
   ['/resume ID', 'Reanudar una conversación.'],
   ['/search PALABRAS', 'Buscar en el historial local.'],
   ['/context RUTA', 'Adjuntar contexto; sin ruta, retirarlo.'],
+  ['/open RUTA', 'Abrir proyecto; rutas y contexto usan su carpeta.'],
+  ['/close', 'Cerrar proyecto y volver a la carpeta inicial.'],
   ['status / /doctor', 'Consultar configuración; conexión sin verificar.'],
   ['/models', 'Consultar el catálogo actual del proveedor.'],
   ['/providers', 'Listar proveedores y perfiles locales.'],
@@ -91,11 +93,11 @@ export class TerminalUi {
     return lines.join('\n');
   }
 
-  banner(config: Configuration): string {
+  banner(config: Configuration, project?: string): string {
     const profile = this.profile();
     if (!profile.interactive)
       return this.paint(
-        `ARES ${this.version} | Ingeniería desde terminal\n${config.provider} / ${config.model || 'modelo sin configurar'}\n/help para ver comandos.\n`,
+        `ARES ${this.version} | Ingeniería desde terminal\n${config.provider} / ${config.model || 'modelo sin configurar'}\n${project ? 'Proyecto: ' + project + '\n' : ''}/help para ver comandos.\n`,
         'strong',
       );
     const wide = profile.columns >= 76;
@@ -124,6 +126,7 @@ export class TerminalUi {
         this.wrap('[LOCAL] Terminal independiente · Historial SQLite · Cambios revisables'),
       ),
     );
+    if (project) lines.push(this.paint(this.wrap('Proyecto: ' + project)));
     lines.push(
       this.paint(
         this.wrap(

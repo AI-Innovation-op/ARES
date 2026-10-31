@@ -14,6 +14,7 @@ export interface ConversationData {
   readonly updatedAt: string;
   readonly revision: number;
   readonly turns: readonly Turn[];
+  readonly project?: string;
 }
 
 /** Aggregate: a conversation contains only completed user/assistant pairs. */
@@ -24,6 +25,14 @@ export class Conversation {
     if (!/^[a-zA-Z0-9-]{1,64}$/.test(data.id) || data.revision !== data.turns.length) {
       throw new AresError('VALIDATION', 'Conversación inválida.');
     }
+    if (
+      data.project !== undefined &&
+      (typeof data.project !== 'string' ||
+        !data.project.trim() ||
+        data.project.length > 4096 ||
+        /[\x00-\x1f\x7f]/.test(data.project))
+    )
+      throw new AresError('VALIDATION', 'Proyecto de conversación inválido.');
     this.data = Object.freeze({
       ...data,
       turns: Object.freeze(data.turns.map((t) => Object.freeze({ ...t }))),
@@ -31,7 +40,7 @@ export class Conversation {
     Object.freeze(this);
   }
 
-  static start(id: string, at: string, title: string): Conversation {
+  static start(id: string, at: string, title: string, project?: string): Conversation {
     return new Conversation({
       id,
       title: requireText(title, 'Título').slice(0, 80),
@@ -39,7 +48,16 @@ export class Conversation {
       updatedAt: at,
       revision: 0,
       turns: [],
+      ...(project !== undefined ? { project } : {}),
     });
+  }
+
+  assertProject(project?: string): void {
+    if (this.data.project && this.data.project !== project)
+      throw new AresError(
+        'CONFLICT',
+        'La sesión pertenece a otro proyecto. Abre su carpeta con --project o /open, o inicia /new.',
+      );
   }
 
   append(turn: Turn): Conversation {

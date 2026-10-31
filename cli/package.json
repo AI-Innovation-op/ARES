@@ -1,6 +1,6 @@
 {
   "name": "@ares-ecosystem/cli",
-  "version": "5.3.0",
+  "version": "5.4.0",
   "description": "ARES: ingeniería desde terminal, dominio puro y cambios revisables",
   "type": "module",
   "bin": {
@@ -16,6 +16,9 @@
     "format:check": "prettier --check src test scripts \"*.json\"",
     "portable": "npm run build && node scripts/package-portable.mjs",
     "smoke:portable": "node scripts/smoke-portable.mjs",
+    "smoke:npm": "node scripts/smoke-npm.mjs",
+    "package:npm": "npm run build && node scripts/package-npm.mjs",
+    "install:global": "npm run package:npm && node scripts/install-global.mjs",
     "prepack": "npm run build",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js"

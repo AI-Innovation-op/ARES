@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [5.4.0] - 2026-10-31 — Trabajo por proyecto e instalación estable
+
+- Selección de carpeta con `--project`/`-C`, `/open` y `/close`: contexto y rutas relativas siguen el proyecto seleccionado.
+- Las sesiones nuevas conservan su proyecto y rechazan otra carpeta antes de contactar a la IA. Se preservan sesiones anteriores y el esquema SQLite.
+- Aplicación, restauración y verificación de propuestas protegidas frente a otro proyecto activo.
+- Instalación global mediante tarball compilado y dependencias fijadas, sin depender del checkout. Se añade comprobación del paquete instalado a CI.
+- Validación real del ciclo IA → propuesta → revisión → aplicación → tests independientes → restauración exacta en un proyecto aislado.
+
 ## [5.3.0] - 2026-10-31 — Proveedores y perfiles privados
 
 - Soporte explícito de Mistral, Groq y Cohere junto a Gemini y OpenRouter, con claves aisladas y endpoints oficiales fijados.

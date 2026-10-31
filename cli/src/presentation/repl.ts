@@ -19,6 +19,10 @@ export interface ShellActions {
   setModel(id: string): void;
   setProvider(id: string): Pick<Configuration, 'provider' | 'model'>;
   execute(args: string[], signal: AbortSignal): Promise<void>;
+  project(): string | undefined;
+  openProject(target: string): string;
+  closeProject(): void;
+  selection(): Pick<Configuration, 'provider' | 'model'>;
 }
 
 /** Quotes group arguments; backslashes are literal so Windows paths remain intact. */
@@ -66,7 +70,7 @@ export async function interactiveShell(
   let selectedProvider = config.provider;
   const banner = () =>
     process.stdout.write(
-      ui.banner({ ...config, provider: selectedProvider, model: selectedModel }),
+      ui.banner({ ...config, provider: selectedProvider, model: selectedModel }, actions.project()),
     );
   banner();
   try {
@@ -98,6 +102,8 @@ export async function interactiveShell(
     '/sessions',
     '/resume',
     '/context',
+    '/open',
+    '/close',
     '/doctor',
     '/model',
     '/provider',
@@ -123,7 +129,7 @@ export async function interactiveShell(
     ],
   });
   let sessionId: string | undefined;
-  let context: string | undefined;
+  let context: string | undefined = actions.project();
   let active: AbortController | undefined;
   const interrupt = () => {
     if (active) active.abort();
@@ -158,6 +164,36 @@ export async function interactiveShell(
         else if (line === '/clear') {
           process.stdout.write(ui.clear());
           banner();
+        } else if (line === '/open' || line.startsWith('/open ')) {
+          const args = commandArguments(line);
+          if (args.length !== 2) throw new Error('Usa /open "carpeta del proyecto".');
+          const previous = actions.project();
+          const root = actions.openProject(args[1]);
+          const selected = actions.selection();
+          selectedProvider = selected.provider;
+          selectedModel = selected.model;
+          if (previous !== root) sessionId = undefined;
+          context = root;
+          print(
+            `Proyecto activo: ${root}\nEl contexto y las rutas relativas usan esta carpeta.`,
+            false,
+          );
+        } else if (line === '/close') {
+          const previous = actions.project();
+          actions.closeProject();
+          const selected = actions.selection();
+          selectedProvider = selected.provider;
+          selectedModel = selected.model;
+          if (previous) {
+            sessionId = undefined;
+            context = undefined;
+          }
+          print(
+            previous
+              ? 'Proyecto cerrado; nueva conversación sin proyecto.'
+              : 'No hay proyecto activo.',
+            false,
+          );
         } else if (line === '/new') {
           sessionId = undefined;
           print('Nueva conversación.', false);

@@ -24,7 +24,7 @@ call npm.cmd run build
 if errorlevel 1 goto :failed
 if defined ARES_LOCAL goto :local_success
 echo [3/3] Registrando el comando global ares...
-call npm.cmd link --ignore-scripts --no-fund
+call npm.cmd run install:global
 if errorlevel 1 goto :failed
 echo Instalacion completada. Abre una terminal y ejecuta: ares doctor
 echo Si PowerShell restringe scripts, usa ares.cmd.
