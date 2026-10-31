@@ -1,4 +1,4 @@
-import type { LanguageModel, Message } from '../shared/application/ports.js';
+import type { LanguageModel, Message, ModelUsage } from '../shared/application/ports.js';
 import { AresError } from '../shared/domain/errors.js';
 import { requireAi, type Configuration } from './configuration.js';
 import { readBoundedText } from './http-body.js';
@@ -49,6 +49,7 @@ export async function* sseData(body: ReadableStream<Uint8Array>): AsyncIterable<
 }
 
 type CompletionChunk = {
+  usage?: { prompt_tokens?: number; completion_tokens?: number };
   error?: unknown;
   choices?: {
     delta?: { content?: unknown };
@@ -88,6 +89,15 @@ function checkFinish(reason: string | null | undefined): void {
 
 export class CompatibleLanguageModel implements LanguageModel {
   readonly name: string;
+  readonly usage: ModelUsage = {};
+  private captureUsage(chunk: CompletionChunk) {
+    const input = chunk.usage?.prompt_tokens,
+      output = chunk.usage?.completion_tokens;
+    if (typeof input === 'number' && Number.isFinite(input) && input >= 0)
+      this.usage.inputTokens = input;
+    if (typeof output === 'number' && Number.isFinite(output) && output >= 0)
+      this.usage.outputTokens = output;
+  }
   constructor(
     private readonly config: Configuration,
     private readonly request: typeof fetch = fetch,
@@ -114,6 +124,9 @@ export class CompatibleLanguageModel implements LanguageModel {
           model: this.config.model,
           messages,
           stream: true,
+          ...(this.config.provider === 'openrouter'
+            ? { stream_options: { include_usage: true } }
+            : {}),
           max_tokens: this.config.maxTokens,
         }),
       });
@@ -132,6 +145,7 @@ export class CompatibleLanguageModel implements LanguageModel {
       if (response.headers.get('content-type')?.includes('application/json')) {
         const text = await readBoundedText(response.body, 1_000_000);
         const parsed = parseChunk(text);
+        this.captureUsage(parsed);
         const choice = parsed.choices?.[0];
         checkFinish(choice?.finish_reason);
         const content = choice?.message?.content;
@@ -147,6 +161,7 @@ export class CompatibleLanguageModel implements LanguageModel {
             break;
           }
           const parsed = parseChunk(data);
+          this.captureUsage(parsed);
           const choice = parsed.choices?.[0];
           const content = choice?.delta?.content;
           if (typeof content === 'string') {

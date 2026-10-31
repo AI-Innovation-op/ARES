@@ -10,12 +10,16 @@ import { ManageProjects } from '../projects/application/manage-projects.js';
 import { ShareProposal } from '../collaboration/application/share-proposal.js';
 import { loadTeamPolicy, assertShareable } from '../infrastructure/team-files.js';
 import { registerCollaborationCommands } from './collaboration-commands.js';
+import { registerLocalCommands } from './local-commands.js';
+import { OllamaLanguageModel } from '../infrastructure/ollama.js';
+import { InferenceMetrics } from '../infrastructure/inference-metrics.js';
+import { MeasuredModel } from '../inference/application/measure-model.js';
 import { ChangeCode } from '../changes/application/change-code.js';
 import { forgeProject } from '../engineering/application/forge.js';
 import { generateDocument } from '../engineering/application/document.js';
 import { inspect } from '../workspace/application/inspect.js';
 import { AresError } from '../shared/domain/errors.js';
-import { complete } from '../shared/application/ports.js';
+import { complete, ENGINEERING_POLICY, type LanguageModel } from '../shared/application/ports.js';
 import {
   loadConfiguration,
   configurationLocation,
@@ -28,7 +32,7 @@ import { CompatibleLanguageModel } from '../infrastructure/language-model.js';
 import { LocalWorkspace, readCurrent, hash } from '../infrastructure/workspace.js';
 import { LocalChangeWorkspace } from '../infrastructure/change-workspace.js';
 import { SqliteStore } from '../infrastructure/sqlite-store.js';
-import { contextText, redact, terminalText } from '../infrastructure/text.js';
+import { redact, terminalText } from '../infrastructure/text.js';
 import { cancellable, diagnostic, print, readStdin, saveOutput } from './output.js';
 import { interactiveShell } from './repl.js';
 import { VerifyProject } from '../verification/application/verify-project.js';
@@ -153,9 +157,22 @@ export async function run(
     projectIdentity = current?.data.id;
     return current;
   };
-  const model = (c = config()) => {
+  const model = async (c = config(), signal?: AbortSignal) => {
     requireAi(c);
-    return new SecretSafeModel(new CompatibleLanguageModel(c), c.secrets);
+    const inner =
+      c.provider === 'ollama'
+        ? await OllamaLanguageModel.connect(c, signal)
+        : new CompatibleLanguageModel(c);
+    return new MeasuredModel(new SecretSafeModel(inner, c.secrets), (measurement) => {
+      try {
+        new InferenceMetrics(c.home).save({
+          ...measurement,
+          model: redactCredentials(measurement.model, c.secrets),
+        });
+      } catch {
+        diagnostic('No se pudieron guardar las métricas de esta solicitud.');
+      }
+    });
   };
   const changes = () => new ChangeCode(database().proposals, new LocalChangeWorkspace(), identity);
   const assertProposalProject = (id: string) => {
@@ -166,11 +183,23 @@ export async function run(
         'La propuesta pertenece a otro proyecto. Abre su carpeta con --project o /open.',
       );
   };
-  const context = (target?: string) => {
+  const context = (target?: string, byteBudget?: number) => {
     const selected = target ?? projectRoot;
-    return selected ? contextText(workspace.scan(path.resolve(selected))) : '';
+    return selected
+      ? selectContext(workspace.scan(path.resolve(selected)), 100_000, '', byteBudget).text
+      : '';
   };
   const output = (value: unknown, text?: string) => print(value, Boolean(options().json), text);
+  const sourceBudget = (ai: LanguageModel, instruction = '') =>
+    ai.inputBudgetBytes === undefined
+      ? undefined
+      : Math.max(
+          0,
+          ai.inputBudgetBytes -
+            Buffer.byteLength(ENGINEERING_POLICY) -
+            Buffer.byteLength(instruction) -
+            768,
+        );
   const verifier = () =>
     new VerifyProject(
       new NodeProjectChecks(config().secrets),
@@ -179,6 +208,30 @@ export async function run(
       new LocalChangeWorkspace(),
       identity,
     );
+  const selectedConfig = (provider: string, model?: string) =>
+    loadConfiguration(
+      {
+        provider,
+        ...(model === undefined
+          ? options().provider === provider && options().model
+            ? { model: options().model }
+            : {}
+          : { model }),
+      },
+      environment,
+      process.cwd(),
+      currentProject()?.data.preferences,
+      loadTeamPolicy(process.cwd())?.data.ai,
+    );
+  registerLocalCommands(program, {
+    config,
+    localConfig: (model) => selectedConfig('ollama', model),
+    cloudConfig: (provider, model) => selectedConfig(provider, model),
+    model,
+    environment,
+    output,
+    operation,
+  });
   registerCollaborationCommands(program, {
     config,
     workspace,
@@ -224,8 +277,12 @@ export async function run(
     }
     if (probe) {
       requireAi(c);
-      await operation((signal) =>
-        complete(model(), [{ role: 'user', content: 'Responde únicamente OK.' }], signal),
+      await operation(async (signal) =>
+        complete(
+          await model(c, signal),
+          [{ role: 'user', content: 'Responde únicamente OK.' }],
+          signal,
+        ),
       );
       detail = 'Solicitud de IA completada con el proveedor configurado.';
     }
@@ -260,14 +317,29 @@ export async function run(
   };
   const ask = async (prompt: string, sessionId?: string, target?: string, signal?: AbortSignal) => {
     const current = config();
-    const ai = model(current);
+    const ai = await model(current, signal);
     const safePrompt = redactCredentials(redact(prompt), current.secrets);
     const result = await new Ask(database().conversations, ai, identity).execute({
       prompt: safePrompt,
       project: projectRoot,
       projectId: currentProject()?.data.id,
       sessionId,
-      context: target ? contextText(workspace.scan(path.resolve(target)), 100_000, prompt) : '',
+      context: target
+        ? selectContext(
+            workspace.scan(path.resolve(target)),
+            100_000,
+            prompt,
+            ai.inputBudgetBytes === undefined
+              ? undefined
+              : Math.max(
+                  0,
+                  ai.inputBudgetBytes -
+                    Buffer.byteLength(ENGINEERING_POLICY) -
+                    Buffer.byteLength(safePrompt) -
+                    128,
+                ),
+          ).text
+        : '',
       signal,
       onDelta: options().json
         ? undefined
@@ -490,7 +562,7 @@ export async function run(
         rows
           .map(
             (row) =>
-              `${row.active ? '*' : ' '} ${row.provider.padEnd(11)} ${row.credentialConfigured ? 'clave guardada' : row.provider === 'compatible' ? 'clave opcional' : 'sin clave'} | ${row.model || 'modelo sin configurar'}`,
+              `${row.active ? '*' : ' '} ${row.provider.padEnd(11)} ${row.credentialConfigured ? 'clave guardada' : ['compatible', 'ollama'].includes(row.provider) ? 'clave opcional' : 'sin clave'} | ${row.model || 'modelo sin configurar'}`,
           )
           .join('\n') +
           '\n* Proveedor activo. Las claves y perfiles no acreditan acceso o cuota; usa doctor --probe.',
@@ -567,12 +639,21 @@ export async function run(
     .description('Actualizar la configuración personal; claves solo por stdin')
     .option('--base-url <url>', 'Endpoint para el proveedor compatible')
     .option('--key-stdin', 'Leer la clave de stdin; nunca como argumento')
+    .option('--local-context <tokens>', 'Contexto Ollama: auto o entre 2048 y 32768')
+    .option(
+      '--max-tokens <tokens>',
+      'Límite de salida entre 128 y 32768; local reserva como máximo 1/4 del contexto',
+    )
+    .option('--timeout-ms <ms>', 'Tiempo máximo entre 100 y 600000 ms')
     .action(async (opts) => {
       if (
         options().provider === undefined &&
         options().model === undefined &&
         opts.baseUrl === undefined &&
-        !opts.keyStdin
+        !opts.keyStdin &&
+        opts.localContext === undefined &&
+        opts.maxTokens === undefined &&
+        opts.timeoutMs === undefined
       )
         throw new AresError('VALIDATION', 'Indica --provider, --model, --base-url o --key-stdin.');
       const apiKey = opts.keyStdin ? await readStdin() : undefined;
@@ -582,6 +663,9 @@ export async function run(
           model: options().model,
           baseUrl: opts.baseUrl,
           apiKey,
+          localContext: opts.localContext,
+          maxTokens: opts.maxTokens,
+          timeoutMs: opts.timeoutMs,
         },
         environment,
       );
@@ -737,15 +821,24 @@ export async function run(
       const snapshot = workspace.scan(path.resolve(target));
       const report = inspect(snapshot);
       const aiReview = opts.ai
-        ? await operation((signal) =>
-            generateDocument(
-              model(),
+        ? await operation(async (signal) => {
+            const ai = await model(config(), signal);
+            return generateDocument(
+              ai,
               'rfc',
               'Revisa el código con foco en defectos, límites de dominio y riesgos verificables. Cita rutas y líneas; no reescribas código.',
-              contextText(snapshot),
+              selectContext(
+                snapshot,
+                100_000,
+                '',
+                sourceBudget(
+                  ai,
+                  'Revisa el código con foco en defectos, límites de dominio y riesgos verificables. Cita rutas y líneas; no reescribas código.',
+                ),
+              ).text,
               signal,
-            ),
-          )
+            );
+          })
         : undefined;
       output(
         { ...report, ...(aiReview ? { aiReview } : {}) },
@@ -774,15 +867,17 @@ export async function run(
     .option('-c, --context <ruta>', 'Contexto local')
     .option('-o, --output <archivo>', 'Nuevo archivo de salida')
     .action(async (type, parts: string[], opts) => {
-      const text = await operation((signal) =>
-        generateDocument(
-          model(),
+      const text = await operation(async (signal) => {
+        const ai = await model(config(), signal);
+        const instruction = redact(parts.join(' ') || `Documenta el proyecto: ${type}.`);
+        return generateDocument(
+          ai,
           type.toLowerCase(),
-          redact(parts.join(' ') || `Documenta el proyecto: ${type}.`),
-          context(opts.context || '.'),
+          instruction,
+          context(opts.context || '.', sourceBudget(ai, instruction)),
           signal,
-        ),
-      );
+        );
+      });
       if (opts.output) {
         const file = saveOutput(opts.output, text);
         output({ file, type }, `Documento guardado: ${file}`);
@@ -794,15 +889,17 @@ export async function run(
     .option('-f, --framework <nombre>', 'Framework a utilizar', 'node:test')
     .option('-o, --output <archivo>', 'Nuevo archivo de salida')
     .action(async (file, opts) => {
-      const text = await operation((signal) =>
-        generateDocument(
-          model(),
+      const text = await operation(async (signal) => {
+        const ai = await model(config(), signal);
+        const instruction = `Genera tests significativos con ${opts.framework}. Incluye casos límite y las invariantes del código; no alteres la implementación.`;
+        return generateDocument(
+          ai,
           'tests',
-          `Genera tests significativos con ${opts.framework}. Incluye casos límite y las invariantes del código; no alteres la implementación.`,
-          context(file),
+          instruction,
+          context(file, sourceBudget(ai, instruction)),
           signal,
-        ),
-      );
+        );
+      });
       if (opts.output) {
         const saved = saveOutput(opts.output, text);
         output({ file: saved, executed: false }, `Tests propuestos (sin ejecutar): ${saved}`);
@@ -901,13 +998,21 @@ export async function run(
           payload,
         );
       } else {
-        const selected = selectContext(snapshot, 100_000, parts.join(' '));
+        const ai = await model();
+        const selected = selectContext(
+          snapshot,
+          100_000,
+          parts.join(' '),
+          ai.inputBudgetBytes === undefined
+            ? undefined
+            : Math.max(0, ai.inputBudgetBytes - 1500 - Buffer.byteLength(parts.join(' '))),
+        );
         const permitted = {
           ...snapshot,
           files: snapshot.files.filter((file) => selected.includedPaths.includes(file.path)),
         };
         result = await operation((signal) =>
-          service.generate(model(), permitted, redact(parts.join(' ')), selected.text, signal),
+          service.generate(ai, permitted, redact(parts.join(' ')), selected.text, signal),
         );
       }
       output(

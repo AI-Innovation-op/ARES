@@ -1,6 +1,11 @@
 import { AresError } from '../shared/domain/errors.js';
 
 export const PROVIDERS = {
+  ollama: {
+    baseUrl: 'http://127.0.0.1:11434',
+    key: 'OLLAMA_API_KEY',
+    model: 'OLLAMA_MODEL',
+  },
   openrouter: {
     baseUrl: 'https://openrouter.ai/api/v1',
     key: 'OPENROUTER_API_KEY',

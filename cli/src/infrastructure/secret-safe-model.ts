@@ -5,6 +5,12 @@ import { redactCredentials } from './providers.js';
 export class SecretSafeModel implements LanguageModel {
   readonly name: string;
   private readonly secrets: readonly string[];
+  get inputBudgetBytes() {
+    return this.inner.inputBudgetBytes;
+  }
+  get usage() {
+    return this.inner.usage;
+  }
   constructor(
     private readonly inner: LanguageModel,
     secrets: string | readonly string[],

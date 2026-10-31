@@ -2,6 +2,7 @@ import type { Configuration } from './configuration.js';
 import { readBoundedText } from './http-body.js';
 import { AresError } from '../shared/domain/errors.js';
 import { PROVIDERS } from './providers.js';
+import { OllamaEngine } from './ollama.js';
 
 export interface CatalogModel {
   readonly id: string;
@@ -14,6 +15,11 @@ export async function listModels(
   signal?: AbortSignal,
   request: typeof fetch = fetch,
 ): Promise<readonly CatalogModel[]> {
+  if (config.provider === 'ollama')
+    return (await new OllamaEngine(config.baseUrl, request).models(signal)).map((model) => ({
+      id: model.name,
+      name: model.name,
+    }));
   if (!['openrouter', 'compatible'].includes(config.provider) && !config.apiKey)
     throw new AresError(
       'CONFIG',

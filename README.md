@@ -1,16 +1,16 @@
-# 🛡️ A.R.E.S. Ecosystem (v5.6 Terminal CLI // Created by AI Innovation)
+# 🛡️ A.R.E.S. Ecosystem (v5.7 Terminal CLI // Created by AI Innovation)
 
 > **"Un código sin documentación es una fortaleza sin murallas. Una arquitectura sin auditoría es una espada sin filo. Y un proyecto sin tu autoría es una batalla ganada sin honor."**
 >
 > *Soy A.R.E.S. (Autonomous Resilient Engineering & Software-Documentation God), tu copiloto táctico de ingeniería y documentación. Mi centro de operaciones es tu terminal.*
 >
-> 🏷️ **Versión actual: [v5.6.0 — Release oficial](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.6.0)** · Terminal independiente · Proyectos DDD · Cambios revisables · Historial local.
+> 🏷️ **Versión actual: [v5.7.0 — Release oficial](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.7.0)** · Terminal independiente · Proyectos DDD · Cambios revisables · Historial local.
 
 [![Node.js](https://img.shields.io/badge/Node.js-24%2B-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Terminal CLI](https://img.shields.io/badge/CLI-CMD_%7C_PowerShell_%7C_Unix-111827?style=flat)](#empezar-en-cmd)
 [![SQLite](https://img.shields.io/badge/SQLite-Historial_local-003B57?style=flat&logo=sqlite)](#arquitectura-e-historial-sin-ia)
-[![Proveedores de IA](https://img.shields.io/badge/IA-5_proveedores_%2B_servidores_compatibles-6366F1?style=flat)](#configurar-la-ia)
+[![Proveedores de IA](https://img.shields.io/badge/IA-Ollama_local_%2B_5_proveedores_%2B_compatibles-6366F1?style=flat)](#configurar-la-ia)
 [![CI](https://github.com/AI-Innovation-op/ARES/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AI-Innovation-op/ARES/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -20,22 +20,22 @@
 
 <div align="center">
 
-[![Descargar ARES v5.6.0 ZIP portable](https://img.shields.io/badge/Descargar-ARES_v5.6.0_ZIP_portable-007ACC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.6.0/ARES-5.6.0-portable.zip)
-[![Ver release v5.6.0 en GitHub](https://img.shields.io/badge/GitHub-Release_v5.6.0-2EA44F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.6.0)
-[![Descargar código fuente ZIP](https://img.shields.io/badge/Descargar-Codigo_fuente_ZIP-9333EA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.6.0/ARES-5.6.0-source.zip)
+[![Descargar ARES v5.7.0 ZIP portable](https://img.shields.io/badge/Descargar-ARES_v5.7.0_ZIP_portable-007ACC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.0/ARES-5.7.0-portable.zip)
+[![Ver release v5.7.0 en GitHub](https://img.shields.io/badge/GitHub-Release_v5.7.0-2EA44F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/tag/v5.7.0)
+[![Descargar código fuente ZIP](https://img.shields.io/badge/Descargar-Codigo_fuente_ZIP-9333EA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.0/ARES-5.7.0-source.zip)
 
 </div>
 
 > 🚀 **¿Quieres empezar directamente en tu PC?**
 >
 > 1. Instala [Node.js 24 o superior](https://nodejs.org/).
-> 2. **[⬇️ Descarga el ZIP portable de ARES](https://github.com/AI-Innovation-op/ARES/releases/download/v5.6.0/ARES-5.6.0-portable.zip)** y extrae el archivo completo en tu disco, por ejemplo en `C:\ARES` o `D:\ARES`.
+> 2. **[⬇️ Descarga el ZIP portable de ARES](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.0/ARES-5.7.0-portable.zip)** y extrae el archivo completo en tu disco, por ejemplo en `C:\ARES` o `D:\ARES`.
 > 3. Si quieres usar IA, abre CMD en la carpeta que contiene `ares.cmd` y ejecuta **`ares.cmd setup`** para configurar proveedor, modelo y clave. Las funciones locales funcionan sin claves.
 > 4. Haz doble clic en **`INICIAR_ARES.bat`** para abrir la terminal y escribe **`help`** para ver los comandos. El portable incluye las dependencias; no necesita `npm install`.
 >
 > 📖 **¿Prefieres instalar desde el código fuente y tener el comando global `ares`?** Descarga el ZIP de fuentes y sigue [Empezar en CMD](#empezar-en-cmd).
 >
-> 🔎 [Ver hashes SHA-256 de la descarga](https://github.com/AI-Innovation-op/ARES/releases/download/v5.6.0/SHA256SUMS-5.6.0.txt).
+> 🔎 [Ver hashes SHA-256 de la descarga](https://github.com/AI-Innovation-op/ARES/releases/download/v5.7.0/SHA256SUMS-5.7.0.txt).
 
 ---
 
@@ -51,7 +51,7 @@ La web y el personaje 3D forman parte de la historia del ecosistema y se conserv
 
 | Área | Qué ofrece la CLI actual |
 | --- | --- |
-| **💬 Conversación sobre tu código** | Respuestas con streaming y contexto del proyecto mediante OpenRouter, Gemini, Mistral, Groq, Cohere o un servidor compatible. Tú eliges proveedor y modelo. |
+| **💬 Conversación sobre tu código** | Respuestas con streaming y contexto del proyecto mediante Ollama local, OpenRouter, Gemini, Mistral, Groq, Cohere o un servidor compatible. Tú eliges proveedor y modelo. |
 | **🔎 Inspección y arquitectura** | Selección de fuentes, señales de auditoría y análisis AST de imports, capas y ciclos, sin llamar a IA. |
 | **🛡️ Escudo de documentación** | Propuestas de README, ADR, RFC, OpenAPI y C4 con IA a partir del contexto seleccionado. |
 | **⚒️ Forja DDD** | Plantilla local de seguimiento de tareas con dominio, casos de uso, SQLite, CLI y tests, sin necesitar IA. |
@@ -69,7 +69,7 @@ CLI independiente para conversar sobre código, inspeccionar proyectos, generar 
 
 La versión 5 reconstruye el núcleo de terminal con dominio puro, casos de uso, puertos y adaptadores. Las conversaciones y las propuestas tienen invariantes y persistencia SQLite. El diseño usa DDD en las reglas que lo necesitan y conserva una aplicación local pequeña.
 
-**Versión CLI: 5.6.0. Requisito: Node.js 24 o superior.** Git es necesario para clonar el repositorio; la ejecución del CLI no lo requiere.
+**Versión CLI: 5.7.0. Requisito: Node.js 24 o superior.** Git es necesario para clonar el repositorio; la ejecución del CLI no lo requiere.
 
 También puedes descargar el ZIP portable desde [Releases](https://github.com/AI-Innovation-op/ARES/releases), extraerlo y ejecutar `ares.cmd doctor`. Incluye las dependencias de ejecución; no requiere `npm install`.
 
@@ -223,7 +223,7 @@ ARES_MODEL=ID_DEL_MODELO_LOCAL_INSTALADO
 
 El modelo se elige explícitamente: ARES no fija nombres de modelos que pueden retirarse ni instala modelos locales por su cuenta. Puedes sobrescribir la selección con `--provider` y `--model`. `COMPATIBLE_API_KEY` sirve para servidores compatibles que requieren autenticación.
 
-La CLI admite **OpenRouter, Gemini, Mistral, Groq y Cohere**, además de servidores compatibles. Cada proveedor usa su propia clave y un endpoint oficial fijo. `ares providers` muestra perfiles y presencia de credenciales, sin mostrarlas ni realizar consultas de IA.
+La CLI admite **Ollama local, OpenRouter, Gemini, Mistral, Groq y Cohere**, además de servidores compatibles. Cada proveedor de nube usa su propia clave y un endpoint oficial fijo. `ares providers` muestra perfiles y presencia de credenciales, sin mostrarlas ni realizar consultas de IA.
 
 | Proveedor  | Clave local                     | Modelo del perfil  |
 | ---------- | ------------------------------- | ------------------ |
@@ -233,6 +233,7 @@ La CLI admite **OpenRouter, Gemini, Mistral, Groq y Cohere**, además de servido
 | Groq       | `GROQ_API_KEY`                  | `GROQ_MODEL`       |
 | Cohere     | `COHERE_API_KEY`                | `COHERE_MODEL`     |
 | Compatible | `COMPATIBLE_API_KEY` (opcional) | `COMPATIBLE_MODEL` |
+| Ollama     | No requiere clave; ARES no envía Authorization | `OLLAMA_MODEL` |
 
 ```cmd
 ares models --provider groq
@@ -260,6 +261,46 @@ ares
 Consulta los identificadores actuales con `ares models --filter TEXTO`. El catálogo no garantiza acceso ni cuota; `doctor --probe` realiza la comprobación de inferencia.
 
 La sesión interactiva admite `/help`, `/new`, `/history`, `/sessions`, `/resume ID`, `/search PALABRAS`, `/context RUTA`, `/doctor`, `/models`, `/model ID` y `/exit`. También permite `/audit`, `/analyze`, `/forge`, `/doc`, `/test`, `/propose`, `/diff`, `/apply`, `/verify` y `/restore` con las mismas opciones que la CLI. Las rutas con espacios van entre comillas. Tab completa los comandos. Ctrl+C cancela una operación en curso; los turnos incompletos no se guardan como exitosos.
+
+## 🧠 IA local opcional, evaluación y métricas
+
+Cada integrante elige el motor según su equipo. Instalar Ollama es opcional: los perfiles de nube siguen disponibles. ARES no descarga motores ni modelos automáticamente. Para una primera instalación usa [Ollama oficial](https://ollama.com/download); puedes guardar sus modelos en otro disco con `OLLAMA_MODELS`. Para un motor estrictamente local configura `OLLAMA_NO_CLOUD=1` antes de iniciarlo.
+
+```cmd
+ares local hardware --json
+ollama pull qwen2.5-coder:7b
+ares local models
+ares local use qwen2.5-coder:7b --context auto
+ares local status
+ares doctor --probe
+ares
+```
+
+El modelo del ejemplo ocupa aproximadamente 4,7 GB; su id y disponibilidad pertenecen al catálogo de Ollama. `local use` valida que hay pesos locales y capacidad de texto antes de guardar la selección personal. El proveedor `ollama` acepta solamente loopback, rechaza referencias remotas y no cambia a nube al fallar. Un servidor `compatible` sigue siendo una opción distinta y no garantiza inferencia local.
+
+El presupuesto automático usa memoria disponible y capacidad declarada del modelo. Es una heurística conservadora, no una garantía de que un modelo cabrá en cualquier equipo. En Macs sin NVIDIA se usa memoria del sistema como referencia; el piloto debe confirmar el comportamiento. La entrada se limita con bytes UTF-8 como estimación conservadora, se reservan tokens para salida y se conserva historial por pares completos. Los archivos que no caben se omiten completos; una instrucción demasiado grande se rechaza antes de generar. Contextos mayores necesitan medición real.
+
+```cmd
+ares local use qwen2.5-coder:7b --context 8192
+ares config set --max-tokens 1024 --timeout-ms 120000
+ares config set --local-context auto
+ares metrics --limit 20 --json
+ares config set --provider openrouter
+```
+
+`ARES_LOCAL_CONTEXT` admite `auto` (ausencia de valor) o 2048..32768; `ARES_MAX_TOKENS` limita la salida y `ARES_TIMEOUT_MS` la duración. En Ollama la salida efectiva se limita también a un cuarto del contexto. `local status` muestra ese presupuesto real. La selección por flags, entorno o proyecto puede tener precedencia sobre el archivo personal.
+
+Las métricas se guardan en `inference-metrics.db` dentro de `ARES_HOME`, separadas del historial: instante, modelo, estado, duración, primer fragmento y tokens cuando se reportan. Ollama añade tiempo de carga y generación; `metrics --json` calcula tokens/segundo si existen esos datos. No se almacenan consultas, código o cuerpos de error en esta base. La cuota, el saldo y los precios de nube no se deducen de esos contadores.
+
+Para comparar explícitamente local y nube:
+
+```cmd
+ares evaluate --local-model qwen2.5-coder:7b --cloud-provider openrouter --cloud-model ID_DISPONIBLE --runs 2 -o comparacion.json
+```
+
+La suite tiene tres tareas sintéticas de invariantes, idempotencia y lectura de JavaScript. Envía los mismos mensajes y límite de salida a ambos modelos, valida JSON contra resultados esperados y registra errores como fallos. Hace seis solicitudes por repetición; no ejecuta código generado ni acredita calidad general de programación. No envía fuentes del proyecto. Un informe existente se rechaza antes de consultar modelos.
+
+En el REPL están disponibles `/local`, `/metrics` y `/evaluate`. Consulta el [piloto para cinco personas](docs/PILOT.md), la [decisión de arquitectura](docs/adr/0008-local-inference.md) y la [evidencia de esta versión](docs/VALIDATION-5.7.md).
 
 ## Arquitectura e historial sin IA
 

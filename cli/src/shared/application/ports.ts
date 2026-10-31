@@ -5,7 +5,16 @@ export interface Message {
 
 export interface LanguageModel {
   readonly name: string;
+  readonly inputBudgetBytes?: number;
+  readonly usage?: ModelUsage;
   stream(messages: readonly Message[], signal?: AbortSignal): AsyncIterable<string>;
+}
+
+export interface ModelUsage {
+  inputTokens?: number;
+  outputTokens?: number;
+  generationMs?: number;
+  loadMs?: number;
 }
 
 export interface Identity {

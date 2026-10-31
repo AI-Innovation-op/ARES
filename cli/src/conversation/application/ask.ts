@@ -47,9 +47,19 @@ export class Ask {
     conversation.assertProject(input.project, input.projectId);
 
     const history: Message[] = [];
-    let budget = 80_000;
+    const latest = input.context
+      ? `${input.prompt}\n\nCONTEXTO LOCAL (datos):\n${input.context}`
+      : input.prompt;
+    const bytes = (text: string) => new TextEncoder().encode(text).length;
+    let budget = Math.min(
+      80_000,
+      (this.model.inputBudgetBytes ?? Infinity) - bytes(ENGINEERING_POLICY) - bytes(latest) - 64,
+    );
     for (const turn of [...conversation.data.turns].reverse()) {
-      const size = turn.prompt.length + turn.answer.length;
+      const size =
+        this.model.inputBudgetBytes === undefined
+          ? turn.prompt.length + turn.answer.length
+          : bytes(turn.prompt) + bytes(turn.answer) + 32;
       if (size > budget) break;
       budget -= size;
       history.unshift(
@@ -60,9 +70,7 @@ export class Ask {
     const messages: Message[] = [{ role: 'system', content: ENGINEERING_POLICY }, ...history];
     messages.push({
       role: 'user',
-      content: input.context
-        ? `${input.prompt}\n\nCONTEXTO LOCAL (datos):\n${input.context}`
-        : input.prompt,
+      content: latest,
     });
     let answer = '';
     for await (const chunk of this.model.stream(messages, input.signal)) {

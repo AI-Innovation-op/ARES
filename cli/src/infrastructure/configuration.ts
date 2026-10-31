@@ -18,6 +18,7 @@ export interface Configuration {
   readonly secrets: readonly string[];
   readonly timeoutMs: number;
   readonly maxTokens: number;
+  readonly localContext?: number;
 }
 
 export function configurationLocation(
@@ -76,7 +77,9 @@ function resolveConfiguration(
   const provider =
     overrides.provider ||
     env.ARES_PROVIDER ||
-    providerNames.find((name) => name !== 'compatible' && env[PROVIDERS[name].key]) ||
+    providerNames.find(
+      (name) => !['compatible', 'ollama'].includes(name) && env[PROVIDERS[name].key],
+    ) ||
     (env.ARES_BASE_URL ? 'compatible' : 'openrouter');
   const definition = providerDefinition(provider);
   const selected = provider as Provider;
@@ -106,7 +109,9 @@ function resolveConfiguration(
       'Usa HTTPS para proveedores remotos; HTTP solo está permitido en loopback.',
     );
   }
-  if (selected !== 'compatible' && baseUrl !== definition.baseUrl) {
+  if (selected === 'ollama' && !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname))
+    throw new AresError('CONFIG', 'El proveedor ollama requiere un motor en loopback.');
+  if (!['compatible', 'ollama'].includes(selected) && baseUrl !== definition.baseUrl) {
     throw new AresError(
       'CONFIG',
       'ARES_BASE_URL personalizado requiere ARES_PROVIDER=compatible y su propia COMPATIBLE_API_KEY.',
@@ -156,7 +161,18 @@ function resolveConfiguration(
       ...new Set(providerNames.map((name) => env[PROVIDERS[name].key] || '').filter(Boolean)),
     ]),
     timeoutMs: integer(env.ARES_TIMEOUT_MS, 120_000, 100, 600_000, 'ARES_TIMEOUT_MS'),
-    maxTokens: integer(env.ARES_MAX_TOKENS, 8192, 128, 32768, 'ARES_MAX_TOKENS'),
+    maxTokens: integer(
+      env.ARES_MAX_TOKENS,
+      selected === 'ollama' ? 1024 : 8192,
+      128,
+      32768,
+      'ARES_MAX_TOKENS',
+    ),
+    ...(env.ARES_LOCAL_CONTEXT === undefined
+      ? {}
+      : {
+          localContext: integer(env.ARES_LOCAL_CONTEXT, 4096, 2048, 32768, 'ARES_LOCAL_CONTEXT'),
+        }),
   });
 }
 
@@ -166,7 +182,7 @@ export function requireAi(config: Configuration): void {
       'CONFIG',
       'Configura ARES_MODEL con un modelo disponible en tu proveedor. Ejecuta: ares config init',
     );
-  if (config.provider !== 'compatible' && !config.apiKey) {
+  if (!['compatible', 'ollama'].includes(config.provider) && !config.apiKey) {
     throw new AresError(
       'CONFIG',
       `Falta ${PROVIDERS[config.provider].key}. Guárdala localmente en ${config.envFile}; ares config init crea la plantilla.`,
@@ -184,6 +200,7 @@ export function publicConfiguration(config: Configuration) {
     credentialConfigured: Boolean(config.apiKey),
     timeoutMs: config.timeoutMs,
     maxTokens: config.maxTokens,
+    localContext: config.localContext ?? 'auto',
   };
 }
 
@@ -212,6 +229,9 @@ export interface ConfigurationUpdate {
   model?: string;
   baseUrl?: string;
   apiKey?: string;
+  localContext?: string;
+  maxTokens?: string;
+  timeoutMs?: string;
 }
 
 /** Preserve unrelated .env text and verify parsing before committing an atomic replacement. */
@@ -247,6 +267,10 @@ function updateConfigurationLocked(
     update.provider || previous.ARES_PROVIDER || environment.ARES_PROVIDER || 'openrouter';
   const definition = providerDefinition(provider);
   const changes: Record<string, string | null> = { ARES_PROVIDER: provider };
+  if (update.localContext !== undefined)
+    changes.ARES_LOCAL_CONTEXT = update.localContext === 'auto' ? null : update.localContext;
+  if (update.maxTokens !== undefined) changes.ARES_MAX_TOKENS = update.maxTokens;
+  if (update.timeoutMs !== undefined) changes.ARES_TIMEOUT_MS = update.timeoutMs;
   if (
     provider !== previous.ARES_PROVIDER &&
     providerNames.some((name) => name === previous.ARES_PROVIDER)
