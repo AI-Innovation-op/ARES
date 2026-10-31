@@ -9,6 +9,11 @@ const artifacts = path.resolve(root, '../.artifacts');
 const metadata = JSON.parse(fs.readFileSync(path.join(root, 'package.json')));
 const npm = process.env.npm_execpath;
 if (!npm || !fs.existsSync(npm)) throw new Error('Ejecuta mediante npm run install:global.');
+// npm --prefix cli run exports the source prefix to subprocesses.
+// Resolve the global target from npm's user configuration instead.
+const npmEnvironment = { ...process.env };
+for (const key of Object.keys(npmEnvironment))
+  if (/^npm_config_(prefix|local_prefix|global_prefix)$/i.test(key)) delete npmEnvironment[key];
 const file = `ARES-${metadata.version}-npm.tgz`;
 const archive = path.join(artifacts, file);
 const manifest = JSON.parse(
@@ -32,13 +37,14 @@ const installed = spawnSync(
     '--no-fund',
     archive,
   ],
-  { stdio: 'inherit', windowsHide: true },
+  { stdio: 'inherit', windowsHide: true, env: npmEnvironment },
 );
 if (installed.error || installed.status !== 0)
   throw new Error('La instalación global no se completó.');
 const globalRoot = spawnSync(process.execPath, [npm, 'root', '--global'], {
   encoding: 'utf8',
   windowsHide: true,
+  env: npmEnvironment,
 });
 if (globalRoot.status !== 0) throw new Error('No se pudo comprobar la instalación.');
 const packageRoot = path.join(globalRoot.stdout.trim(), '@ares-ecosystem', 'cli');

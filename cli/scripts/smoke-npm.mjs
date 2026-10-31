@@ -77,6 +77,42 @@ try {
   run(['forge', project]);
   if (run(['--project', project, 'verify']).status !== 'passed')
     throw new Error('La copia instalada no verificó el proyecto generado.');
+  const globalPrefix = path.join(directory, 'global prefix');
+  const npmrc = path.join(directory, 'isolated.npmrc');
+  fs.mkdirSync(globalPrefix);
+  fs.writeFileSync(npmrc, 'prefix=' + globalPrefix.replaceAll('\\', '/') + '\n');
+  const installerEnvironment = { ...process.env };
+  for (const key of Object.keys(installerEnvironment))
+    if (/^npm_config_(prefix|local_prefix|global_prefix|userconfig)$/i.test(key))
+      delete installerEnvironment[key];
+  Object.assign(installerEnvironment, {
+    npm_execpath: npm,
+    npm_config_prefix: path.join(directory, 'inherited source prefix'),
+    npm_config_local_prefix: root,
+    npm_config_userconfig: npmrc,
+  });
+  const installer = spawnSync(process.execPath, [path.join(root, 'scripts/install-global.mjs')], {
+    cwd: root,
+    env: installerEnvironment,
+    encoding: 'utf8',
+    windowsHide: true,
+    timeout: 120000,
+  });
+  if (installer.error || installer.status !== 0)
+    throw new Error('El instalador global no pasó su prueba aislada.');
+  const report = JSON.parse(installer.stdout.trim().split(/\r?\n/).at(-1));
+  if (
+    report.version !== metadata.version ||
+    fs.realpathSync(report.installed) !==
+      fs.realpathSync(
+        path.join(
+          globalPrefix,
+          process.platform === 'win32' ? 'node_modules' : 'lib/node_modules',
+          '@ares-ecosystem/cli',
+        ),
+      )
+  )
+    throw new Error('El instalador global heredó el prefijo del código fuente.');
   console.log(
     JSON.stringify({
       version: metadata.version,
@@ -84,6 +120,7 @@ try {
       independentCopy: true,
       pinnedDependencies: 'passed',
       projectWorkflow: 'passed',
+      globalInstaller: 'passed',
       platform: process.platform,
     }),
   );
