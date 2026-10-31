@@ -9,6 +9,8 @@ import type { ProposalRepository } from '../changes/application/change-code.js';
 import { AresError, requireText } from '../shared/domain/errors.js';
 import { openDatabase } from './native-sqlite.js';
 import { Verification, type VerificationData } from '../verification/domain/verification.js';
+import { Project, type ProjectData } from '../projects/domain/project.js';
+import type { ProjectRepository } from '../projects/application/manage-projects.js';
 import type { VerificationRepository } from '../verification/application/verify-project.js';
 
 export class SqliteStore {
@@ -16,6 +18,7 @@ export class SqliteStore {
   readonly conversations: ConversationRepository;
   readonly proposals: ProposalRepository;
   readonly verifications: VerificationRepository;
+  readonly projects: ProjectRepository;
   constructor(home: string) {
     fs.mkdirSync(home, { recursive: true, mode: 0o700 });
     const file = path.join(home, 'ares.sqlite');
@@ -23,14 +26,14 @@ export class SqliteStore {
     fs.chmodSync(file, 0o600);
     this.db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL; PRAGMA foreign_keys = ON;');
     const schemaVersion = Number(this.db.prepare('PRAGMA user_version').get()?.user_version);
-    if (schemaVersion > 3) {
+    if (schemaVersion > 4) {
       this.db.close();
       throw new AresError(
         'CONFIG',
         'Esta base de datos requiere una versión más reciente de ARES.',
       );
     }
-    if (schemaVersion > 0 && schemaVersion < 3) {
+    if (schemaVersion > 0 && schemaVersion < 4) {
       const backup = path.join(home, `ares-schema-${schemaVersion}-backup-${randomUUID()}.sqlite`);
       try {
         this.db.prepare('VACUUM INTO ?').run(backup);
@@ -48,6 +51,13 @@ export class SqliteStore {
       CREATE TABLE IF NOT EXISTS verifications (id TEXT PRIMARY KEY, proposal_id TEXT, started_at TEXT NOT NULL, data TEXT NOT NULL) STRICT;
       CREATE INDEX IF NOT EXISTS verifications_by_proposal ON verifications (proposal_id, started_at);
       CREATE VIRTUAL TABLE IF NOT EXISTS conversations_search USING fts5(id UNINDEXED, title, content, tokenize = 'unicode61 remove_diacritics 2');
+      CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, alias TEXT NOT NULL UNIQUE, root TEXT NOT NULL UNIQUE, revision INTEGER NOT NULL, data TEXT NOT NULL) STRICT;
+      CREATE TRIGGER IF NOT EXISTS conversation_project_identity BEFORE UPDATE ON conversations
+      WHEN json_extract(OLD.data, '$.projectId') IS NOT NULL AND json_extract(NEW.data, '$.projectId') IS NOT json_extract(OLD.data, '$.projectId')
+      BEGIN SELECT RAISE(ABORT, 'project_identity_immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS conversation_auto_project AFTER INSERT ON conversations
+      WHEN json_extract(NEW.data, '$.projectId') IS NULL AND EXISTS (SELECT 1 FROM projects WHERE root = json_extract(NEW.data, '$.project'))
+      BEGIN UPDATE conversations SET data = json_set(data, '$.projectId', (SELECT id FROM projects WHERE root = json_extract(NEW.data, '$.project'))) WHERE id = NEW.id; END;
     `);
       if (schemaVersion < 3) {
         this.db.exec('DELETE FROM conversations_search');
@@ -56,7 +66,7 @@ export class SqliteStore {
           this.indexConversation(data);
         }
       }
-      this.db.exec('PRAGMA user_version = 3; COMMIT;');
+      this.db.exec('PRAGMA user_version = 4; COMMIT;');
     } catch (error) {
       try {
         this.db.exec('ROLLBACK');
@@ -65,6 +75,75 @@ export class SqliteStore {
       }
       throw error;
     }
+    const projectRecord = (column: 'alias' | 'root', value: string) => {
+      const row = this.db.prepare(`SELECT data FROM projects WHERE ${column} = ?`).get(value);
+      return row ? new Project(JSON.parse(String(row.data)) as ProjectData) : undefined;
+    };
+    const projectUnique = (project: Project) => {
+      for (const [column, value] of [
+        ['alias', project.data.alias],
+        ['root', project.data.root],
+      ] as const) {
+        const existing = projectRecord(column, value);
+        if (existing && existing.data.id !== project.data.id)
+          throw new AresError('CONFLICT', 'El alias o la carpeta ya pertenecen a otro proyecto.');
+      }
+    };
+    this.projects = {
+      byAlias: (alias) => projectRecord('alias', alias),
+      byRoot: (root) => projectRecord('root', root),
+      list: () =>
+        this.db
+          .prepare('SELECT data FROM projects ORDER BY alias')
+          .all()
+          .map((row) => new Project(JSON.parse(String(row.data)) as ProjectData).data),
+      register: (project) =>
+        this.transaction(() => {
+          projectUnique(project);
+          const data = project.data;
+          this.db
+            .prepare('INSERT INTO projects VALUES (?, ?, ?, ?, ?)')
+            .run(data.id, data.alias, data.root, data.revision, JSON.stringify(data));
+          let linked = 0;
+          for (const row of this.db
+            .prepare(
+              "SELECT id, data FROM conversations WHERE json_extract(data, '$.project') = ? AND json_extract(data, '$.projectId') IS NULL",
+            )
+            .all(data.root)) {
+            const conversation = new Conversation({
+              ...JSON.parse(String(row.data)),
+              projectId: data.id,
+            });
+            this.db
+              .prepare('UPDATE conversations SET data = ? WHERE id = ?')
+              .run(JSON.stringify(conversation.data), String(row.id));
+            linked++;
+          }
+          return linked;
+        }),
+      save: (project, expectedRevision) =>
+        this.transaction(() => {
+          projectUnique(project);
+          const data = project.data;
+          const result = this.db
+            .prepare(
+              'UPDATE projects SET alias = ?, root = ?, revision = ?, data = ? WHERE id = ? AND revision = ?',
+            )
+            .run(
+              data.alias,
+              data.root,
+              data.revision,
+              JSON.stringify(data),
+              data.id,
+              expectedRevision,
+            );
+          if (!result.changes)
+            throw new AresError(
+              'CONFLICT',
+              'El proyecto cambió en otra terminal; vuelve a abrirlo.',
+            );
+        }),
+    };
     this.conversations = {
       get: (id) => {
         const row = this.record('conversations', id);
@@ -212,6 +291,11 @@ export class SqliteStore {
       return result;
     } catch (error) {
       this.db.exec('ROLLBACK');
+      if (error instanceof Error && error.message.includes('project_identity_immutable'))
+        throw new AresError(
+          'CONFLICT',
+          'La sesión se vinculó a un proyecto en otra terminal; reabre su estado actual.',
+        );
       throw error;
     }
   }

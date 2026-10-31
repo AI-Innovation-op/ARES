@@ -236,6 +236,6 @@ test('v1 database migration preserves conversations and proposals and adds verif
     store.close();
   }
   const reopened = new DatabaseSync(file);
-  assert.equal(reopened.prepare('PRAGMA user_version').get().user_version, 3);
+  assert.equal(reopened.prepare('PRAGMA user_version').get().user_version, 4);
   reopened.close();
 });

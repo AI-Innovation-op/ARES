@@ -55,6 +55,10 @@ try {
   if (doctor.version !== version) throw new Error('Versión incorrecta en el portable.');
   const project = path.join(directory, 'generated project');
   run(['forge', project, '--json']);
+  const registration = run(['projects', 'add', 'smoke', project, '--json']);
+  const selected = run(['--project', '@smoke', 'doctor', '--json']);
+  if (selected.projectProfile.id !== registration.project.id)
+    throw new Error('El portable no resolvió su alias.');
   const verified = run(['verify', '--path', project, '--json']);
   if (verified.status !== 'passed') throw new Error('El proyecto generado no pasó sus tests.');
   const architecture = run(['analyze', project, '--fail-on', 'any', '--json']);

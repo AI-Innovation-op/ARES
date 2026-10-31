@@ -31,13 +31,20 @@ export class Ask {
     signal?: AbortSignal;
     onDelta?: (text: string) => void;
     project?: string;
+    projectId?: string;
   }): Promise<ConversationData> {
     requireText(input.prompt, 'Consulta');
     const conversation = input.sessionId
       ? this.conversations.get(input.sessionId)
-      : Conversation.start(this.identity.next(), this.identity.now(), input.prompt, input.project);
+      : Conversation.start(
+          this.identity.next(),
+          this.identity.now(),
+          input.prompt,
+          input.project,
+          input.projectId,
+        );
     if (!conversation) throw new AresError('NOT_FOUND', `Sesión no encontrada: ${input.sessionId}`);
-    conversation.assertProject(input.project);
+    conversation.assertProject(input.project, input.projectId);
 
     const history: Message[] = [];
     let budget = 80_000;

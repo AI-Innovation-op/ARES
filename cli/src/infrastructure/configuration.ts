@@ -37,23 +37,29 @@ export function loadConfiguration(
   overrides: { provider?: string; model?: string } = {},
   environment: NodeJS.ProcessEnv = process.env,
   cwd = process.cwd(),
+  preferences?: { provider: string; model: string },
 ): Configuration {
   const { home, envFile } = configurationLocation(environment, cwd);
   const env: Record<string, string | undefined> = {};
   const ranks: Record<string, number> = {};
   const sources = [
     fs.existsSync(envFile) ? parse(fs.readFileSync(envFile)) : {},
+    preferences ? { ARES_PROVIDER: preferences.provider, ARES_MODEL: preferences.model } : {},
     fs.existsSync(path.join(cwd, '.env')) ? parse(fs.readFileSync(path.join(cwd, '.env'))) : {},
     environment,
   ];
+  let modelProvider: string | undefined, baseProvider: string | undefined;
   sources.forEach((source, rank) => {
+    const owner = source.ARES_PROVIDER || env.ARES_PROVIDER;
+    if (source.ARES_MODEL !== undefined) modelProvider = owner;
+    if (source.ARES_BASE_URL !== undefined) baseProvider = owner;
     for (const [key, value] of Object.entries(source))
       if (value !== undefined) {
         env[key] = value;
         ranks[key] = rank;
       }
   });
-  return resolveConfiguration(overrides, env, home, envFile, ranks);
+  return resolveConfiguration(overrides, env, home, envFile, ranks, modelProvider, baseProvider);
 }
 
 function resolveConfiguration(
@@ -62,6 +68,8 @@ function resolveConfiguration(
   home: string,
   envFile: string,
   ranks: Readonly<Record<string, number>> = {},
+  modelProvider: string | undefined = env.ARES_PROVIDER,
+  baseProvider: string | undefined = env.ARES_PROVIDER,
 ): Configuration {
   const provider =
     overrides.provider ||
@@ -70,7 +78,7 @@ function resolveConfiguration(
     (env.ARES_BASE_URL ? 'compatible' : 'openrouter');
   const definition = providerDefinition(provider);
   const selected = provider as Provider;
-  const useBase = selected === 'compatible' || !env.ARES_PROVIDER || env.ARES_PROVIDER === selected;
+  const useBase = !baseProvider || baseProvider === selected;
   const baseUrl = ((useBase ? env.ARES_BASE_URL : undefined) || definition.baseUrl).replace(
     /\/+$/,
     '',
@@ -114,7 +122,7 @@ function resolveConfiguration(
       throw new AresError('CONFIG', `${label} debe estar entre ${min} y ${max}.`);
     return number;
   };
-  const genericModelAllowed = !env.ARES_PROVIDER || env.ARES_PROVIDER === selected;
+  const genericModelAllowed = !modelProvider || modelProvider === selected;
   const useGeneric =
     genericModelAllowed &&
     env.ARES_MODEL !== undefined &&

@@ -15,6 +15,7 @@ export interface ConversationData {
   readonly revision: number;
   readonly turns: readonly Turn[];
   readonly project?: string;
+  readonly projectId?: string;
 }
 
 /** Aggregate: a conversation contains only completed user/assistant pairs. */
@@ -33,6 +34,13 @@ export class Conversation {
         /[\x00-\x1f\x7f]/.test(data.project))
     )
       throw new AresError('VALIDATION', 'Proyecto de conversación inválido.');
+    if (
+      data.projectId !== undefined &&
+      (typeof data.projectId !== 'string' ||
+        !/^[a-zA-Z0-9-]{1,64}$/.test(data.projectId) ||
+        !data.project)
+    )
+      throw new AresError('VALIDATION', 'Identidad de proyecto inválida.');
     this.data = Object.freeze({
       ...data,
       turns: Object.freeze(data.turns.map((t) => Object.freeze({ ...t }))),
@@ -40,7 +48,13 @@ export class Conversation {
     Object.freeze(this);
   }
 
-  static start(id: string, at: string, title: string, project?: string): Conversation {
+  static start(
+    id: string,
+    at: string,
+    title: string,
+    project?: string,
+    projectId?: string,
+  ): Conversation {
     return new Conversation({
       id,
       title: requireText(title, 'Título').slice(0, 80),
@@ -49,11 +63,16 @@ export class Conversation {
       revision: 0,
       turns: [],
       ...(project !== undefined ? { project } : {}),
+      ...(projectId !== undefined ? { projectId } : {}),
     });
   }
 
-  assertProject(project?: string): void {
-    if (this.data.project && this.data.project !== project)
+  assertProject(project?: string, projectId?: string): void {
+    if (
+      this.data.projectId
+        ? this.data.projectId !== projectId
+        : this.data.project && this.data.project !== project
+    )
       throw new AresError(
         'CONFLICT',
         'La sesión pertenece a otro proyecto. Abre su carpeta con --project o /open, o inicia /new.',

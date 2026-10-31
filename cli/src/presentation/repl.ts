@@ -93,6 +93,7 @@ export async function interactiveShell(
     'verifications',
     'models',
     'providers',
+    'projects',
     'search',
   ];
   const commands = [
@@ -241,6 +242,11 @@ export async function interactiveShell(
             command === '/search' ? ['sessions', 'search', ...args] : [command.slice(1), ...args],
             active.signal,
           );
+          if (command === '/projects') {
+            const selected = actions.selection();
+            selectedProvider = selected.provider;
+            selectedModel = selected.model;
+          }
         } else {
           active = new AbortController();
           process.stdout.write(ui.assistant());

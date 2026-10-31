@@ -6,6 +6,7 @@ import { Command, CommanderError } from 'commander';
 import JSZip from 'jszip';
 import { createTwoFilesPatch } from 'diff';
 import { Ask } from '../conversation/application/ask.js';
+import { ManageProjects } from '../projects/application/manage-projects.js';
 import { ChangeCode } from '../changes/application/change-code.js';
 import { forgeProject } from '../engineering/application/forge.js';
 import { generateDocument } from '../engineering/application/document.js';
@@ -14,6 +15,7 @@ import { AresError } from '../shared/domain/errors.js';
 import { complete } from '../shared/application/ports.js';
 import {
   loadConfiguration,
+  configurationLocation,
   initializeConfiguration,
   publicConfiguration,
   requireAi,
@@ -31,31 +33,66 @@ import { NodeProjectChecks } from '../infrastructure/project-checks.js';
 import { listModels } from '../infrastructure/model-catalog.js';
 import { selectContext } from '../infrastructure/text.js';
 import { SecretSafeModel } from '../infrastructure/secret-safe-model.js';
-import { providerNames, redactCredentials } from '../infrastructure/providers.js';
+import {
+  providerNames,
+  providerDefinition,
+  redactCredentials,
+} from '../infrastructure/providers.js';
 
 const identity = { next: randomUUID, now: () => new Date().toISOString() };
 const version = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url), 'utf8'))
   .version as string;
 type GlobalOptions = { json?: boolean; provider?: string; model?: string; project?: string };
 
-export async function run(argv = process.argv, externalSignal?: AbortSignal): Promise<void> {
+export async function run(
+  argv = process.argv,
+  externalSignal?: AbortSignal,
+  initialEnvironment = process.env,
+): Promise<void> {
   const program = new Command();
   const originalDirectory = process.cwd();
+  const location = configurationLocation(initialEnvironment, originalDirectory);
+  const environment = {
+    ...initialEnvironment,
+    ARES_HOME: location.home,
+    ...(initialEnvironment.ARES_ENV_FILE ? { ARES_ENV_FILE: location.envFile } : {}),
+  };
   let projectRoot: string | undefined;
-  const openProject = (target: string): string => {
-    if (!target.trim()) throw new AresError('VALIDATION', 'Indica la carpeta del proyecto.');
+  let projectIdentity: string | undefined;
+  const locationId = (root: string): string | undefined => {
+    const stat = fs.statSync(root, { bigint: true });
+    return stat.ino ? `${stat.dev}:${stat.ino}` : undefined;
+  };
+  const canonicalDirectory = (target: string): string => {
     const absolute = path.resolve(target);
     if (!fs.existsSync(absolute))
       throw new AresError('NOT_FOUND', `No existe el proyecto: ${absolute}`);
     const root = fs.realpathSync(absolute);
     if (!fs.statSync(root).isDirectory())
       throw new AresError('VALIDATION', 'El proyecto debe ser una carpeta.');
+    return root;
+  };
+  const openProject = (target: string): string => {
+    if (!target.trim()) throw new AresError('VALIDATION', 'Indica la carpeta del proyecto.');
+    const registered = target.startsWith('@') ? catalog().get(target.slice(1)).data : undefined;
+    const root = canonicalDirectory(registered?.root ?? target);
+    if (registered && root !== registered.root)
+      throw new AresError(
+        'CONFLICT',
+        'La ruta del alias apunta a otra ubicación. Usa projects relocate.',
+      );
     const previousDirectory = process.cwd();
+    const previousRoot = projectRoot,
+      previousIdentity = projectIdentity;
     process.chdir(root);
+    projectRoot = root;
+    projectIdentity = undefined;
     try {
       config();
     } catch (error) {
       process.chdir(previousDirectory);
+      projectRoot = previousRoot;
+      projectIdentity = previousIdentity;
       throw error;
     }
     projectRoot = root;
@@ -64,6 +101,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
   const closeProject = () => {
     process.chdir(originalDirectory);
     projectRoot = undefined;
+    projectIdentity = undefined;
   };
   let store: SqliteStore | undefined;
   const workspace = new LocalWorkspace();
@@ -71,23 +109,49 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
   let interactiveProvider: string | undefined;
   const options = () => program.opts<GlobalOptions>();
   const config = () =>
-    loadConfiguration({
-      ...options(),
-      ...(interactiveProvider
-        ? { provider: interactiveProvider, model: interactiveModel }
-        : interactiveModel
-          ? { model: interactiveModel }
-          : {}),
-    });
+    loadConfiguration(
+      {
+        ...options(),
+        ...(interactiveProvider
+          ? { provider: interactiveProvider, model: interactiveModel }
+          : interactiveModel
+            ? { model: interactiveModel }
+            : {}),
+      },
+      environment,
+      process.cwd(),
+      currentProject()?.data.preferences,
+    );
   const operation = <T>(work: (signal: AbortSignal) => Promise<T>): Promise<T> =>
     externalSignal ? work(externalSignal) : cancellable(work);
-  const database = () => (store ??= new SqliteStore(config().home));
+  const database = () => (store ??= new SqliteStore(location.home));
+  const catalog = () => new ManageProjects(database().projects, identity);
+  const currentProject = () => {
+    if (!projectRoot) return undefined;
+    const current = database().projects.byRoot(projectRoot);
+    if (projectIdentity && current?.data.id !== projectIdentity)
+      throw new AresError(
+        'CONFLICT',
+        'El proyecto se reubicó en otra terminal. Reabre su alias con /open.',
+      );
+    if (
+      current?.data.locationId &&
+      (!fs.existsSync(projectRoot) || locationId(projectRoot) !== current.data.locationId)
+    )
+      throw new AresError(
+        'CONFLICT',
+        'La carpeta registrada fue sustituida o movida. Usa projects relocate y reabre su alias.',
+      );
+    projectIdentity = current?.data.id;
+    return current;
+  };
   const model = (c = config()) => {
     requireAi(c);
     return new SecretSafeModel(new CompatibleLanguageModel(c), c.secrets);
   };
   const changes = () => new ChangeCode(database().proposals, new LocalChangeWorkspace(), identity);
   const assertProposalProject = (id: string) => {
+    currentProject();
     if (projectRoot && changes().get(id).data.root !== projectRoot)
       throw new AresError(
         'CONFLICT',
@@ -144,6 +208,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
       node: process.version,
       cliPath: fileURLToPath(new URL('../../', import.meta.url)),
       project: projectRoot || null,
+      projectProfile: currentProject()?.data || null,
       ...publicConfiguration(c),
       aiReady,
       connectionVerified: probe,
@@ -174,6 +239,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     const result = await new Ask(database().conversations, ai, identity).execute({
       prompt: safePrompt,
       project: projectRoot,
+      projectId: currentProject()?.data.id,
       sessionId,
       context: target ? contextText(workspace.scan(path.resolve(target)), 100_000, prompt) : '',
       signal,
@@ -199,7 +265,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
         sessions,
         exists: (id) => {
           const saved = database().conversations.get(id);
-          saved?.assertProject(projectRoot);
+          saved?.assertProject(projectRoot, currentProject()?.data.id);
           return Boolean(saved);
         },
         project: () => projectRoot,
@@ -211,34 +277,50 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
         },
         doctor,
         setModel: (id) => {
-          const selected = loadConfiguration({
-            ...options(),
-            provider: interactiveProvider || options().provider,
-            model: id,
-          });
+          const selected = loadConfiguration(
+            {
+              ...options(),
+              provider: interactiveProvider || options().provider,
+              model: id,
+            },
+            environment,
+            process.cwd(),
+            currentProject()?.data.preferences,
+          );
           interactiveModel = selected.model;
         },
         setProvider: (id) => {
-          const selected = loadConfiguration({ provider: id });
+          const selected = loadConfiguration(
+            { provider: id },
+            environment,
+            process.cwd(),
+            currentProject()?.data.preferences,
+          );
           interactiveProvider = selected.provider;
           interactiveModel = selected.model;
           return selected;
         },
         execute: async (args, signal) => {
-          const current = config();
+          const management = args[0] === 'projects';
+          const current = management ? undefined : config();
           const previousCode = process.exitCode;
           try {
             await run(
               [
                 argv[0],
                 argv[1],
-                '--provider',
-                current.provider,
-                ...(current.model ? ['--model', current.model] : []),
-                ...(projectRoot ? ['--project', projectRoot] : []),
+                ...(current
+                  ? [
+                      '--provider',
+                      current.provider,
+                      ...(current.model ? ['--model', current.model] : []),
+                    ]
+                  : []),
+                ...(!management && projectRoot ? ['--project', projectRoot] : []),
                 ...args,
               ],
               signal,
+              environment,
             );
           } catch (error) {
             if (!(error instanceof CommanderError && error.exitCode === 0)) throw error;
@@ -261,14 +343,95 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
     .option('-p, --provider <proveedor>', providerNames.join(', '))
     .option('-m, --model <modelo>', 'ID del modelo disponible en tu proveedor')
     .option(
-      '-C, --project <carpeta>',
-      'Abrir proyecto; rutas relativas y contexto usan esta carpeta',
+      '-C, --project <carpeta-o-alias>',
+      'Abrir carpeta o @alias; rutas relativas y contexto usan este proyecto',
     )
     .showHelpAfterError()
     .exitOverride();
   program.hook('preAction', () => {
     if (options().project !== undefined) openProject(options().project!);
   });
+  const projects = program
+    .command('projects')
+    .description('Registrar alias, preferencias y reubicación de proyectos');
+  const listProjects = () => {
+    const data = database()
+      .projects.list()
+      .map((project) => ({
+        ...project,
+        available: fs.existsSync(project.root),
+      }));
+    output(
+      data,
+      data.length
+        ? data
+            .map((p) => `@${p.alias}  ${p.root}${p.available ? '' : ' [no disponible]'}`)
+            .join('\n')
+        : 'No hay proyectos registrados. Usa projects add ALIAS RUTA.',
+    );
+  };
+  projects.action(listProjects);
+  projects.command('list').action(listProjects);
+  projects.command('show <alias>').action((alias) => {
+    const data = catalog().get(alias).data;
+    output(
+      data,
+      `@${data.alias}\nProyecto: ${data.root}\nID: ${data.id}\nIA: ${data.preferences ? data.preferences.provider + ' / ' + data.preferences.model : 'configuración general'}`,
+    );
+  });
+  projects
+    .command('add <alias> [carpeta]')
+    .description('Registrar una carpeta y vincular sus sesiones anteriores')
+    .action((alias, target = '.') => {
+      const root = canonicalDirectory(target);
+      const result = catalog().register(alias, root, locationId(root));
+      output(
+        result,
+        `Proyecto registrado: @${result.project.alias}\nCarpeta: ${root}\nSesiones vinculadas: ${result.linkedSessions}\nAbrir: ares --project "@${alias}"`,
+      );
+    });
+  projects
+    .command('configure <alias>')
+    .option('--provider <proveedor>', 'Proveedor preferido para este proyecto')
+    .option('--model <modelo>', 'Modelo del proveedor elegido')
+    .option('--reset', 'Retirar las preferencias y usar configuración general')
+    .action((alias, opts) => {
+      const provider = opts.provider ?? options().provider;
+      const selectedModel = opts.model ?? options().model;
+      if (
+        opts.reset
+          ? provider !== undefined || selectedModel !== undefined
+          : !provider || !selectedModel
+      )
+        throw new AresError('VALIDATION', 'Usa --provider y --model juntos, o --reset.');
+      if (!opts.reset) providerDefinition(provider!);
+      const data = catalog().configure(
+        alias,
+        opts.reset ? undefined : { provider: provider!, model: selectedModel! },
+      );
+      output(data, `Perfil actualizado: @${alias}`);
+    });
+  projects
+    .command('relocate <alias> <carpeta>')
+    .description('Vincular la nueva ubicación; no mueve archivos')
+    .action((alias, target) => {
+      const before = catalog().get(alias).data;
+      const root = canonicalDirectory(target);
+      if (
+        before.root !== root &&
+        fs.existsSync(before.root) &&
+        (!before.locationId || locationId(before.root) === before.locationId)
+      )
+        throw new AresError(
+          'CONFLICT',
+          'La carpeta original todavía existe. Muévela primero; relocate no copia ni mueve archivos.',
+        );
+      const data = catalog().relocate(alias, root, locationId(root));
+      output(
+        data,
+        `Proyecto reubicado: @${alias}\nCarpeta: ${root}\nLas conversaciones conservan su identidad. Las propuestas anteriores mantienen su raíz original.`,
+      );
+    });
   program.configureOutput({
     writeErr: (text) => {
       if (!argv.includes('--json')) process.stderr.write(text);
@@ -385,12 +548,15 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
       )
         throw new AresError('VALIDATION', 'Indica --provider, --model, --base-url o --key-stdin.');
       const apiKey = opts.keyStdin ? await readStdin() : undefined;
-      const written = updateConfiguration({
-        provider: options().provider,
-        model: options().model,
-        baseUrl: opts.baseUrl,
-        apiKey,
-      });
+      const written = updateConfiguration(
+        {
+          provider: options().provider,
+          model: options().model,
+          baseUrl: opts.baseUrl,
+          apiKey,
+        },
+        environment,
+      );
       output(
         publicConfiguration(written),
         `Configuración actualizada: ${written.envFile}\nLas variables del proceso o del proyecto tienen precedencia. Verifica con ares doctor --probe.`,
@@ -404,7 +570,7 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
       if (options().json)
         throw new AresError('VALIDATION', 'Para automatizar usa config set --key-stdin --json.');
       const { setupConfiguration } = await import('./setup.js');
-      const selected = await operation((signal) => setupConfiguration(signal));
+      const selected = await operation((signal) => setupConfiguration(signal, environment));
       output(
         publicConfiguration(selected),
         'Configuración lista. Comprueba la conexión con ares doctor --probe.',
