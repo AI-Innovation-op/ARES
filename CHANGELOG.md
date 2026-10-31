@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y adherido a [
 
 ---
 
+## [5.2.1] - 2026-10-31 — Identidad visual del terminal
+
+- Recuperados el logo original, la firma de AI Innovation, la paleta cian/blanco y el prompt `ares@standalone:~$`, con la versión actual.
+- Catálogo de órdenes con columnas adaptables y aliases `help`, `ayuda`, `status`, `clear` y `cls`. Limpiar la pantalla conserva la conversación, el contexto y el modelo seleccionado.
+- La interfaz distingue ejecución local de conexión de IA sin verificar. Colores sujetos a capacidades del terminal y `NO_COLOR`; JSON y tuberías sin escapes.
+- La decoración usa un renderer de confianza sin relajar la eliminación de controles en respuestas, metadatos y archivos del proyecto.
+
 ## [5.2.0] - 2026-10-30 — Arquitectura comprobable y configuración privada
 
 - Análisis AST de imports JS/TS y bloques script de Vue: dirección de dependencias, alias locales, ciclos y referencias no resueltas. Gate explícito para CI, sin puntuaciones simuladas.

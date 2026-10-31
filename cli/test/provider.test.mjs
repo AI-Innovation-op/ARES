@@ -210,7 +210,7 @@ test('AI proposal passes through HTTP, domain validation, diff, apply and restor
   );
 });
 
-test('interactive shell consumes piped commands in order and preserves conversation state', async (t) => {
+test('interactive shell preserves conversation state across legacy help, status and clear aliases', async (t) => {
   const home = temporary(t);
   const env = await fixtureServer(t, (_req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/event-stream' });
@@ -218,11 +218,13 @@ test('interactive shell consumes piped commands in order and preserves conversat
   });
   const result = await runAsync(['repl'], home, {
     env,
-    input: '/help\nPrimera\nSegunda\n/history\n/exit\n',
+    input: 'help\nstatus\nPrimera\ncls\nSegunda\n/history\n/exit\n',
   });
   assert.equal(result.status, 0, result.stderr);
   assert.ok(result.stdout.includes('Primera'));
   assert.ok(result.stdout.includes('Segunda'));
+  assert.ok(result.stdout.includes('CATÁLOGO DE ÓRDENES'));
+  assert.ok(!result.stdout.includes('\x1b'));
   assert.equal(JSON.parse(run(['sessions', 'list', '--json'], home).stdout)[0].revision, 2);
 });
 

@@ -4,9 +4,11 @@ CLI independiente para conversar sobre código, inspeccionar proyectos, generar 
 
 La versión 5 reconstruye el núcleo de terminal con dominio puro, casos de uso, puertos y adaptadores. Las conversaciones y las propuestas tienen invariantes y persistencia SQLite. El diseño usa DDD en las reglas que lo necesitan y conserva una aplicación local pequeña.
 
-**Versión CLI: 5.2.0. Requisito: Node.js 24 o superior.** Git es necesario para clonar el repositorio; la ejecución del CLI no lo requiere.
+**Versión CLI: 5.2.1. Requisito: Node.js 24 o superior.** Git es necesario para clonar el repositorio; la ejecución del CLI no lo requiere.
 
 También puedes descargar el ZIP portable desde [Releases](https://github.com/AI-Innovation-op/ARES/releases), extraerlo y ejecutar `ares.cmd doctor`. Incluye las dependencias de ejecución; no requiere `npm install`.
+
+La sesión conserva el logo original de ARES, los colores cian/blanco, la firma de AI Innovation y el prompt `ares@standalone:~$`. El banner muestra la versión real y distingue el funcionamiento local de una conexión de IA todavía sin verificar. `help`, `status` y `clear`/`cls` recuperan los accesos del terminal anterior; limpiar la pantalla conserva la sesión y el modelo elegido. El formato se adapta a ventanas estrechas y respeta `NO_COLOR`; las salidas JSON y por tubería permanecen sin escapes de estilo.
 
 ## Empezar en CMD
 

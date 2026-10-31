@@ -3,6 +3,7 @@ import type { Configuration } from '../infrastructure/configuration.js';
 import { requireAi } from '../infrastructure/configuration.js';
 import { diagnostic, print } from './output.js';
 import { terminalText } from '../infrastructure/text.js';
+import { TerminalUi, terminalProfile } from './terminal-ui.js';
 
 export interface ShellActions {
   ask(
@@ -56,12 +57,13 @@ export function commandArguments(line: string): string[] {
 export async function interactiveShell(
   config: Configuration,
   actions: ShellActions,
+  version: string,
 ): Promise<void> {
   const terminal = Boolean(process.stdin.isTTY && process.stdout.isTTY);
-  print(
-    `ARES | Ingeniería desde terminal\n${config.provider} / ${config.model || 'modelo sin configurar'}\n/help para ver comandos. Ctrl+C cancela una respuesta; /exit termina.`,
-    false,
-  );
+  const ui = new TerminalUi(version, () => terminalProfile(terminal));
+  let selectedModel = config.model;
+  const banner = () => process.stdout.write(ui.banner({ ...config, model: selectedModel }));
+  banner();
   try {
     requireAi(config);
   } catch (error) {
@@ -93,6 +95,14 @@ export async function interactiveShell(
     '/doctor',
     '/model',
     '/exit',
+    '/clear',
+    '/cls',
+    '/status',
+    'help',
+    'ayuda',
+    'status',
+    'clear',
+    'cls',
     ...delegated.map((command) => '/' + command),
   ];
   const rl = readline.createInterface({
@@ -116,26 +126,32 @@ export async function interactiveShell(
   process.on('SIGINT', interrupt);
   const prompt = () => {
     if (terminal) {
-      rl.setPrompt(sessionId ? `ares [${sessionId.slice(0, 8)}]> ` : 'ares> ');
+      rl.setPrompt(ui.prompt(sessionId));
       rl.prompt();
     }
   };
   prompt();
   try {
     for await (const raw of rl) {
-      const line = raw.trim();
+      const entered = raw.trim();
+      const line = ['help', 'ayuda'].includes(entered)
+        ? '/help'
+        : ['status', '/status'].includes(entered)
+          ? '/doctor'
+          : ['clear', 'cls', '/cls'].includes(entered)
+            ? '/clear'
+            : entered;
       if (!line) {
         prompt();
         continue;
       }
       if (['/exit', '/quit', 'exit', 'quit'].includes(line)) break;
       try {
-        if (line === '/help')
-          print(
-            '/new                  Nueva conversación\n/history              Historial de esta sesión\n/sessions             Listar sesiones guardadas\n/resume ID            Reanudar sesión\n/context RUTA         Adjuntar contexto local\n/context              Retirar contexto\n/doctor               Configuración y disponibilidad\n/models               Catálogo actual del proveedor\n/model ID             Cambiar modelo en esta terminal\n/audit RUTA           Inspección local\n/analyze RUTA         Imports, capas y ciclos con AST\n/search PALABRAS      Buscar en el historial local\n/forge NUEVA_CARPETA   Crear proyecto DDD de ejemplo\n/propose INSTRUCCION   Crear propuesta (--path RUTA)\n/diff ID              Revisar propuesta\n/apply ID             Aplicar propuesta\n/verify ID            Ejecutar tests de una propuesta aplicada\n/restore ID           Restaurar archivos\n/doc, /test           Proponer documentos y tests\n/verifications list   Evidencia de verificaciones\n/exit                 Salir\n\nLos comandos usan las mismas opciones que ares; admiten --help y rutas entre comillas. Escribe texto libre para conversar.',
-            false,
-          );
-        else if (line === '/new') {
+        if (line === '/help') process.stdout.write(ui.help());
+        else if (line === '/clear') {
+          process.stdout.write(ui.clear());
+          banner();
+        } else if (line === '/new') {
           sessionId = undefined;
           print('Nueva conversación.', false);
         } else if (line === '/sessions') actions.sessions();
@@ -160,6 +176,7 @@ export async function interactiveShell(
           const args = commandArguments(line);
           if (args.length !== 2 || !args[1]) throw new Error('Usa /model ID.');
           actions.setModel(args[1]);
+          selectedModel = args[1];
           print(`Modelo seleccionado: ${args[1]}`, false);
         } else if (line.startsWith('/')) {
           const [command, ...args] = commandArguments(line);
@@ -172,7 +189,7 @@ export async function interactiveShell(
           );
         } else {
           active = new AbortController();
-          process.stdout.write('ares: ');
+          process.stdout.write(ui.assistant());
           sessionId = await actions.ask(line, sessionId, context, active.signal);
         }
       } catch (error) {

@@ -146,38 +146,42 @@ export async function run(argv = process.argv, externalSignal?: AbortSignal): Pr
   const shell = async () => {
     if (options().json)
       throw new AresError('VALIDATION', '--json requiere un comando; usa ares ask --json.');
-    await interactiveShell(config(), {
-      ask,
-      history,
-      sessions,
-      exists: (id) => Boolean(database().conversations.get(id)),
-      doctor,
-      setModel: (id) => {
-        const selected = loadConfiguration({ ...options(), model: id });
-        interactiveModel = selected.model;
+    await interactiveShell(
+      config(),
+      {
+        ask,
+        history,
+        sessions,
+        exists: (id) => Boolean(database().conversations.get(id)),
+        doctor,
+        setModel: (id) => {
+          const selected = loadConfiguration({ ...options(), model: id });
+          interactiveModel = selected.model;
+        },
+        execute: async (args, signal) => {
+          const current = config();
+          const previousCode = process.exitCode;
+          try {
+            await run(
+              [
+                argv[0],
+                argv[1],
+                '--provider',
+                current.provider,
+                ...(current.model ? ['--model', current.model] : []),
+                ...args,
+              ],
+              signal,
+            );
+          } catch (error) {
+            if (!(error instanceof CommanderError && error.exitCode === 0)) throw error;
+          } finally {
+            process.exitCode = previousCode;
+          }
+        },
       },
-      execute: async (args, signal) => {
-        const current = config();
-        const previousCode = process.exitCode;
-        try {
-          await run(
-            [
-              argv[0],
-              argv[1],
-              '--provider',
-              current.provider,
-              ...(current.model ? ['--model', current.model] : []),
-              ...args,
-            ],
-            signal,
-          );
-        } catch (error) {
-          if (!(error instanceof CommanderError && error.exitCode === 0)) throw error;
-        } finally {
-          process.exitCode = previousCode;
-        }
-      },
-    });
+      version,
+    );
   };
 
   program
