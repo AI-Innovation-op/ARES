@@ -11,6 +11,7 @@ Fecha local: 2026-10-31, America/Lima. Windows, Node.js 24.21.0.
 - Contexto en solicitudes HTTP reales a un servidor de pruebas; sesiones vinculadas y rechazo de otra carpeta antes de generar una petición.
 - Apertura fallida sin cambiar el proyecto anterior, selección correcta del modelo del proyecto y reinicio de conversación al abrir/cerrar carpetas.
 - Tarball instalado en prefijo temporal como copia regular: versión, dependencias directas frente al lockfile, diagnóstico, proyecto generado y verificación real aprobados.
+- Instalador global completo en un prefijo privado de npm, con un prefijo de desarrollo incorrecto heredado: se comprueba que instala en la ubicación configurada por el usuario.
 
 ## Tarea real de programación
 
